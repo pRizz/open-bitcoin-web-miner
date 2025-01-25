@@ -20,7 +20,7 @@ export const useMiningState = () => {
     setMiningStats(prev => {
       const currentBest = prev.bestHashes[0];
       
-      if (!currentBest || solution.binaryZeroes >= currentBest.binaryZeroes) {
+      if (!currentBest || solution.binaryZeroes > currentBest.binaryZeroes) {
         const updatedHashes = [solution, ...prev.bestHashes]
           .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
           .slice(0, 100);
