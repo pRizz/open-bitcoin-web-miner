@@ -61,7 +61,10 @@ export function HashList({ hashes }: HashListProps) {
           </TableHeader>
           <TableBody>
             {sortedHashes.map((hash) => (
-              <TableRow key={hash.id}>
+              <TableRow 
+                key={hash.id}
+                className="animate-fade-in"
+              >
                 <TableCell>{hash.binaryZeroes}</TableCell>
                 <TableCell>{hash.hexZeroes}</TableCell>
                 <TableCell className="font-mono text-xs truncate max-w-[200px]">
