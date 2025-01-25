@@ -8,8 +8,6 @@ interface MinerReference {
 
 const MINER_REFERENCES: MinerReference[] = [
   { hashRate: 1e12, name: "Bitaxe" },        // 1 TH/s
-  { hashRate: 10e12, name: "Antminer S14" }, // 10 TH/s
-  { hashRate: 50e12, name: "Antminer S19" }, // 50 TH/s
   { hashRate: 100e12, name: "Antminer S21" }, // 100 TH/s
 ];
 
