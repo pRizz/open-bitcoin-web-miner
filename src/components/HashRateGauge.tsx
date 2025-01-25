@@ -37,8 +37,16 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       <div className="relative">
+        {/* Main gauge */}
+        <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+
         {/* Magnitude ticks */}
-        <div className="relative h-6 mb-1">
+        <div className="relative h-8 mt-1">
           {MAGNITUDE_TICKS.map((value) => {
             if (value > maxHashRate) return null;
             const tickPosition = getLogScale(value);
@@ -48,25 +56,17 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
                 className="absolute -translate-x-1/2"
                 style={{ left: `${tickPosition}%` }}
               >
-                <div className="h-1 w-px bg-gray-600" />
-                <div className="text-[10px] text-gray-500 mt-1 rotate-45 origin-top-left">
+                <div className="h-2 w-px bg-gray-600" />
+                <div className="text-[10px] text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap">
                   {formatHashRate(value)}
                 </div>
               </div>
             );
           })}
         </div>
-
-        {/* Main gauge */}
-        <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden mb-6">
-          <div
-            className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
         
         {/* Reference labels */}
-        <div className="relative h-16">
+        <div className="relative h-16 mt-4">
           {MINER_REFERENCES.map((miner, index) => {
             const tickPosition = getLogScale(miner.hashRate);
             // Alternate between two heights to prevent overlap
