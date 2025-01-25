@@ -42,11 +42,17 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       <div className="relative">
         {/* Main gauge */}
-        <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden">
+        <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
+            className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
             style={{ width: `${percentage}%` }}
-          />
+          >
+            {percentage > 5 && (
+              <span className="text-xs font-medium text-white">
+                {formatHashRateWithoutDecimals(hashRate)}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Magnitude ticks */}
