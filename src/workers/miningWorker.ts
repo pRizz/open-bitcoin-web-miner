@@ -4,16 +4,20 @@ import { calculateLeadingZeroes } from "@/utils/mining";
 let running = false;
 let hashCount = 0;
 let lastHashRateUpdate = Date.now();
+let miningSpeed = 100;
 const HASH_RATE_UPDATE_INTERVAL = 1000; // 1 second
 
 self.onmessage = (e) => {
-  const { type, blockHeader } = e.data;
+  const { type, blockHeader, miningSpeed: newSpeed } = e.data;
   
   if (type === 'start') {
     running = true;
+    miningSpeed = newSpeed;
     mine(blockHeader);
   } else if (type === 'stop') {
     running = false;
+  } else if (type === 'updateSpeed') {
+    miningSpeed = newSpeed;
   }
 };
 
@@ -31,21 +35,25 @@ function mine(blockHeader: Partial<HashSolution>) {
     }
   };
 
-  const miningLoop = () => {
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const miningLoop = async () => {
     if (!running) return;
 
-    for (let i = 0; i < 10000; i++) {
+    const batchSize = 10000;
+    const sleepTime = Math.floor((100 - miningSpeed) * 10); // 0ms at 100%, 900ms at 10%
+
+    for (let i = 0; i < batchSize; i++) {
       const header = {
         ...blockHeader,
         nonce: nonce++,
       };
 
-      // Simulate SHA256 hash (in reality, you'd use crypto.subtle.digest)
       const hash = simulateHash(header);
       hashCount++;
 
       const { binary } = calculateLeadingZeroes(hash);
-      if (binary >= 10) { // Report any hash with 10+ leading zeroes
+      if (binary >= 10) {
         self.postMessage({
           type: 'hash',
           data: { ...header, hash },
@@ -54,14 +62,18 @@ function mine(blockHeader: Partial<HashSolution>) {
     }
 
     updateHashRate();
-    requestAnimationFrame(miningLoop);
+    
+    if (sleepTime > 0) {
+      await sleep(sleepTime);
+    }
+    
+    requestAnimationFrame(() => miningLoop());
   };
 
   miningLoop();
 }
 
 function simulateHash(header: Partial<HashSolution>): string {
-  // This is a simplified simulation - in reality, you'd properly serialize the header and use SHA256d
   const input = `${header.version}${header.previousBlock}${header.merkleRoot}${header.timestamp}${header.bits}${header.nonce}`;
   let hash = '';
   const chars = '0123456789abcdef';

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { HashRateGauge } from "@/components/HashRateGauge";
 import { NetworkStats } from "@/components/NetworkStats";
 import { HashList } from "@/components/HashList";
@@ -15,7 +16,9 @@ const Index = () => {
     networkStats,
     isMining,
     btcAddress,
+    miningSpeed,
     setBtcAddress,
+    setMiningSpeed,
     startMining,
     stopMining,
     resetData,
@@ -32,6 +35,10 @@ const Index = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleSpeedChange = (value: number[]) => {
+    setMiningSpeed(value[0]);
   };
 
   return (
@@ -58,6 +65,17 @@ const Index = () => {
                   value={btcAddress}
                   onChange={handleAddressChange}
                   className="font-mono"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-gray-400">Mining Speed: {miningSpeed}%</label>
+                <Slider
+                  value={[miningSpeed]}
+                  onValueChange={handleSpeedChange}
+                  min={10}
+                  max={100}
+                  step={10}
+                  className="w-full"
                 />
               </div>
               <Button

@@ -8,7 +8,9 @@ interface MiningContextType {
   networkStats: NetworkStats;
   isMining: boolean;
   btcAddress: string;
+  miningSpeed: number;
   setBtcAddress: (address: string) => void;
+  setMiningSpeed: (speed: number) => void;
   startMining: () => void;
   stopMining: () => void;
   resetData: () => void;
@@ -34,6 +36,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   
   const [isMining, setIsMining] = useState(false);
   const [btcAddress, setBtcAddress] = useState("");
+  const [miningSpeed, setMiningSpeed] = useState(100);
   const [worker, setWorker] = useState<Worker | null>(null);
 
   const startMining = () => {
@@ -68,6 +71,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     newWorker.postMessage({
       type: 'start',
       blockHeader: generateMockBlockHeader(),
+      miningSpeed,
     });
   };
 
@@ -80,6 +84,16 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     stopMiningStats();
   };
 
+  // Update worker when mining speed changes
+  React.useEffect(() => {
+    if (worker) {
+      worker.postMessage({
+        type: 'updateSpeed',
+        miningSpeed,
+      });
+    }
+  }, [miningSpeed, worker]);
+
   return (
     <MiningContext.Provider
       value={{
@@ -87,7 +101,9 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         networkStats,
         isMining,
         btcAddress,
+        miningSpeed,
         setBtcAddress,
+        setMiningSpeed,
         startMining,
         stopMining,
         resetData: resetStats,
