@@ -13,6 +13,9 @@ const MINER_REFERENCES: MinerReference[] = [
   { hashRate: 100e12, name: "Antminer S21" }, // 100 TH/s
 ];
 
+// Generate magnitude ticks from 1 H/s to 100 TH/s
+const MAGNITUDE_TICKS = Array.from({ length: 15 }, (_, i) => Math.pow(10, i));
+
 interface HashRateGaugeProps {
   hashRate: number;
 }
@@ -34,21 +37,41 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       <div className="relative">
-        <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden mb-2">
+        {/* Magnitude ticks */}
+        <div className="relative h-1 mb-1">
+          {MAGNITUDE_TICKS.map((value) => {
+            if (value > maxHashRate) return null;
+            const tickPosition = getLogScale(value);
+            return (
+              <div
+                key={value}
+                className="absolute -translate-x-1/2"
+                style={{ left: `${tickPosition}%` }}
+              >
+                <div className="h-1 w-px bg-gray-600" />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Main gauge */}
+        <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden mb-6">
           <div
             className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
             style={{ width: `${percentage}%` }}
           />
         </div>
         
-        {/* Reference ticks */}
-        <div className="relative h-6">
-          {MINER_REFERENCES.map((miner) => {
+        {/* Reference labels */}
+        <div className="relative h-16">
+          {MINER_REFERENCES.map((miner, index) => {
             const tickPosition = getLogScale(miner.hashRate);
+            // Alternate between two heights to prevent overlap
+            const topOffset = index % 2 === 0 ? "top-0" : "top-8";
             return (
               <div
                 key={miner.name}
-                className="absolute -translate-x-1/2"
+                className={`absolute -translate-x-1/2 ${topOffset}`}
                 style={{ left: `${tickPosition}%` }}
               >
                 <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
@@ -64,7 +87,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
         </div>
       </div>
       
-      <div className="flex justify-between text-sm text-gray-400 mt-8">
+      <div className="flex justify-between text-sm text-gray-400 mt-2">
         <span>{formatHashRate(hashRate)}</span>
         <span>{formatHashRate(maxHashRate)} (Max)</span>
       </div>
