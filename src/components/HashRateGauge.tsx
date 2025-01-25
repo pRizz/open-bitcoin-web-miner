@@ -30,6 +30,12 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   };
   
   const percentage = Math.min(getLogScale(hashRate), 100);
+
+  // Helper function to format hash rate without decimals
+  const formatHashRateWithoutDecimals = (value: number) => {
+    const formatted = formatHashRate(value);
+    return formatted.replace(/\.00/g, '');
+  };
   
   return (
     <Card className="p-6 glass-card">
@@ -56,7 +62,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
               >
                 <div className="h-2 w-px bg-gray-600" />
                 <div className="text-[10px] text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap">
-                  {formatHashRate(value)}
+                  {formatHashRateWithoutDecimals(value)}
                 </div>
               </div>
             );
@@ -79,7 +85,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
                 <div className="text-xs text-gray-400 whitespace-nowrap mt-1">
                   {miner.name}
                   <span className="block hash-text">
-                    {formatHashRate(miner.hashRate)}
+                    {formatHashRateWithoutDecimals(miner.hashRate)}
                   </span>
                 </div>
               </div>
@@ -89,8 +95,8 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
       </div>
       
       <div className="flex justify-between text-sm text-gray-400 mt-2">
-        <span>{formatHashRate(hashRate)}</span>
-        <span>{formatHashRate(maxHashRate)} (Max)</span>
+        <span>{formatHashRateWithoutDecimals(hashRate)}</span>
+        <span>{formatHashRateWithoutDecimals(maxHashRate)} (Max)</span>
       </div>
     </Card>
   );
