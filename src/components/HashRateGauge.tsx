@@ -38,7 +38,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       <div className="relative">
         {/* Magnitude ticks */}
-        <div className="relative h-1 mb-1">
+        <div className="relative h-6 mb-1">
           {MAGNITUDE_TICKS.map((value) => {
             if (value > maxHashRate) return null;
             const tickPosition = getLogScale(value);
@@ -49,6 +49,9 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
                 style={{ left: `${tickPosition}%` }}
               >
                 <div className="h-1 w-px bg-gray-600" />
+                <div className="text-[10px] text-gray-500 mt-1 rotate-45 origin-top-left">
+                  {formatHashRate(value)}
+                </div>
               </div>
             );
           })}
