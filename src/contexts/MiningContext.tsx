@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { MiningStats, HashSolution, NetworkStats } from "@/types/mining";
-import { useToast } from "@/hooks/use-toast";
+import React, { createContext, useContext, useState } from "react";
+import { MiningStats, NetworkStats } from "@/types/mining";
 import { calculateLeadingZeroes, generateMockBlockHeader } from "@/utils/mining";
+import { useMiningState } from "@/hooks/useMiningState";
 
 interface MiningContextType {
   miningStats: MiningStats;
@@ -16,21 +16,17 @@ interface MiningContextType {
 
 const MiningContext = createContext<MiningContextType | undefined>(undefined);
 
-const STORAGE_KEY = "bitcoin-mining-simulator";
-
 export function MiningProvider({ children }: { children: React.ReactNode }) {
-  const { toast } = useToast();
-  const [miningStats, setMiningStats] = useState<MiningStats>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {
-      hashRate: 0,
-      bestHashes: [],
-      totalHashes: 0,
-      startTime: null,
-    };
-  });
+  const {
+    miningStats,
+    updateMiningStats,
+    updateHashRate,
+    resetStats,
+    startMining: startMiningStats,
+    stopMining: stopMiningStats,
+  } = useMiningState();
   
-  const [networkStats, setNetworkStats] = useState<NetworkStats>({
+  const [networkStats] = useState<NetworkStats>({
     blockHeight: 828848,
     difficulty: 75e12,
     requiredBinaryZeroes: 144,
@@ -39,10 +35,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [isMining, setIsMining] = useState(false);
   const [btcAddress, setBtcAddress] = useState("");
   const [worker, setWorker] = useState<Worker | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(miningStats));
-  }, [miningStats]);
 
   const startMining = () => {
     if (worker) return;
@@ -56,59 +48,22 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       
       if (type === 'hash') {
         const { binary, hex } = calculateLeadingZeroes(data.hash);
-        const solution: HashSolution = {
+        const solution = {
           id: crypto.randomUUID(),
           ...data,
           binaryZeroes: binary,
           hexZeroes: hex,
         };
 
-        setMiningStats(prev => {
-          // Get the current best hash (if any)
-          const currentBest = prev.bestHashes[0];
-          
-          // Only add the new hash if it's better than the current best
-          // or if there are no hashes yet
-          if (!currentBest || solution.binaryZeroes >= currentBest.binaryZeroes) {
-            const updatedHashes = [solution, ...prev.bestHashes]
-              .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
-              .slice(0, 100);
-
-            return {
-              ...prev,
-              bestHashes: updatedHashes,
-              totalHashes: prev.totalHashes + 1,
-            };
-          }
-
-          // If the new hash isn't better, just increment the total
-          return {
-            ...prev,
-            totalHashes: prev.totalHashes + 1,
-          };
-        });
-
-        if (binary >= networkStats.requiredBinaryZeroes) {
-          toast({
-            title: "Block Found!",
-            description: `Found a hash with ${binary} leading binary zeroes!`,
-            variant: "default",
-          });
-        }
+        updateMiningStats(solution, networkStats.requiredBinaryZeroes);
       } else if (type === 'hashRate') {
-        setMiningStats(prev => ({
-          ...prev,
-          hashRate: data,
-        }));
+        updateHashRate(data);
       }
     };
 
     setWorker(newWorker);
     setIsMining(true);
-    setMiningStats(prev => ({
-      ...prev,
-      startTime: Date.now(),
-    }));
+    startMiningStats();
 
     newWorker.postMessage({
       type: 'start',
@@ -122,27 +77,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       setWorker(null);
     }
     setIsMining(false);
-    setMiningStats(prev => ({
-      ...prev,
-      hashRate: 0,
-      startTime: null,
-    }));
-  };
-
-  const resetData = () => {
-    stopMining();
-    setMiningStats({
-      hashRate: 0,
-      bestHashes: [],
-      totalHashes: 0,
-      startTime: null,
-    });
-    localStorage.removeItem(STORAGE_KEY);
-    toast({
-      title: "Data Reset",
-      description: "All mining data has been cleared.",
-      variant: "default",
-    });
+    stopMiningStats();
   };
 
   return (
@@ -155,7 +90,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         setBtcAddress,
         startMining,
         stopMining,
-        resetData,
+        resetData: resetStats,
       }}
     >
       {children}
