@@ -2,14 +2,13 @@ import { useState } from "react";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { HashSolution } from "@/types/mining";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { HashTableRow } from "./HashTableRow";
 
 interface HashListProps {
   hashes: HashSolution[];
@@ -34,15 +33,6 @@ export function HashList({ hashes }: HashListProps) {
       setSortField(field);
       setSortDirection("desc");
     }
-  };
-
-  const formatDuration = (ms: number) => {
-    if (ms < 1000) return `${ms}ms`;
-    const seconds = Math.floor(ms / 1000);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
   };
 
   return (
@@ -76,63 +66,7 @@ export function HashList({ hashes }: HashListProps) {
           </TableHeader>
           <TableBody>
             {sortedHashes.map((hash) => (
-              <TableRow 
-                key={hash.id}
-                className="animate-fade-in"
-              >
-                <TableCell>{hash.binaryZeroes}</TableCell>
-                <TableCell>{hash.hexZeroes}</TableCell>
-                <TableCell className="font-mono text-xs truncate max-w-[200px]">
-                  {hash.hash}
-                </TableCell>
-                <TableCell>{formatDuration(hash.timeToFind)}</TableCell>
-                <TableCell>
-                  <Dialog>
-                    <DialogTrigger className="text-blue-500 hover:text-blue-400">
-                      View
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Hash Details</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 font-mono text-sm">
-                        <div>
-                          <div className="text-gray-400">Hash</div>
-                          <div className="break-all">{hash.hash}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Time to Find</div>
-                          <div>{formatDuration(hash.timeToFind)}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Nonce</div>
-                          <div>{hash.nonce}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Previous Block</div>
-                          <div className="break-all">{hash.previousBlock}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Merkle Root</div>
-                          <div className="break-all">{hash.merkleRoot}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Timestamp</div>
-                          <div>{new Date(hash.timestamp * 1000).toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Version</div>
-                          <div>{hash.version}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Bits</div>
-                          <div>{hash.bits}</div>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </TableCell>
-              </TableRow>
+              <HashTableRow key={hash.id} hash={hash} />
             ))}
           </TableBody>
         </Table>
