@@ -1,26 +1,72 @@
 import { Card } from "@/components/ui/card";
 import { formatHashRate } from "@/utils/mining";
 
+interface MinerReference {
+  hashRate: number;
+  name: string;
+}
+
+const MINER_REFERENCES: MinerReference[] = [
+  { hashRate: 1e12, name: "Bitaxe" },        // 1 TH/s
+  { hashRate: 10e12, name: "Antminer S14" }, // 10 TH/s
+  { hashRate: 50e12, name: "Antminer S19" }, // 50 TH/s
+  { hashRate: 100e12, name: "Antminer S21" }, // 100 TH/s
+];
+
 interface HashRateGaugeProps {
   hashRate: number;
 }
 
 export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   const maxHashRate = 100e12; // 100 TH/s (Antminer S21)
-  const percentage = Math.min((hashRate / maxHashRate) * 100, 100);
+  
+  // Use logarithmic scale for better visualization of small hash rates
+  const getLogScale = (value: number) => {
+    // Add 1 to handle 0 hash rate
+    const logValue = Math.log10(value + 1);
+    const logMax = Math.log10(maxHashRate + 1);
+    return (logValue / logMax) * 100;
+  };
+  
+  const percentage = Math.min(getLogScale(hashRate), 100);
   
   return (
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
-      <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden mb-2">
-        <div
-          className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
-          style={{ width: `${percentage}%` }}
-        />
+      <div className="relative">
+        <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden mb-2">
+          <div
+            className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        
+        {/* Reference ticks */}
+        <div className="relative h-6">
+          {MINER_REFERENCES.map((miner) => {
+            const tickPosition = getLogScale(miner.hashRate);
+            return (
+              <div
+                key={miner.name}
+                className="absolute -translate-x-1/2"
+                style={{ left: `${tickPosition}%` }}
+              >
+                <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
+                <div className="text-xs text-gray-400 whitespace-nowrap mt-1">
+                  {miner.name}
+                  <span className="block hash-text">
+                    {formatHashRate(miner.hashRate)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <div className="flex justify-between text-sm text-gray-400">
+      
+      <div className="flex justify-between text-sm text-gray-400 mt-8">
         <span>{formatHashRate(hashRate)}</span>
-        <span>{formatHashRate(maxHashRate)} (Antminer S21)</span>
+        <span>{formatHashRate(maxHashRate)} (Max)</span>
       </div>
     </Card>
   );
