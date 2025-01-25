@@ -21,7 +21,11 @@ export const useMiningState = () => {
       const currentBest = prev.bestHashes[0];
       
       if (!currentBest || solution.binaryZeroes > currentBest.binaryZeroes) {
-        const updatedHashes = [solution, ...prev.bestHashes]
+        // Calculate time to find if mining has started
+        const timeToFind = prev.startTime ? Date.now() - prev.startTime : 0;
+        const solutionWithTime = { ...solution, timeToFind };
+
+        const updatedHashes = [solutionWithTime, ...prev.bestHashes]
           .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
           .slice(0, 100);
 

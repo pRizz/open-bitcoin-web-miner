@@ -36,6 +36,15 @@ export function HashList({ hashes }: HashListProps) {
     }
   };
 
+  const formatDuration = (ms: number) => {
+    if (ms < 1000) return `${ms}ms`;
+    const seconds = Math.floor(ms / 1000);
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  };
+
   return (
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Best Hashes Found</h2>
@@ -56,6 +65,12 @@ export function HashList({ hashes }: HashListProps) {
                 Leading Hex Zeroes
               </TableHead>
               <TableHead>Hash</TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => toggleSort("timeToFind")}
+              >
+                Time to Find
+              </TableHead>
               <TableHead>Details</TableHead>
             </TableRow>
           </TableHeader>
@@ -70,6 +85,7 @@ export function HashList({ hashes }: HashListProps) {
                 <TableCell className="font-mono text-xs truncate max-w-[200px]">
                   {hash.hash}
                 </TableCell>
+                <TableCell>{formatDuration(hash.timeToFind)}</TableCell>
                 <TableCell>
                   <Dialog>
                     <DialogTrigger className="text-blue-500 hover:text-blue-400">
@@ -83,6 +99,10 @@ export function HashList({ hashes }: HashListProps) {
                         <div>
                           <div className="text-gray-400">Hash</div>
                           <div className="break-all">{hash.hash}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-400">Time to Find</div>
+                          <div>{formatDuration(hash.timeToFind)}</div>
                         </div>
                         <div>
                           <div className="text-gray-400">Nonce</div>

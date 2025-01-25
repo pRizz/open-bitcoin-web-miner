@@ -16,6 +16,7 @@ export interface HashSolution {
   bits: string;
   binaryZeroes: number;
   hexZeroes: number;
+  timeToFind: number; // Time in milliseconds
 }
 
 export interface NetworkStats {
