@@ -63,11 +63,30 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           hexZeroes: hex,
         };
 
-        setMiningStats(prev => ({
-          ...prev,
-          bestHashes: [...prev.bestHashes, solution].sort((a, b) => b.binaryZeroes - a.binaryZeroes).slice(0, 100),
-          totalHashes: prev.totalHashes + 1,
-        }));
+        setMiningStats(prev => {
+          // Get the current best hash (if any)
+          const currentBest = prev.bestHashes[0];
+          
+          // Only add the new hash if it's better than the current best
+          // or if there are no hashes yet
+          if (!currentBest || solution.binaryZeroes >= currentBest.binaryZeroes) {
+            const updatedHashes = [solution, ...prev.bestHashes]
+              .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
+              .slice(0, 100);
+
+            return {
+              ...prev,
+              bestHashes: updatedHashes,
+              totalHashes: prev.totalHashes + 1,
+            };
+          }
+
+          // If the new hash isn't better, just increment the total
+          return {
+            ...prev,
+            totalHashes: prev.totalHashes + 1,
+          };
+        });
 
         if (binary >= networkStats.requiredBinaryZeroes) {
           toast({
