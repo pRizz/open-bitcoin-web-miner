@@ -47,13 +47,13 @@ export function HashList({ hashes }: HashListProps) {
                 className="cursor-pointer"
                 onClick={() => toggleSort("binaryZeroes")}
               >
-                Binary Zeroes
+                Leading Binary Zeroes
               </TableHead>
               <TableHead
                 className="cursor-pointer"
                 onClick={() => toggleSort("hexZeroes")}
               >
-                Hex Zeroes
+                Leading Hex Zeroes
               </TableHead>
               <TableHead>Hash</TableHead>
               <TableHead>Details</TableHead>
