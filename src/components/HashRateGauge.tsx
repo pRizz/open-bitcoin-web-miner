@@ -77,14 +77,12 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
         
         {/* Reference labels */}
         <div className="relative h-16 mt-4">
-          {MINER_REFERENCES.map((miner, index) => {
+          {MINER_REFERENCES.map((miner) => {
             const tickPosition = getLogScale(miner.hashRate);
-            // Alternate between two heights to prevent overlap
-            const topOffset = index % 2 === 0 ? "top-0" : "top-8";
             return (
               <div
                 key={miner.name}
-                className={`absolute -translate-x-1/2 ${topOffset}`}
+                className="absolute -translate-x-1/2 top-0"
                 style={{ left: `${tickPosition}%` }}
               >
                 <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
