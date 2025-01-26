@@ -99,11 +99,6 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
           })}
         </div>
       </div>
-      
-      <div className="flex justify-between text-sm text-gray-400 mt-2">
-        <span>{formatHashRateWithoutDecimals(hashRate)}</span>
-        <span>{formatHashRateWithoutDecimals(maxHashRate)} (Max)</span>
-      </div>
     </Card>
   );
 }
