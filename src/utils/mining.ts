@@ -68,3 +68,31 @@ export function generateMockBlockHeader(): Partial<HashSolution> {
     nonce: Math.floor(Math.random() * 0xFFFFFFFF),
   };
 }
+
+/**
+ * Calculates the expected time to find a block with given confidence level
+ * Based on geometric distribution: P(X ≤ k) = 1 - (1-p)^k
+ * where p is probability of success on each try
+ */
+export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: number, confidence: number): number {
+  if (hashRate <= 0) return Infinity;
+  
+  // Probability of finding required zeroes on a single hash
+  const p = Math.pow(0.5, requiredZeroes);
+  
+  // For given confidence level, solve for number of hashes needed
+  // confidence = 1 - (1-p)^hashes
+  // hashes = log(1-confidence) / log(1-p)
+  const hashesNeeded = Math.ceil(Math.log(1 - confidence) / Math.log(1 - p));
+  
+  // Convert to time in seconds based on hash rate
+  return hashesNeeded / hashRate;
+}
+
+export function formatTime(seconds: number): string {
+  if (!isFinite(seconds)) return "∞";
+  if (seconds < 60) return `${Math.ceil(seconds)}s`;
+  if (seconds < 3600) return `${Math.ceil(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.ceil(seconds / 3600)}h`;
+  return `${Math.ceil(seconds / 86400)}d`;
+}

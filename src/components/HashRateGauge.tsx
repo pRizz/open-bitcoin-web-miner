@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { formatHashRate } from "@/utils/mining";
+import { formatHashRate, calculateExpectedBlockTime, formatTime } from "@/utils/mining";
 
 interface MinerReference {
   hashRate: number;
@@ -13,6 +13,12 @@ const MINER_REFERENCES: MinerReference[] = [
 
 // Generate magnitude ticks from 1 H/s to 100 TH/s
 const MAGNITUDE_TICKS = Array.from({ length: 15 }, (_, i) => Math.pow(10, i));
+
+const CONFIDENCE_LEVELS = [
+  { confidence: 0.05, label: "5%" },
+  { confidence: 0.50, label: "50%" },
+  { confidence: 0.95, label: "95%" },
+];
 
 interface HashRateGaugeProps {
   hashRate: number;
@@ -39,7 +45,21 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   
   return (
     <Card className="p-6 glass-card">
-      <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
+      <div className="flex justify-between items-start mb-4">
+        <h2 className="text-2xl font-bold">Hash Rate</h2>
+        <div className="text-right text-sm text-gray-400">
+          <div className="font-semibold mb-1">Expected Block Time</div>
+          {CONFIDENCE_LEVELS.map(({ confidence, label }) => (
+            <div key={label} className="flex justify-end gap-2">
+              <span>{label}:</span>
+              <span>
+                {formatTime(calculateExpectedBlockTime(hashRate, 144, confidence))}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      
       <div className="relative">
         {/* Main gauge */}
         <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
