@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { formatHashRate, calculateExpectedBlockTime, formatTime } from "@/utils/mining";
+import { useMining } from "@/contexts/MiningContext";
 
 interface MinerReference {
   hashRate: number;
@@ -25,6 +26,7 @@ interface HashRateGaugeProps {
 }
 
 export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
+  const { networkStats } = useMining();
   const maxHashRate = 100e12; // 100 TH/s (Antminer S21)
   
   // Use logarithmic scale for better visualization of small hash rates
@@ -53,7 +55,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
             <div key={label} className="flex justify-end gap-2">
               <span>{label}:</span>
               <span>
-                {formatTime(calculateExpectedBlockTime(hashRate, 144, confidence))}
+                {formatTime(calculateExpectedBlockTime(hashRate, networkStats.requiredBinaryZeroes, confidence))}
               </span>
             </div>
           ))}
