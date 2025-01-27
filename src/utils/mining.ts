@@ -127,6 +127,20 @@ export function formatTime(seconds: number): string {
   for (const { unit, seconds: unitSeconds } of timeUnits) {
     if (seconds >= unitSeconds) {
       const value = Math.round(seconds / unitSeconds);
+      
+      // Special handling for years
+      if (unit === 'year') {
+        if (value >= 1_000_000_000) {
+          return `${(value / 1_000_000_000).toFixed(1)} billion years`;
+        }
+        if (value >= 1_000_000) {
+          return `${(value / 1_000_000).toFixed(1)} million years`;
+        }
+        if (value >= 1_000) {
+          return `${value.toLocaleString()} years`;
+        }
+      }
+      
       // Add 's' for plural units except when value is 1
       const plural = value === 1 ? '' : 's';
       return `${value} ${unit}${plural}`;
