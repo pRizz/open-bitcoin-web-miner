@@ -31,7 +31,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [networkStats] = useState<NetworkStats>({
     blockHeight: 828848,
     difficulty: 75e12,
-    requiredBinaryZeroes: 144,
+    requiredBinaryZeroes: 78,
   });
   
   const [isMining, setIsMining] = useState(false);
