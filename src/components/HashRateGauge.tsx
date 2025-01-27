@@ -50,10 +50,10 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
       <div className="flex justify-between items-start mb-4">
         <h2 className="text-2xl font-bold">Hash Rate</h2>
         <div className="text-right text-sm text-gray-400">
-          <div className="font-semibold mb-1">Expected Block Time</div>
+          <div className="font-semibold mb-1">Chances of Finding a Block Solution</div>
           {CONFIDENCE_LEVELS.map(({ confidence, label }) => (
             <div key={label} className="flex justify-end gap-2">
-              <span>{label}:</span>
+              <span>{label} chance of finding a block solution in</span>
               <span>
                 {formatTime(calculateExpectedBlockTime(hashRate, networkStats.requiredBinaryZeroes, confidence))}
               </span>
