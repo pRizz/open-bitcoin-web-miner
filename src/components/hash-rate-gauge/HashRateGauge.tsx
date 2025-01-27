@@ -1,9 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { formatHashRate } from "@/utils/mining";
 import { useMining } from "@/contexts/MiningContext";
-import { ParticleEffect } from "./ParticleEffect";
-import { ProbabilityInfo } from "./ProbabilityInfo";
+import { GaugeBar } from "./GaugeBar";
 import { HashRateScale } from "./HashRateScale";
+import { ProbabilityInfo } from "./ProbabilityInfo";
 
 const MINER_REFERENCES = [
   { hashRate: 1e12, name: "Bitaxe" },        // 1 TH/s
@@ -27,32 +26,13 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   };
   
   const percentage = Math.min(getLogScale(hashRate), 100);
-
-  // Helper function to format hash rate without decimals
-  const formatHashRateWithoutDecimals = (value: number) => {
-    const formatted = formatHashRate(value);
-    return formatted.replace(/\.00/g, '');
-  };
   
   return (
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       
       <div className="relative mb-16">
-        <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
-          <div
-            className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
-            style={{ width: `${percentage}%` }}
-          >
-            <ParticleEffect />
-            {percentage > 5 && (
-              <span className="text-sm md:text-base lg:text-lg font-medium text-white relative z-10">
-                {formatHashRateWithoutDecimals(hashRate)}
-              </span>
-            )}
-          </div>
-        </div>
-
+        <GaugeBar percentage={percentage} hashRate={hashRate} />
         <HashRateScale maxHashRate={maxHashRate} minerReferences={MINER_REFERENCES} />
       </div>
 
