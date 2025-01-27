@@ -80,6 +80,32 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
                     </ul>
                   </div>
 
+                  <div className="mt-6 p-4 bg-gray-900 rounded-md space-y-3">
+                    <p className="font-semibold text-green-400">Statistical Intuition with Binary</p>
+                    <p>
+                      Binary representation makes probability calculations much more intuitive. Here's why:
+                    </p>
+                    <ul className="list-disc list-inside space-y-2">
+                      <li>Each bit in a hash has exactly 50% chance of being 0 or 1</li>
+                      <li>For n leading zeroes, the probability is simply (1/2)^n</li>
+                      <li>Example: For 10 leading zeroes, probability = 1/1024 (2^10)</li>
+                    </ul>
+                    <p className="mt-2">
+                      This makes it easy to understand the exponential nature of mining difficulty:
+                    </p>
+                    <div className="font-mono bg-gray-900 p-4 rounded-md space-y-1 mt-2">
+                      <div>1 leading zero  = 1/2 chance     (50%)</div>
+                      <div>2 leading zeros = 1/4 chance     (25%)</div>
+                      <div>3 leading zeros = 1/8 chance     (12.5%)</div>
+                      <div>4 leading zeros = 1/16 chance    (6.25%)</div>
+                      <div>...</div>
+                      <div>10 leading zeros = 1/1024 chance (0.098%)</div>
+                    </div>
+                    <p className="text-green-400 mt-2">
+                      With hexadecimal, these probabilities would be harder to calculate since each digit represents 4 bits, making the steps too large for fine-tuned difficulty adjustments.
+                    </p>
+                  </div>
+
                   <div className="mt-4">
                     <p>
                       For example, if we required 6 leading zeroes in hex, that would actually mean 24 binary zeroes (6 × 4 = 24). By using binary counting, we can set the difficulty to any precise number of bits we want, like 10, 15, or 23 zeroes.
