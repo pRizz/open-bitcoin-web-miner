@@ -56,9 +56,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
         <HashRateScale maxHashRate={maxHashRate} minerReferences={MINER_REFERENCES} />
       </div>
 
-      <div className="mt-6">
-        <ProbabilityInfo hashRate={hashRate} networkStats={networkStats} />
-      </div>
+      <ProbabilityInfo hashRate={hashRate} networkStats={networkStats} />
     </Card>
   );
 }
