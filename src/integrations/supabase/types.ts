@@ -91,7 +91,7 @@ export type Database = {
       }
       is_hash_in_top_100: {
         Args: {
-          new_binary_zeroes: number
+          new_hash: string
         }
         Returns: boolean
       }

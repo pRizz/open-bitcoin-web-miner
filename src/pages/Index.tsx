@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { HashRateGauge } from "@/components/HashRateGauge";
 import { NetworkStats } from "@/components/NetworkStats";
 import { HashList } from "@/components/HashList";
+import { GlobalLeaderboard } from "@/components/GlobalLeaderboard";
 import { useMining } from "@/contexts/MiningContext";
 import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";
@@ -119,10 +120,7 @@ const Index = () => {
               <Share2 className="h-4 w-4" />
               Share
             </Button>
-            <Button
-              variant="destructive"
-              onClick={resetData}
-            >
+            <Button variant="destructive" onClick={resetData}>
               Reset Data
             </Button>
           </div>
@@ -133,7 +131,9 @@ const Index = () => {
             <h2 className="text-2xl font-bold mb-4">Mining Controls</h2>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-400">Bitcoin Address (Optional)</label>
+                <label className="text-sm text-gray-400">
+                  Bitcoin Address (Optional)
+                </label>
                 <Input
                   placeholder="Enter your Bitcoin address"
                   value={btcAddress}
@@ -142,7 +142,9 @@ const Index = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-gray-400">Mining Speed: {miningSpeed}%</label>
+                <label className="text-sm text-gray-400">
+                  Mining Speed: {miningSpeed}%
+                </label>
                 <Slider
                   value={[miningSpeed]}
                   onValueChange={handleSpeedChange}
@@ -153,7 +155,9 @@ const Index = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-gray-400">CPU Threads: {threadCount} of {maxThreads}</label>
+                <label className="text-sm text-gray-400">
+                  CPU Threads: {threadCount} of {maxThreads}
+                </label>
                 <Slider
                   value={[threadCount]}
                   onValueChange={handleThreadChange}
@@ -165,14 +169,18 @@ const Index = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm text-gray-400">Auto-start when sharing</label>
+                  <label className="text-sm text-gray-400">
+                    Auto-start when sharing
+                  </label>
                   <Switch
                     checked={includeAutoStart}
                     onCheckedChange={setIncludeAutoStart}
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <label className="text-sm text-gray-400">Include Bitcoin address in share link</label>
+                  <label className="text-sm text-gray-400">
+                    Include Bitcoin address in share link
+                  </label>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -205,8 +213,8 @@ const Index = () => {
         </div>
 
         <HashRateGauge hashRate={miningStats.hashRate} />
-
         <HashList hashes={miningStats.bestHashes} />
+        <GlobalLeaderboard />
       </div>
     </div>
   );
