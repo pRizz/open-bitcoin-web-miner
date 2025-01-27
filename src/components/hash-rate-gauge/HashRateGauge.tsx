@@ -36,9 +36,11 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   
   return (
     <Card className="p-6 glass-card">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
-        <h2 className="text-2xl font-bold">Hash Rate</h2>
-        <ProbabilityInfo hashRate={hashRate} networkStats={networkStats} />
+      <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-4">
+        <h2 className="text-2xl font-bold shrink-0">Hash Rate</h2>
+        <div className="w-full md:w-auto">
+          <ProbabilityInfo hashRate={hashRate} networkStats={networkStats} />
+        </div>
       </div>
       
       <div className="relative">
