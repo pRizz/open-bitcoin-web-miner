@@ -88,6 +88,24 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
                   <p>
                     This gives us the time within which you have the specified probability of finding a solution. For example, with 50% confidence, you have a 50-50 chance of finding a solution within that time.
                   </p>
+                  <div className="mt-6 p-4 bg-gray-900 rounded-md space-y-3">
+                    <p className="font-semibold text-green-400">Simple Example:</p>
+                    <p>Let's say you have:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Hash Rate: 100 H/s</li>
+                      <li>Required Zeroes: 10</li>
+                      <li>Confidence Level: 50%</li>
+                    </ul>
+                    <p>Then:</p>
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>λ = 100 / 2^10 = 100 / 1024 ≈ 0.0977 solutions/second</li>
+                      <li>t = -ln(1 - 0.5) / 0.0977</li>
+                      <li>t ≈ 7.1 seconds</li>
+                    </ol>
+                    <p className="text-green-400">
+                      This means you have a 50% chance of finding a solution within 7.1 seconds.
+                    </p>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
