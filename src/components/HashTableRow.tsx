@@ -13,7 +13,7 @@ export function HashTableRow({ hash }: HashTableRowProps) {
       <TableCell>{hash.binaryZeroes}</TableCell>
       <TableCell>{hash.hexZeroes}</TableCell>
       <TableCell className="font-mono text-xs truncate max-w-[200px]">
-        {hash.hash}
+        0x{hash.hash}
       </TableCell>
       <TableCell>{formatDuration(hash.timeToFind)}</TableCell>
       <TableCell>
