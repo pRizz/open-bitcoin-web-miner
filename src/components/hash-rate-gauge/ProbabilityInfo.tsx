@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
-import { calculateExpectedBlockTime, formatTime } from "@/utils/mining";
+import { calculateSecondsToFindBlock, formatTime } from "@/utils/mining";
 import { NetworkStats } from "@/types/mining";
 
 interface ProbabilityInfoProps {
@@ -61,7 +61,7 @@ export function ProbabilityInfo({ hashRate, networkStats }: ProbabilityInfoProps
         <div key={label} className="flex justify-end gap-2">
           <span>{label} chance of finding a block solution in</span>
           <span>
-            {formatTime(calculateExpectedBlockTime(hashRate, networkStats.requiredBinaryZeroes, confidence))}
+            {formatTime(calculateSecondsToFindBlock(hashRate, networkStats.requiredBinaryZeroes, confidence))}
           </span>
         </div>
       ))}

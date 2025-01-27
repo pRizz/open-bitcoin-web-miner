@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { formatHashRate, calculateExpectedBlockTime, formatTime } from "@/utils/mining";
+import { formatHashRate, calculateSecondsToFindBlock, formatTime } from "@/utils/mining";
 import { useMining } from "@/contexts/MiningContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
@@ -124,7 +124,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
             <div key={label} className="flex justify-end gap-2">
               <span>{label} chance of finding a block solution in</span>
               <span>
-                {formatTime(calculateExpectedBlockTime(hashRate, networkStats.requiredBinaryZeroes, confidence))}
+                {formatTime(calculateSecondsToFindBlock(hashRate, networkStats.requiredBinaryZeroes, confidence))}
               </span>
             </div>
           ))}

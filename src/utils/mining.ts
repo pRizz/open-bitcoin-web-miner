@@ -72,36 +72,42 @@ export function generateMockBlockHeader(): Partial<HashSolution> {
 /**
  * Calculates the expected time to find a block with given confidence level
  * Based on geometric distribution: P(X ≤ k) = 1 - (1-p)^k
- * where p is probability of success on each try
+ * where:
+ * - p is probability of success on each try (finding required leading zeroes)
+ *   p = 1/2^requiredZeroes since each bit has 1/2 chance of being 0,
+ *   and we need requiredZeroes consecutive 0s
+ * - k is number of attempts needed
+ * - X is the random variable representing number of trials until success
+ * - P(X ≤ k) is probability of finding a solution within k attempts
  */
-export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: number, confidence: number): number {
+export function calculateSecondsToFindBlock(hashRate: number, requiredZeroes: number, confidence: number): number {
   // Return Infinity for invalid hash rates
   if (hashRate <= 0) return Infinity;
   
-  // Probability of finding required zeroes on a single hash
-  const p = Math.pow(2, -requiredZeroes);
+  // Probability of finding required zeroes on a single hash attempt
+  const successProbability = Math.pow(2, -requiredZeroes);
   
   // For extremely small probabilities, use approximation to avoid numerical issues
-  if (p < 1e-300) {
+  if (successProbability < 1e-300) {
     // Use approximation based on confidence level
     // Higher confidence requires more hashes
-    const approximateHashes = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
-    return approximateHashes / hashRate;
+    const estimatedHashesNeeded = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
+    return estimatedHashesNeeded / hashRate;
   }
   
   // Calculate number of hashes needed for given confidence
   // Using geometric distribution: P(X ≤ k) = 1 - (1-p)^k
   // Solve for k: k = log(1-confidence) / log(1-p)
-  const logTerm = Math.log(1 - confidence) / Math.log(1 - p);
+  const geometricDistributionTerm = Math.log(1 - confidence) / Math.log(1 - successProbability);
   
   // If log calculation resulted in NaN or Infinity, use approximation
-  if (!isFinite(logTerm) || isNaN(logTerm)) {
-    const approximateHashes = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
-    return approximateHashes / hashRate;
+  if (!isFinite(geometricDistributionTerm) || isNaN(geometricDistributionTerm)) {
+    const estimatedHashesNeeded = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
+    return estimatedHashesNeeded / hashRate;
   }
   
-  const hashesNeeded = Math.ceil(logTerm);
-  return hashesNeeded / hashRate;
+  const totalHashesNeeded = Math.ceil(geometricDistributionTerm);
+  return totalHashesNeeded / hashRate;
 }
 
 export function formatTime(seconds: number): string {
