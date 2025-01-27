@@ -74,30 +74,33 @@ export function generateMockBlockHeader(): Partial<HashSolution> {
  * Based on geometric distribution: P(X ≤ k) = 1 - (1-p)^k
  * where p is probability of success on each try
  */
+
 export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: number, confidence: number): number {
+  // Return Infinity only for invalid hash rates
   if (hashRate <= 0) return Infinity;
   
   // Probability of finding required zeroes on a single hash
-  const p = Math.pow(0.5, requiredZeroes);
+  const p = Math.pow(2, -requiredZeroes);
   
-  // If probability is effectively zero, return infinity
-  if (p === 0 || !isFinite(p)) {
-    return Infinity;
+  // For extremely small probabilities, use approximation to avoid numerical issues
+  if (p < 1e-300) {
+    // Use approximation: required hashes ≈ 2^requiredZeroes
+    const approximateHashes = Math.pow(2, requiredZeroes);
+    return approximateHashes / hashRate;
   }
-
-  // For given confidence level, solve for number of hashes needed
-  // confidence = 1 - (1-p)^hashes
-  // hashes = log(1-confidence) / log(1-p)
+  
+  // Calculate number of hashes needed for given confidence
+  // Using geometric distribution: P(X ≤ k) = 1 - (1-p)^k
+  // Solve for k: k = log(1-confidence) / log(1-p)
   const logTerm = Math.log(1 - confidence) / Math.log(1 - p);
   
-  // Check if the log calculation resulted in -Infinity
-  if (!isFinite(logTerm)) {
-    return Infinity;
+  // If log calculation resulted in NaN or Infinity, use approximation
+  if (!isFinite(logTerm) || isNaN(logTerm)) {
+    const approximateHashes = Math.pow(2, requiredZeroes);
+    return approximateHashes / hashRate;
   }
   
   const hashesNeeded = Math.ceil(logTerm);
-  
-  // Convert to time in seconds based on hash rate
   return hashesNeeded / hashRate;
 }
 
@@ -193,3 +196,4 @@ export function expectedTimeToFindHash2(
 
 // const time = expectedTimeToFindHash(hashRate, numZeroes, confidence);
 // console.log(`Expected time: ${time} seconds`);
+
