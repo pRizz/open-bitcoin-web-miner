@@ -37,7 +37,7 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
                   </p>
                   
                   <div className="space-y-2">
-                    <p className="font-semibold text-green-400">Example:</p>
+                    <p className="font-semibold text-green-400">Example 1: Multiple Leading Zeroes</p>
                     <p>Let's look at this hash value:</p>
                     <div className="font-mono bg-gray-900 p-4 rounded-md">
                       0x0000f423...
@@ -51,6 +51,23 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
                     </div>
                     
                     <p>We can see it has 16 leading zeroes in binary!</p>
+                  </div>
+
+                  <div className="space-y-2 mt-6">
+                    <p className="font-semibold text-green-400">Example 2: Hidden Binary Zeroes</p>
+                    <p>Now let's look at a hash starting with 9:</p>
+                    <div className="font-mono bg-gray-900 p-4 rounded-md">
+                      0x9423...
+                    </div>
+                    
+                    <p>In hexadecimal format, this has no leading zeroes.</p>
+                    
+                    <p>But when we convert 9 to binary:</p>
+                    <div className="font-mono bg-gray-900 p-4 rounded-md whitespace-pre-wrap break-all">
+                      1001 0100...
+                    </div>
+                    
+                    <p className="text-green-400">Notice that even though the hex value starts with 9, its binary representation still has 3 leading zeroes!</p>
                   </div>
 
                   <div className="mt-4 p-4 bg-gray-900 rounded-md space-y-2">
