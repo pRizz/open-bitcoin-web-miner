@@ -54,8 +54,9 @@ export function formatHashRate(hashRate: number): string {
 }
 
 export function validateBitcoinAddress(address: string): boolean {
-  // Basic validation - should be between 26-35 chars and start with 1, 3, or bc1
-  return /^(1|3|bc1)[a-zA-Z0-9]{25,34}$/.test(address);
+  // Basic validation for legacy (1), script hash (3), and bech32 (bc1) addresses
+  // This is a basic check - for production use, consider using a dedicated Bitcoin address validation library
+  return /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{11,71})$/.test(address);
 }
 
 export function generateMockBlockHeader(): Partial<HashSolution> {
