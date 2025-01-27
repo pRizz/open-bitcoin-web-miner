@@ -9,13 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          binary_zeroes: number
+          bits: string
+          blockchain_message: string | null
+          created_at: string | null
+          hash: string
+          hex_zeroes: number
+          id: string
+          leaderboard_message: string | null
+          merkle_root: string
+          nonce: number
+          previous_block: string
+          time_to_find: number
+          timestamp: number
+          username: string | null
+          version: number
+        }
+        Insert: {
+          binary_zeroes: number
+          bits: string
+          blockchain_message?: string | null
+          created_at?: string | null
+          hash: string
+          hex_zeroes: number
+          id?: string
+          leaderboard_message?: string | null
+          merkle_root: string
+          nonce: number
+          previous_block: string
+          time_to_find: number
+          timestamp: number
+          username?: string | null
+          version: number
+        }
+        Update: {
+          binary_zeroes?: number
+          bits?: string
+          blockchain_message?: string | null
+          created_at?: string | null
+          hash?: string
+          hex_zeroes?: number
+          id?: string
+          leaderboard_message?: string | null
+          merkle_root?: string
+          nonce?: number
+          previous_block?: string
+          time_to_find?: number
+          timestamp?: number
+          username?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
+      submission_timestamps: {
+        Row: {
+          last_submission: string | null
+          username: string
+        }
+        Insert: {
+          last_submission?: string | null
+          username: string
+        }
+        Update: {
+          last_submission?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_username: string
+        }
+        Returns: boolean
+      }
+      is_hash_in_top_100: {
+        Args: {
+          new_binary_zeroes: number
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
