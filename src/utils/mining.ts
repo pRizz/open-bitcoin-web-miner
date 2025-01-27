@@ -80,10 +80,22 @@ export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: num
   // Probability of finding required zeroes on a single hash
   const p = Math.pow(0.5, requiredZeroes);
   
+  // If probability is effectively zero, return infinity
+  if (p === 0 || !isFinite(p)) {
+    return Infinity;
+  }
+
   // For given confidence level, solve for number of hashes needed
   // confidence = 1 - (1-p)^hashes
   // hashes = log(1-confidence) / log(1-p)
-  const hashesNeeded = Math.ceil(Math.log(1 - confidence) / Math.log(1 - p));
+  const logTerm = Math.log(1 - confidence) / Math.log(1 - p);
+  
+  // Check if the log calculation resulted in -Infinity
+  if (!isFinite(logTerm)) {
+    return Infinity;
+  }
+  
+  const hashesNeeded = Math.ceil(logTerm);
   
   // Convert to time in seconds based on hash rate
   return hashesNeeded / hashRate;
@@ -102,6 +114,9 @@ export function expectedTimeToFindHash1(
   numZeroes: number, // Number of leading zeroes
   confidence: number // Confidence level (e.g., 0.05 for 5%)
 ): number {
+  // Return Infinity for invalid hash rates
+  if (hashRate <= 0) return Infinity;
+
   // Probability of success for one hash
   const P = Math.pow(2, -numZeroes);
 
@@ -135,26 +150,30 @@ export function expectedTimeToFindHash1(
 // console.log(`Expected time: ${time} seconds`);
 
 // Logarithmic version to avoid overflow
+// DO NOT USE: some tests fail
 export function expectedTimeToFindHash2(
   hashRate: number, // Hashes per second
   numZeroes: number, // Number of leading zeroes
   confidence: number // Confidence level (e.g., 0.05 for 5%)
 ): number {
+  // Return Infinity for invalid hash rates
+  if (hashRate <= 0) return Infinity;
+
   const ln2 = Math.log(2); // Precompute natural log of 2
 
   // Logarithmic probability of success for one hash
   const logP = -numZeroes * ln2;
 
   // If the log probability is too small or resulted in -Infinity, return Infinity
-  if (logP <= Number.NEGATIVE_INFINITY || !isFinite(logP)) {
+  if (logP <= -744 || !isFinite(logP)) { // ln(Number.MIN_VALUE) = -744.4400719213812 ≈ -745
     return Infinity;
   }
 
   // Approximation for log(1 - P) for small P
   const logOneMinusP = logP > -1e-5 ? logP : Math.log(1 - Math.exp(logP));
   
-  // Check if the calculation resulted in -Infinity
-  if (!isFinite(logOneMinusP)) {
+  // Check if the calculation resulted in -Infinity or NaN
+  if (!isFinite(logOneMinusP) || isNaN(logOneMinusP)) {
     return Infinity;
   }
 
