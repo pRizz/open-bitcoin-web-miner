@@ -17,6 +17,7 @@ const Index = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [includeAutoStart, setIncludeAutoStart] = useState(false);
+  const [includeAddress, setIncludeAddress] = useState(false);
   
   const {
     miningStats,
@@ -34,13 +35,19 @@ const Index = () => {
     resetData,
   } = useMining();
 
-  // Check for auto-start parameter on mount
+  // Check for auto-start parameter and prefilled address on mount
   useEffect(() => {
     const shouldAutoStart = searchParams.get("startMiningImmediately") === "true";
+    const prefilledAddress = searchParams.get("prefilledBitcoinAddress");
+    
+    if (prefilledAddress) {
+      setBtcAddress(prefilledAddress);
+    }
+    
     if (shouldAutoStart && !isMining) {
       startMining();
     }
-  }, [searchParams, startMining, isMining]);
+  }, [searchParams, startMining, isMining, setBtcAddress]);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
@@ -65,10 +72,17 @@ const Index = () => {
 
   const handleShare = async () => {
     const url = new URL(window.location.href);
+    
     if (includeAutoStart) {
       url.searchParams.set("startMiningImmediately", "true");
     } else {
       url.searchParams.delete("startMiningImmediately");
+    }
+
+    if (includeAddress && btcAddress) {
+      url.searchParams.set("prefilledBitcoinAddress", btcAddress);
+    } else {
+      url.searchParams.delete("prefilledBitcoinAddress");
     }
     
     try {
@@ -144,12 +158,21 @@ const Index = () => {
                   className="w-full"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <label className="text-sm text-gray-400">Auto-start when sharing</label>
-                <Switch
-                  checked={includeAutoStart}
-                  onCheckedChange={setIncludeAutoStart}
-                />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm text-gray-400">Auto-start when sharing</label>
+                  <Switch
+                    checked={includeAutoStart}
+                    onCheckedChange={setIncludeAutoStart}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm text-gray-400">Include Bitcoin address in share link</label>
+                  <Switch
+                    checked={includeAddress}
+                    onCheckedChange={setIncludeAddress}
+                  />
+                </div>
               </div>
               <Button
                 className="w-full"
