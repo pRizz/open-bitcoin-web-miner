@@ -1,47 +1,67 @@
-import { useMemo } from "react";
-
-interface Particle {
-  id: number;
-  delay: string;
-  duration: string;
-  left: string;
-  size: number;
-  opacity: number;
-}
+import { useEffect, useRef } from "react";
 
 interface ParticleEffectProps {
   count?: number;
 }
 
 export function ParticleEffect({ count = 15 }: ParticleEffectProps) {
-  // Memoize particles so they don't get recreated on every rerender
-  const particles = useMemo(() => 
-    Array.from({ length: count }, (_, i) => ({
-      id: i,
-      delay: `${Math.random() * 2}s`,
-      duration: `${2.5 + Math.random() * 2}s`,
-      left: `${Math.random() * 100}%`,
-      size: Math.random() * 2 + 1,
-      opacity: Math.random() * 0.2 + 0.2,
-    })), [count]
-  );
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Create particles once and inject them into the DOM
+    const particles = Array.from({ length: count }, (_, i) => {
+      const particle = document.createElement('div');
+      particle.className = 'absolute rounded-full pointer-events-none bg-white/40';
+      
+      // Set random initial positions and sizes
+      const size = Math.random() * 2 + 1;
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.left = `${Math.random() * 100}%`;
+      particle.style.opacity = `${Math.random() * 0.2 + 0.2}`;
+      
+      // Add keyframe animation with random delays and durations
+      particle.style.animation = `
+        particle-rise ${2.5 + Math.random() * 2}s ease-out infinite ${Math.random() * 2}s
+      `;
+      
+      return particle;
+    });
+
+    // Add particles to container
+    particles.forEach(particle => {
+      containerRef.current?.appendChild(particle);
+    });
+
+    // Cleanup function to remove particles
+    return () => {
+      particles.forEach(particle => {
+        particle.remove();
+      });
+    };
+  }, [count]); // Only recreate particles if count changes
 
   return (
-    <>
-      {particles.map((particle) => (
-        <div
-          key={particle.id}
-          className="absolute rounded-full animate-fade-up pointer-events-none bg-white/40"
-          style={{
-            left: particle.left,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            opacity: particle.opacity,
-            animationDelay: particle.delay,
-            animationDuration: particle.duration,
-          }}
-        />
-      ))}
-    </>
+    <div 
+      ref={containerRef} 
+      className="absolute inset-0 overflow-hidden"
+      style={{
+        // Add @keyframes animation definition
+        ['--particle-keyframes' as string]: `
+          @keyframes particle-rise {
+            0% {
+              transform: translateY(100%);
+              opacity: var(--particle-opacity, 0.3);
+            }
+            100% {
+              transform: translateY(-100%);
+              opacity: 0;
+            }
+          }
+        `
+      }}
+    />
   );
 }
