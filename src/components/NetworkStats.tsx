@@ -106,6 +106,27 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
                     </p>
                   </div>
 
+                  <div className="mt-6 p-4 bg-gray-900 rounded-md space-y-3">
+                    <p className="font-semibold text-green-400">Comparison with Bitcoin's Network Difficulty</p>
+                    <p>
+                      Bitcoin's network difficulty is expressed as a large decimal number that represents how many times harder it is to find a block than the original difficulty. While this format works well for the Bitcoin network, it's less intuitive for understanding probabilities:
+                    </p>
+                    <ul className="list-disc list-inside space-y-2">
+                      <li>Bitcoin difficulty of 1.0 means a target of 2^224</li>
+                      <li>Difficulty of 2.0 means target is halved</li>
+                      <li>Current difficulties are in the trillions (e.g., 53,000,000,000,000)</li>
+                    </ul>
+                    <p className="mt-2">
+                      In contrast, our binary leading zeroes format:
+                    </p>
+                    <ul className="list-disc list-inside space-y-2">
+                      <li>Directly shows the probability (1/2^n)</li>
+                      <li>Makes it easy to calculate chances mentally</li>
+                      <li>Provides intuitive difficulty steps (each +1 = twice as hard)</li>
+                      <li>Uses small, manageable numbers (e.g., 32 zeroes vs 53 trillion difficulty)</li>
+                    </ul>
+                  </div>
+
                   <div className="mt-4">
                     <p>
                       For example, if we required 6 leading zeroes in hex, that would actually mean 24 binary zeroes (6 × 4 = 24). By using binary counting, we can set the difficulty to any precise number of bits we want, like 10, 15, or 23 zeroes.
