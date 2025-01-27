@@ -42,7 +42,7 @@
 }
 
 .glass-card {
-  @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-lg;
+  @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-lg z-10;
 }
 
 .hash-text {
