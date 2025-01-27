@@ -106,94 +106,32 @@ export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: num
 
 export function formatTime(seconds: number): string {
   if (!isFinite(seconds)) return "∞";
-  if (seconds < 60) return `${Math.ceil(seconds)}s`;
-  if (seconds < 3600) return `${Math.ceil(seconds / 60)}m`;
-  if (seconds < 86400) return `${Math.ceil(seconds / 3600)}h`;
-  return `${Math.ceil(seconds / 86400)}d`;
-}
-
-export function expectedTimeToFindHash1(
-  hashRate: number, // Hashes per second
-  numZeroes: number, // Number of leading zeroes
-  confidence: number // Confidence level (e.g., 0.05 for 5%)
-): number {
-  // Return Infinity for invalid hash rates
-  if (hashRate <= 0) return Infinity;
-
-  // Probability of success for one hash
-  const P = Math.pow(2, -numZeroes);
-
-  // If the probability is effectively zero, return infinity
-  if (P === 0 || !isFinite(P)) {
-    return Infinity;
-  }
-
-  // Number of trials needed to achieve the desired confidence
-  const logTerm = Math.log(1 - confidence) / Math.log(1 - P);
   
-  // Check if the log calculation resulted in -Infinity
-  if (!isFinite(logTerm)) {
-    return Infinity;
+  const timeUnits = [
+    { unit: 'year', seconds: 31536000 },
+    { unit: 'month', seconds: 2592000 },
+    { unit: 'week', seconds: 604800 },
+    { unit: 'day', seconds: 86400 },
+    { unit: 'hour', seconds: 3600 },
+    { unit: 'minute', seconds: 60 },
+    { unit: 'second', seconds: 1 }
+  ];
+
+  // Handle very small times (less than a second)
+  if (seconds < 1) {
+    const ms = Math.round(seconds * 1000);
+    return `${ms}ms`;
   }
 
-  const k = Math.ceil(logTerm);
+  // Find the most appropriate unit
+  for (const { unit, seconds: unitSeconds } of timeUnits) {
+    if (seconds >= unitSeconds) {
+      const value = Math.round(seconds / unitSeconds);
+      // Add 's' for plural units except when value is 1
+      const plural = value === 1 ? '' : 's';
+      return `${value} ${unit}${plural}`;
+    }
+  }
 
-  // Time to perform these trials
-  const timeInSeconds = k / hashRate;
-
-  return timeInSeconds;
+  return `${Math.round(seconds)}s`;
 }
-
-// Example usage:
-// const hashRate = 1_000_000; // Hashes per second
-// const numZeroes = 100; // Number of leading zeroes
-// const confidence = 0.05; // 5% confidence
-
-// const time = expectedTimeToFindHash(hashRate, numZeroes, confidence);
-// console.log(`Expected time: ${time} seconds`);
-
-// Logarithmic version to avoid overflow
-// DO NOT USE: some tests fail
-export function expectedTimeToFindHash2(
-  hashRate: number, // Hashes per second
-  numZeroes: number, // Number of leading zeroes
-  confidence: number // Confidence level (e.g., 0.05 for 5%)
-): number {
-  // Return Infinity for invalid hash rates
-  if (hashRate <= 0) return Infinity;
-
-  const ln2 = Math.log(2); // Precompute natural log of 2
-
-  // Logarithmic probability of success for one hash
-  const logP = -numZeroes * ln2;
-
-  // If the log probability is too small or resulted in -Infinity, return Infinity
-  if (logP <= -744 || !isFinite(logP)) { // ln(Number.MIN_VALUE) = -744.4400719213812 ≈ -745
-    return Infinity;
-  }
-
-  // Approximation for log(1 - P) for small P
-  const logOneMinusP = logP > -1e-5 ? logP : Math.log(1 - Math.exp(logP));
-  
-  // Check if the calculation resulted in -Infinity or NaN
-  if (!isFinite(logOneMinusP) || isNaN(logOneMinusP)) {
-    return Infinity;
-  }
-
-  // Number of trials needed to achieve the desired confidence
-  const k = Math.ceil(Math.log(1 - confidence) / logOneMinusP);
-
-  // Time to perform these trials
-  const timeInSeconds = k / hashRate;
-
-  return timeInSeconds;
-}
-
-// Example usage:
-// const hashRate = 1_000_000; // Hashes per second
-// const numZeroes = 100; // Number of leading zeroes
-// const confidence = 0.05; // 5% confidence
-
-// const time = expectedTimeToFindHash(hashRate, numZeroes, confidence);
-// console.log(`Expected time: ${time} seconds`);
-
