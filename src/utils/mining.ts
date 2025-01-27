@@ -74,9 +74,8 @@ export function generateMockBlockHeader(): Partial<HashSolution> {
  * Based on geometric distribution: P(X ≤ k) = 1 - (1-p)^k
  * where p is probability of success on each try
  */
-
 export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: number, confidence: number): number {
-  // Return Infinity only for invalid hash rates
+  // Return Infinity for invalid hash rates
   if (hashRate <= 0) return Infinity;
   
   // Probability of finding required zeroes on a single hash
@@ -84,8 +83,9 @@ export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: num
   
   // For extremely small probabilities, use approximation to avoid numerical issues
   if (p < 1e-300) {
-    // Use approximation: required hashes ≈ 2^requiredZeroes
-    const approximateHashes = Math.pow(2, requiredZeroes);
+    // Use approximation based on confidence level
+    // Higher confidence requires more hashes
+    const approximateHashes = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
     return approximateHashes / hashRate;
   }
   
@@ -96,7 +96,7 @@ export function calculateExpectedBlockTime(hashRate: number, requiredZeroes: num
   
   // If log calculation resulted in NaN or Infinity, use approximation
   if (!isFinite(logTerm) || isNaN(logTerm)) {
-    const approximateHashes = Math.pow(2, requiredZeroes);
+    const approximateHashes = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
     return approximateHashes / hashRate;
   }
   
