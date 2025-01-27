@@ -2,15 +2,22 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { HashRateGauge } from "@/components/HashRateGauge";
 import { NetworkStats } from "@/components/NetworkStats";
 import { HashList } from "@/components/HashList";
 import { useMining } from "@/contexts/MiningContext";
 import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";
+import { Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const Index = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const [includeAutoStart, setIncludeAutoStart] = useState(false);
+  
   const {
     miningStats,
     networkStats,
@@ -26,6 +33,14 @@ const Index = () => {
     stopMining,
     resetData,
   } = useMining();
+
+  // Check for auto-start parameter on mount
+  useEffect(() => {
+    const shouldAutoStart = searchParams.get("startMiningImmediately") === "true";
+    if (shouldAutoStart && !isMining) {
+      startMining();
+    }
+  }, [searchParams, startMining, isMining]);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
@@ -48,17 +63,50 @@ const Index = () => {
     setThreadCount(value[0]);
   };
 
+  const handleShare = async () => {
+    const url = new URL(window.location.href);
+    if (includeAutoStart) {
+      url.searchParams.set("startMiningImmediately", "true");
+    } else {
+      url.searchParams.delete("startMiningImmediately");
+    }
+    
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      toast({
+        title: "Link Copied!",
+        description: "The URL has been copied to your clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to Copy",
+        description: "Could not copy the URL to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold">Bitcoin Mining Simulator</h1>
-          <Button
-            variant="destructive"
-            onClick={resetData}
-          >
-            Reset Data
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleShare}
+              className="flex items-center gap-2"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={resetData}
+            >
+              Reset Data
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -94,6 +142,13 @@ const Index = () => {
                   max={maxThreads}
                   step={1}
                   className="w-full"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-gray-400">Auto-start when sharing</label>
+                <Switch
+                  checked={includeAutoStart}
+                  onCheckedChange={setIncludeAutoStart}
                 />
               </div>
               <Button
