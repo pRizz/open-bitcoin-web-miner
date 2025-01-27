@@ -17,8 +17,11 @@ const Index = () => {
     isMining,
     btcAddress,
     miningSpeed,
+    threadCount,
+    maxThreads,
     setBtcAddress,
     setMiningSpeed,
+    setThreadCount,
     startMining,
     stopMining,
     resetData,
@@ -39,6 +42,10 @@ const Index = () => {
 
   const handleSpeedChange = (value: number[]) => {
     setMiningSpeed(value[0]);
+  };
+
+  const handleThreadChange = (value: number[]) => {
+    setThreadCount(value[0]);
   };
 
   return (
@@ -76,6 +83,18 @@ const Index = () => {
                   max={100}
                   step={10}
                   className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-gray-400">CPU Threads: {threadCount} of {maxThreads}</label>
+                <Slider
+                  value={[threadCount]}
+                  onValueChange={handleThreadChange}
+                  min={1}
+                  max={maxThreads}
+                  step={1}
+                  className="w-full"
+                  disabled={isMining}
                 />
               </div>
               <Button

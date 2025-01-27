@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { MiningStats, NetworkStats } from "@/types/mining";
 import { calculateLeadingZeroes, generateMockBlockHeader } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
+import { WorkerPool } from "@/workers/WorkerPool";
 
 interface MiningContextType {
   miningStats: MiningStats;
@@ -9,8 +10,11 @@ interface MiningContextType {
   isMining: boolean;
   btcAddress: string;
   miningSpeed: number;
+  threadCount: number;
+  maxThreads: number;
   setBtcAddress: (address: string) => void;
   setMiningSpeed: (speed: number) => void;
+  setThreadCount: (count: number) => void;
   startMining: () => void;
   stopMining: () => void;
   resetData: () => void;
@@ -37,19 +41,26 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [isMining, setIsMining] = useState(false);
   const [btcAddress, setBtcAddress] = useState("");
   const [miningSpeed, setMiningSpeed] = useState(100);
-  const [worker, setWorker] = useState<Worker | null>(null);
+  const [maxThreads, setMaxThreads] = useState(1);
+  const [threadCount, setThreadCount] = useState(1);
+  const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
+
+  // Detect CPU cores on mount
+  useEffect(() => {
+    if (navigator.hardwareConcurrency) {
+      const cores = navigator.hardwareConcurrency;
+      setMaxThreads(cores);
+      setThreadCount(Math.max(1, Math.floor(cores / 2))); // Default to half available cores
+    }
+  }, []);
 
   const startMining = () => {
-    if (worker) return;
+    if (workerPool) return;
 
-    const newWorker = new Worker(new URL('../workers/miningWorker.ts', import.meta.url), {
-      type: 'module'
-    });
-
-    newWorker.onmessage = (e) => {
-      const { type, data } = e.data;
-      
-      if (type === 'hash') {
+    const pool = new WorkerPool(
+      threadCount,
+      (hashRate) => updateHashRate(hashRate),
+      (data) => {
         const { binary, hex } = calculateLeadingZeroes(data.hash);
         const solution = {
           id: crypto.randomUUID(),
@@ -57,42 +68,32 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           binaryZeroes: binary,
           hexZeroes: hex,
         };
-
         updateMiningStats(solution, networkStats.requiredBinaryZeroes);
-      } else if (type === 'hashRate') {
-        updateHashRate(data);
       }
-    };
+    );
 
-    setWorker(newWorker);
+    setWorkerPool(pool);
     setIsMining(true);
     startMiningStats();
 
-    newWorker.postMessage({
-      type: 'start',
-      blockHeader: generateMockBlockHeader(),
-      miningSpeed,
-    });
+    pool.start(generateMockBlockHeader(), miningSpeed);
   };
 
   const stopMining = () => {
-    if (worker) {
-      worker.terminate();
-      setWorker(null);
+    if (workerPool) {
+      workerPool.stop();
+      setWorkerPool(null);
     }
     setIsMining(false);
     stopMiningStats();
   };
 
-  // Update worker when mining speed changes
+  // Update worker pool when mining speed changes
   React.useEffect(() => {
-    if (worker) {
-      worker.postMessage({
-        type: 'updateSpeed',
-        miningSpeed,
-      });
+    if (workerPool) {
+      workerPool.updateSpeed(miningSpeed);
     }
-  }, [miningSpeed, worker]);
+  }, [miningSpeed, workerPool]);
 
   return (
     <MiningContext.Provider
@@ -102,8 +103,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         isMining,
         btcAddress,
         miningSpeed,
+        threadCount,
+        maxThreads,
         setBtcAddress,
         setMiningSpeed,
+        setThreadCount,
         startMining,
         stopMining,
         resetData: resetStats,
