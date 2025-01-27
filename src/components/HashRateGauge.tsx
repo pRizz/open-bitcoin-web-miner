@@ -47,16 +47,6 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     return formatted.replace(/\.00/g, '');
   };
 
-  // Generate random particles with more particles and varied sizes
-  const particles = Array.from({ length: 15 }, (_, i) => ({
-    id: i,
-    delay: `${Math.random() * 2}s`,
-    duration: `${2.5 + Math.random() * 2}s`, // Increased base duration from 1.5 to 2.5
-    left: `${Math.random() * 100}%`,
-    size: Math.random() * 2 + 1,
-    opacity: Math.random() * 0.2 + 0.2,
-  }));
-  
   return (
     <Card className="p-6 glass-card">
       <div className="flex justify-between items-start mb-4">
@@ -137,21 +127,6 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
             className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
             style={{ width: `${percentage}%` }}
           >
-            {/* Particles */}
-            {particles.map((particle) => (
-              <div
-                key={particle.id}
-                className="absolute rounded-full animate-fade-up pointer-events-none bg-white/40"
-                style={{
-                  left: particle.left,
-                  width: `${particle.size}px`,
-                  height: `${particle.size}px`,
-                  opacity: particle.opacity,
-                  animationDelay: particle.delay,
-                  animationDuration: particle.duration,
-                }}
-              />
-            ))}
             {percentage > 5 && (
               <span className="text-xs font-medium text-white relative z-10">
                 {formatHashRateWithoutDecimals(hashRate)}
