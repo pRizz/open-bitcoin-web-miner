@@ -9,6 +9,9 @@ export {
   SidebarFooter,
   SidebarContent,
   SidebarSeparator,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
 } from "./components/structural"
 export {
   SidebarMenu,
