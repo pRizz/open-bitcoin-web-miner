@@ -14,6 +14,7 @@ import { Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { URL_PARAMS } from "@/constants/mining";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Index = () => {
   const { toast } = useToast();
@@ -102,6 +103,8 @@ const Index = () => {
     }
   };
 
+  const isValidAddress = btcAddress ? validateBitcoinAddress(btcAddress) : false;
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -170,10 +173,22 @@ const Index = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <label className="text-sm text-gray-400">Include Bitcoin address in share link</label>
-                  <Switch
-                    checked={includeAddress}
-                    onCheckedChange={setIncludeAddress}
-                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Switch
+                            checked={includeAddress}
+                            onCheckedChange={setIncludeAddress}
+                            disabled={!isValidAddress}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Enter a valid Bitcoin address to enable this option</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
               <Button
