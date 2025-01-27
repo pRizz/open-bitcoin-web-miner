@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ export function LeaderboardInfoPanel() {
   const [leaderboardMessage, setLeaderboardMessage] = useState("");
   const [blockchainMessage, setBlockchainMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
   const validateInputs = () => {
     if (!/^[a-zA-Z0-9]{1,20}$/.test(username)) {
@@ -98,6 +99,7 @@ export function LeaderboardInfoPanel() {
         title: "Success!",
         description: "Your hash has been added to the leaderboard",
       });
+      setLastSubmissionTime(Date.now());
     } catch (error) {
       toast({
         title: "Error",
@@ -108,6 +110,21 @@ export function LeaderboardInfoPanel() {
       setIsSubmitting(false);
     }
   };
+
+  // Auto-submit functionality
+  useEffect(() => {
+    const autoSubmit = async () => {
+      if (
+        miningStats.bestHashes.length > 0 &&
+        username &&
+        Date.now() - lastSubmissionTime >= 60000 // 1 minute cooldown
+      ) {
+        await handleSubmitBestHash();
+      }
+    };
+
+    autoSubmit();
+  }, [miningStats.bestHashes]);
 
   return (
     <Card className="p-6 glass-card">
