@@ -58,7 +58,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
               <DialogTrigger>
                 <HelpCircle className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-300" />
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>How are these probabilities calculated?</DialogTitle>
                 </DialogHeader>
