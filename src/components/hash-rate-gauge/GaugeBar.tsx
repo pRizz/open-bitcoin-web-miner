@@ -1,5 +1,4 @@
 import { formatHashRate } from "@/utils/mining";
-import { ParticleEffect } from "./ParticleEffect";
 
 interface GaugeBarProps {
   percentage: number;
@@ -19,7 +18,6 @@ export function GaugeBar({ percentage, hashRate }: GaugeBarProps) {
         className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
         style={{ width: `${percentage}%` }}
       >
-        <ParticleEffect />
         {percentage > 5 && (
           <span className="text-sm md:text-base lg:text-lg font-medium text-white relative z-10">
             {formatHashRateWithoutDecimals(hashRate)}
