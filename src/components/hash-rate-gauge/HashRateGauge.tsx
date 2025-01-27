@@ -38,7 +38,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       
-      <div className="relative mb-8">
+      <div className="relative mb-16">
         <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
           <div
             className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
@@ -56,7 +56,9 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
         <HashRateScale maxHashRate={maxHashRate} minerReferences={MINER_REFERENCES} />
       </div>
 
-      <ProbabilityInfo hashRate={hashRate} networkStats={networkStats} />
+      <div className="mt-8">
+        <ProbabilityInfo hashRate={hashRate} networkStats={networkStats} />
+      </div>
     </Card>
   );
 }
