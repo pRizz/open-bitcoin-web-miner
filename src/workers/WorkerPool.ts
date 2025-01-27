@@ -1,15 +1,34 @@
 export class WorkerPool {
   private workers: Worker[] = [];
   private active = false;
+  private hashRateSamples: number[] = [];
+  private sampleWindowSize: number;
 
   constructor(
     private threadCount: number,
     private onHashRate: (hashRate: number) => void,
     private onHash: (data: any) => void
-  ) {}
+  ) {
+    this.sampleWindowSize = threadCount;
+  }
+
+  private calculateMovingAverage(newSample: number): number {
+    // Add new sample
+    this.hashRateSamples.push(newSample);
+    
+    // Keep only the last N samples where N is the thread count
+    if (this.hashRateSamples.length > this.sampleWindowSize) {
+      this.hashRateSamples.shift();
+    }
+    
+    // Calculate moving average
+    const sum = this.hashRateSamples.reduce((acc, val) => acc + val, 0);
+    return sum / this.hashRateSamples.length;
+  }
 
   start(blockHeader: any, miningSpeed: number) {
     this.active = true;
+    this.hashRateSamples = []; // Reset samples on start
     
     // Create workers based on thread count
     for (let i = 0; i < this.threadCount; i++) {
@@ -23,8 +42,10 @@ export class WorkerPool {
         if (type === 'hash') {
           this.onHash(data);
         } else if (type === 'hashRate') {
-          // Aggregate hash rates from all workers
-          this.onHashRate(data * this.threadCount);
+          // Calculate moving average of hash rates
+          const movingAverage = this.calculateMovingAverage(data);
+          // Sum up the moving average across all threads
+          this.onHashRate(movingAverage * this.threadCount);
         }
       };
 
@@ -43,6 +64,7 @@ export class WorkerPool {
     this.active = false;
     this.workers.forEach(worker => worker.terminate());
     this.workers = [];
+    this.hashRateSamples = []; // Clear samples on stop
   }
 
   updateSpeed(miningSpeed: number) {
