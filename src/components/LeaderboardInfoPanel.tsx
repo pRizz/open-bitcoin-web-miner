@@ -128,6 +128,9 @@ export function LeaderboardInfoPanel() {
   return (
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Your Leaderboard Info</h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        Enter at least a username below. If you find a hash that ranks in the top 100, it will automatically be submitted to the Global Leaderboard. Submissions are limited to once per minute.
+      </p>
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="username">Username (1-20 alphanumeric characters)</Label>
