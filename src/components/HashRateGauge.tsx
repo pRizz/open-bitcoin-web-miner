@@ -51,10 +51,10 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   const particles = Array.from({ length: 15 }, (_, i) => ({
     id: i,
     delay: `${Math.random() * 2}s`,
-    duration: `${1.5 + Math.random() * 2}s`,
+    duration: `${2.5 + Math.random() * 2}s`, // Increased base duration from 1.5 to 2.5
     left: `${Math.random() * 100}%`,
-    size: Math.random() * 2 + 1, // Random size between 1-3px
-    opacity: Math.random() * 0.2 + 0.2, // Random opacity between 0.2-0.4
+    size: Math.random() * 2 + 1,
+    opacity: Math.random() * 0.2 + 0.2,
   }));
   
   return (
