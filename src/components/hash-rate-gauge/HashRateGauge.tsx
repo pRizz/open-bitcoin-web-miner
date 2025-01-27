@@ -49,7 +49,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
           >
             <ParticleEffect />
             {percentage > 5 && (
-              <span className="text-xs font-medium text-white relative z-10">
+              <span className="text-sm md:text-base lg:text-lg font-medium text-white relative z-10">
                 {formatHashRateWithoutDecimals(hashRate)}
               </span>
             )}
