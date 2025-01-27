@@ -96,3 +96,81 @@ export function formatTime(seconds: number): string {
   if (seconds < 86400) return `${Math.ceil(seconds / 3600)}h`;
   return `${Math.ceil(seconds / 86400)}d`;
 }
+
+export function expectedTimeToFindHash1(
+  hashRate: number, // Hashes per second
+  numZeroes: number, // Number of leading zeroes
+  confidence: number // Confidence level (e.g., 0.05 for 5%)
+): number {
+  // Probability of success for one hash
+  const P = Math.pow(2, -numZeroes);
+
+  // If the probability is effectively zero, return infinity
+  if (P === 0 || !isFinite(P)) {
+    return Infinity;
+  }
+
+  // Number of trials needed to achieve the desired confidence
+  const logTerm = Math.log(1 - confidence) / Math.log(1 - P);
+  
+  // Check if the log calculation resulted in -Infinity
+  if (!isFinite(logTerm)) {
+    return Infinity;
+  }
+
+  const k = Math.ceil(logTerm);
+
+  // Time to perform these trials
+  const timeInSeconds = k / hashRate;
+
+  return timeInSeconds;
+}
+
+// Example usage:
+// const hashRate = 1_000_000; // Hashes per second
+// const numZeroes = 100; // Number of leading zeroes
+// const confidence = 0.05; // 5% confidence
+
+// const time = expectedTimeToFindHash(hashRate, numZeroes, confidence);
+// console.log(`Expected time: ${time} seconds`);
+
+// Logarithmic version to avoid overflow
+export function expectedTimeToFindHash2(
+  hashRate: number, // Hashes per second
+  numZeroes: number, // Number of leading zeroes
+  confidence: number // Confidence level (e.g., 0.05 for 5%)
+): number {
+  const ln2 = Math.log(2); // Precompute natural log of 2
+
+  // Logarithmic probability of success for one hash
+  const logP = -numZeroes * ln2;
+
+  // If the log probability is too small or resulted in -Infinity, return Infinity
+  if (logP <= Number.NEGATIVE_INFINITY || !isFinite(logP)) {
+    return Infinity;
+  }
+
+  // Approximation for log(1 - P) for small P
+  const logOneMinusP = logP > -1e-5 ? logP : Math.log(1 - Math.exp(logP));
+  
+  // Check if the calculation resulted in -Infinity
+  if (!isFinite(logOneMinusP)) {
+    return Infinity;
+  }
+
+  // Number of trials needed to achieve the desired confidence
+  const k = Math.ceil(Math.log(1 - confidence) / logOneMinusP);
+
+  // Time to perform these trials
+  const timeInSeconds = k / hashRate;
+
+  return timeInSeconds;
+}
+
+// Example usage:
+// const hashRate = 1_000_000; // Hashes per second
+// const numZeroes = 100; // Number of leading zeroes
+// const confidence = 0.05; // 5% confidence
+
+// const time = expectedTimeToFindHash(hashRate, numZeroes, confidence);
+// console.log(`Expected time: ${time} seconds`);
