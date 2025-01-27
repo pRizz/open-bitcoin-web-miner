@@ -2,7 +2,6 @@ import { Card } from "@/components/ui/card";
 import { HashRateGauge } from "@/components/HashRateGauge";
 import { NetworkStats } from "@/components/NetworkStats";
 import { HashList } from "@/components/HashList";
-import { GlobalLeaderboard } from "@/components/GlobalLeaderboard";
 import { useMining } from "@/contexts/MiningContext";
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -25,7 +24,6 @@ const Index = () => {
     resetData,
   } = useMining();
 
-  // Check for auto-start parameter and prefilled address on mount
   useEffect(() => {
     const shouldAutoStart = searchParams.get(URL_PARAMS.AUTO_START) === "true";
     const prefilledAddress = searchParams.get(URL_PARAMS.BITCOIN_ADDRESS);
@@ -40,10 +38,10 @@ const Index = () => {
   }, [searchParams, startMining, isMining, setBtcAddress]);
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">Bitcoin Mining Simulator</h1>
+    <div className="max-w-7xl mx-auto">
+      <h1 className="text-4xl font-bold mb-6">Personal Mining</h1>
+      <div className="space-y-6">
+        <div className="flex justify-end">
           <ShareControls
             includeAutoStart={includeAutoStart}
             includeAddress={includeAddress}
@@ -68,7 +66,6 @@ const Index = () => {
 
         <HashRateGauge hashRate={miningStats.hashRate} />
         <HashList hashes={miningStats.bestHashes} />
-        <GlobalLeaderboard />
       </div>
     </div>
   );
