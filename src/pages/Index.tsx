@@ -94,7 +94,6 @@ const Index = () => {
                   max={maxThreads}
                   step={1}
                   className="w-full"
-                  disabled={isMining}
                 />
               </div>
               <Button

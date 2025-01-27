@@ -3,6 +3,8 @@ export class WorkerPool {
   private active = false;
   private hashRateSamples: number[] = [];
   private sampleWindowSize: number;
+  private currentBlockHeader: any;
+  private currentMiningSpeed: number;
 
   constructor(
     private threadCount: number,
@@ -29,7 +31,13 @@ export class WorkerPool {
   start(blockHeader: any, miningSpeed: number) {
     this.active = true;
     this.hashRateSamples = []; // Reset samples on start
+    this.currentBlockHeader = blockHeader;
+    this.currentMiningSpeed = miningSpeed;
     
+    this.createWorkers();
+  }
+
+  private createWorkers() {
     // Create workers based on thread count
     for (let i = 0; i < this.threadCount; i++) {
       const worker = new Worker(
@@ -51,8 +59,8 @@ export class WorkerPool {
 
       worker.postMessage({
         type: 'start',
-        blockHeader,
-        miningSpeed,
+        blockHeader: this.currentBlockHeader,
+        miningSpeed: this.currentMiningSpeed,
         workerId: i,
       });
 
@@ -67,7 +75,28 @@ export class WorkerPool {
     this.hashRateSamples = []; // Clear samples on stop
   }
 
+  updateThreadCount(newThreadCount: number) {
+    if (!this.active) {
+      this.threadCount = newThreadCount;
+      this.sampleWindowSize = newThreadCount;
+      return;
+    }
+
+    // Stop all current workers
+    this.workers.forEach(worker => worker.terminate());
+    this.workers = [];
+    this.hashRateSamples = []; // Reset samples for new thread count
+
+    // Update thread count and sample window
+    this.threadCount = newThreadCount;
+    this.sampleWindowSize = newThreadCount;
+
+    // Create new workers with updated count
+    this.createWorkers();
+  }
+
   updateSpeed(miningSpeed: number) {
+    this.currentMiningSpeed = miningSpeed;
     this.workers.forEach(worker => {
       worker.postMessage({
         type: 'updateSpeed',

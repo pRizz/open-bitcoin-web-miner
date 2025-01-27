@@ -42,7 +42,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [btcAddress, setBtcAddress] = useState("");
   const [miningSpeed, setMiningSpeed] = useState(100);
   const [maxThreads, setMaxThreads] = useState(1);
-  const [threadCount, setThreadCount] = useState(1);
+  const [threadCountState, setThreadCountState] = useState(1);
   const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
 
   // Detect CPU cores on mount
@@ -50,7 +50,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     if (navigator.hardwareConcurrency) {
       const cores = navigator.hardwareConcurrency;
       setMaxThreads(cores);
-      setThreadCount(Math.max(1, Math.floor(cores / 2))); // Default to half available cores
+      setThreadCountState(Math.max(1, Math.floor(cores / 2))); // Default to half available cores
     }
   }, []);
 
@@ -58,7 +58,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     if (workerPool) return;
 
     const pool = new WorkerPool(
-      threadCount,
+      threadCountState,
       (hashRate) => updateHashRate(hashRate),
       (data) => {
         const { binary, hex } = calculateLeadingZeroes(data.hash);
@@ -88,6 +88,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     stopMiningStats();
   };
 
+  const setThreadCount = (count: number) => {
+    if (workerPool) {
+      workerPool.updateThreadCount(count);
+    }
+    setThreadCountState(count);
+  };
+
   // Update worker pool when mining speed changes
   React.useEffect(() => {
     if (workerPool) {
@@ -103,7 +110,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         isMining,
         btcAddress,
         miningSpeed,
-        threadCount,
+        threadCount: threadCountState,
         maxThreads,
         setBtcAddress,
         setMiningSpeed,
