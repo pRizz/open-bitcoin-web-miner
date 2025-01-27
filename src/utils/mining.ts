@@ -128,16 +128,26 @@ export function formatTime(seconds: number): string {
     if (seconds >= unitSeconds) {
       const value = Math.round(seconds / unitSeconds);
       
-      // Special handling for years
+      // Special handling for years with large numbers
       if (unit === 'year') {
-        if (value >= 1_000_000_000) {
-          return `${(value / 1_000_000_000).toFixed(1)} billion years`;
-        }
-        if (value >= 1_000_000) {
-          return `${(value / 1_000_000).toFixed(1)} million years`;
-        }
-        if (value >= 1_000) {
-          return `${value.toLocaleString()} years`;
+        const largeNumbers = [
+          { threshold: 1e24, name: 'septillion' },
+          { threshold: 1e21, name: 'sextillion' },
+          { threshold: 1e18, name: 'quintillion' },
+          { threshold: 1e15, name: 'quadrillion' },
+          { threshold: 1e12, name: 'trillion' },
+          { threshold: 1e9, name: 'billion' },
+          { threshold: 1e6, name: 'million' },
+          { threshold: 1e3, name: 'thousand' }
+        ];
+
+        for (const { threshold, name } of largeNumbers) {
+          if (value >= threshold) {
+            if (name === 'thousand') {
+              return `${value.toLocaleString()} years`;
+            }
+            return `${(value / threshold).toFixed(1)} ${name} years`;
+          }
         }
       }
       
