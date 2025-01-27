@@ -47,12 +47,14 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     return formatted.replace(/\.00/g, '');
   };
 
-  // Generate random particles
-  const particles = Array.from({ length: 10 }, (_, i) => ({
+  // Generate random particles with more particles and varied sizes
+  const particles = Array.from({ length: 15 }, (_, i) => ({
     id: i,
     delay: `${Math.random() * 2}s`,
-    duration: `${2 + Math.random() * 2}s`,
+    duration: `${1.5 + Math.random() * 2}s`,
     left: `${Math.random() * 100}%`,
+    size: Math.random() * 2 + 1, // Random size between 1-3px
+    opacity: Math.random() * 0.2 + 0.2, // Random opacity between 0.2-0.4
   }));
   
   return (
@@ -130,7 +132,6 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
       </div>
       
       <div className="relative">
-        {/* Main gauge */}
         <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
           <div
             className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
@@ -140,9 +141,12 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
             {particles.map((particle) => (
               <div
                 key={particle.id}
-                className="absolute w-1 h-1 bg-white/30 rounded-full animate-fade-up pointer-events-none"
+                className="absolute rounded-full animate-fade-up pointer-events-none bg-white/40"
                 style={{
                   left: particle.left,
+                  width: `${particle.size}px`,
+                  height: `${particle.size}px`,
+                  opacity: particle.opacity,
                   animationDelay: particle.delay,
                   animationDuration: particle.duration,
                 }}
