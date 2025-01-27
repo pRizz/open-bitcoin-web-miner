@@ -14,6 +14,7 @@ interface ParticleEffectProps {
 }
 
 export function ParticleEffect({ count = 15 }: ParticleEffectProps) {
+  // Memoize particles so they don't get recreated on every rerender
   const particles = useMemo(() => 
     Array.from({ length: count }, (_, i) => ({
       id: i,
