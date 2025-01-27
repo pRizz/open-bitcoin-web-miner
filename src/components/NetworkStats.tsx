@@ -126,12 +126,6 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
                       <li>Uses small, manageable numbers (e.g., 32 zeroes vs 53 trillion difficulty)</li>
                     </ul>
                   </div>
-
-                  <div className="mt-4">
-                    <p>
-                      For example, if we required 6 leading zeroes in hex, that would actually mean 24 binary zeroes (6 × 4 = 24). By using binary counting, we can set the difficulty to any precise number of bits we want, like 10, 15, or 23 zeroes.
-                    </p>
-                  </div>
                 </div>
               </DialogContent>
             </Dialog>
