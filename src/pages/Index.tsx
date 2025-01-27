@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { URL_PARAMS } from "@/constants/mining";
 
 const Index = () => {
   const { toast } = useToast();
@@ -37,8 +39,8 @@ const Index = () => {
 
   // Check for auto-start parameter and prefilled address on mount
   useEffect(() => {
-    const shouldAutoStart = searchParams.get("startMiningImmediately") === "true";
-    const prefilledAddress = searchParams.get("prefilledBitcoinAddress");
+    const shouldAutoStart = searchParams.get(URL_PARAMS.AUTO_START) === "true";
+    const prefilledAddress = searchParams.get(URL_PARAMS.BITCOIN_ADDRESS);
     
     if (prefilledAddress) {
       setBtcAddress(prefilledAddress);
@@ -74,15 +76,15 @@ const Index = () => {
     const url = new URL(window.location.href);
     
     if (includeAutoStart) {
-      url.searchParams.set("startMiningImmediately", "true");
+      url.searchParams.set(URL_PARAMS.AUTO_START, "true");
     } else {
-      url.searchParams.delete("startMiningImmediately");
+      url.searchParams.delete(URL_PARAMS.AUTO_START);
     }
 
     if (includeAddress && btcAddress) {
-      url.searchParams.set("prefilledBitcoinAddress", btcAddress);
+      url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, btcAddress);
     } else {
-      url.searchParams.delete("prefilledBitcoinAddress");
+      url.searchParams.delete(URL_PARAMS.BITCOIN_ADDRESS);
     }
     
     try {
