@@ -1,44 +1,61 @@
+import { MiningMode } from "@/types/mining";
+
 export class WorkerPool {
-  private workers: Worker[] = [];
+  private cpuWorkers: Worker[] = [];
+  private gpuWorker: Worker | null = null;
   private active = false;
   private hashRateSamples: number[] = [];
   private sampleWindowSize: number;
   private currentBlockHeader: any;
   private currentMiningSpeed: number;
+  private currentMode: MiningMode = "cpu";
 
   constructor(
     private threadCount: number,
     private onHashRate: (hashRate: number) => void,
-    private onHash: (data: any) => void
+    private onHash: (data: any) => void,
+    private onError?: (error: string) => void
   ) {
     this.sampleWindowSize = threadCount;
   }
 
   private calculateMovingAverage(newSample: number): number {
-    // Add new sample
     this.hashRateSamples.push(newSample);
     
-    // Keep only the last N samples where N is the thread count
     if (this.hashRateSamples.length > this.sampleWindowSize) {
       this.hashRateSamples.shift();
     }
     
-    // Calculate moving average
     const sum = this.hashRateSamples.reduce((acc, val) => acc + val, 0);
     return sum / this.hashRateSamples.length;
   }
 
+  setMode(mode: MiningMode) {
+    if (this.active) {
+      this.stop();
+    }
+    this.currentMode = mode;
+    if (this.active) {
+      this.start(this.currentBlockHeader, this.currentMiningSpeed);
+    }
+  }
+
   start(blockHeader: any, miningSpeed: number) {
     this.active = true;
-    this.hashRateSamples = []; // Reset samples on start
+    this.hashRateSamples = [];
     this.currentBlockHeader = blockHeader;
     this.currentMiningSpeed = miningSpeed;
     
-    this.createWorkers();
+    if (this.currentMode === "cpu" || this.currentMode === "hybrid") {
+      this.createCPUWorkers();
+    }
+    
+    if (this.currentMode === "gpu" || this.currentMode === "hybrid") {
+      this.createGPUWorker();
+    }
   }
 
-  private createWorkers() {
-    // Create workers based on thread count
+  private createCPUWorkers() {
     for (let i = 0; i < this.threadCount; i++) {
       const worker = new Worker(
         new URL('./miningWorker.ts', import.meta.url),
@@ -47,32 +64,59 @@ export class WorkerPool {
 
       worker.onmessage = (e) => {
         const { type, data } = e.data;
-        if (type === 'hash') {
+        if (type === "hash") {
           this.onHash(data);
-        } else if (type === 'hashRate') {
-          // Calculate moving average of hash rates
+        } else if (type === "hashRate") {
           const movingAverage = this.calculateMovingAverage(data);
-          // Sum up the moving average across all threads
           this.onHashRate(movingAverage * this.threadCount);
         }
       };
 
       worker.postMessage({
-        type: 'start',
+        type: "start",
         blockHeader: this.currentBlockHeader,
         miningSpeed: this.currentMiningSpeed,
         workerId: i,
       });
 
-      this.workers.push(worker);
+      this.cpuWorkers.push(worker);
     }
+  }
+
+  private createGPUWorker() {
+    this.gpuWorker = new Worker(
+      new URL('./gpuMiningWorker.ts', import.meta.url),
+      { type: 'module' }
+    );
+
+    this.gpuWorker.onmessage = (e) => {
+      const { type, data } = e.data;
+      if (type === "hash") {
+        this.onHash(data);
+      } else if (type === "hashRate") {
+        const movingAverage = this.calculateMovingAverage(data);
+        this.onHashRate(movingAverage);
+      } else if (type === "error" && this.onError) {
+        this.onError(data);
+      }
+    };
+
+    this.gpuWorker.postMessage({
+      type: "start",
+      blockHeader: this.currentBlockHeader,
+      miningSpeed: this.currentMiningSpeed,
+    });
   }
 
   stop() {
     this.active = false;
-    this.workers.forEach(worker => worker.terminate());
-    this.workers = [];
-    this.hashRateSamples = []; // Clear samples on stop
+    this.cpuWorkers.forEach(worker => worker.terminate());
+    if (this.gpuWorker) {
+      this.gpuWorker.terminate();
+      this.gpuWorker = null;
+    }
+    this.cpuWorkers = [];
+    this.hashRateSamples = [];
   }
 
   updateThreadCount(newThreadCount: number) {
@@ -82,26 +126,31 @@ export class WorkerPool {
       return;
     }
 
-    // Stop all current workers
-    this.workers.forEach(worker => worker.terminate());
-    this.workers = [];
-    this.hashRateSamples = []; // Reset samples for new thread count
+    this.cpuWorkers.forEach(worker => worker.terminate());
+    this.cpuWorkers = [];
+    this.hashRateSamples = [];
 
-    // Update thread count and sample window
     this.threadCount = newThreadCount;
     this.sampleWindowSize = newThreadCount;
 
-    // Create new workers with updated count
-    this.createWorkers();
+    if (this.currentMode === "cpu" || this.currentMode === "hybrid") {
+      this.createCPUWorkers();
+    }
   }
 
   updateSpeed(miningSpeed: number) {
     this.currentMiningSpeed = miningSpeed;
-    this.workers.forEach(worker => {
+    this.cpuWorkers.forEach(worker => {
       worker.postMessage({
-        type: 'updateSpeed',
+        type: "updateSpeed",
         miningSpeed,
       });
     });
+    if (this.gpuWorker) {
+      this.gpuWorker.postMessage({
+        type: "updateSpeed",
+        miningSpeed,
+      });
+    }
   }
 }

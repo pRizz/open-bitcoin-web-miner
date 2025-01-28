@@ -24,3 +24,12 @@ export interface NetworkStats {
   difficulty: number;
   requiredBinaryZeroes: number;
 }
+
+export type MiningMode = "cpu" | "gpu" | "hybrid";
+
+export interface MiningWorkerMessage {
+  type: "start" | "stop" | "updateSpeed" | "hash" | "hashRate";
+  blockHeader?: Partial<HashSolution>;
+  miningSpeed?: number;
+  data?: any;
+}

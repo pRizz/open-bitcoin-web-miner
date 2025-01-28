@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMining } from "@/contexts/MiningContext";
 import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MiningMode } from "@/types/mining";
 
 interface MiningControlsProps {
   includeAutoStart: boolean;
@@ -27,9 +29,11 @@ export function MiningControls({
     miningSpeed,
     threadCount,
     maxThreads,
+    miningMode,
     setBtcAddress,
     setMiningSpeed,
     setThreadCount,
+    setMiningMode,
     startMining,
     stopMining,
   } = useMining();
@@ -55,10 +59,29 @@ export function MiningControls({
     setThreadCount(value[0]);
   };
 
+  const handleMiningModeChange = (value: MiningMode) => {
+    setMiningMode(value);
+  };
+
   const isValidAddress = btcAddress ? validateBitcoinAddress(btcAddress) : false;
+  const showCPUControls = miningMode === "cpu" || miningMode === "hybrid";
 
   return (
     <div className="space-y-4">
+      <div>
+        <label className="text-sm text-gray-400">Mining Mode</label>
+        <Select value={miningMode} onValueChange={handleMiningModeChange}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cpu">CPU Mining</SelectItem>
+            <SelectItem value="gpu">GPU Mining</SelectItem>
+            <SelectItem value="hybrid">CPU + GPU Mining</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div>
         <label className="text-sm text-gray-400">
           Bitcoin Address (Optional)
@@ -70,6 +93,7 @@ export function MiningControls({
           className="font-mono"
         />
       </div>
+
       <div className="space-y-2">
         <label className="text-sm text-gray-400">
           Mining Speed: {miningSpeed}%
@@ -83,19 +107,23 @@ export function MiningControls({
           className="w-full"
         />
       </div>
-      <div className="space-y-2">
-        <label className="text-sm text-gray-400">
-          CPU Threads: {threadCount} of {maxThreads}
-        </label>
-        <Slider
-          value={[threadCount]}
-          onValueChange={handleThreadChange}
-          min={1}
-          max={maxThreads}
-          step={1}
-          className="w-full"
-        />
-      </div>
+
+      {showCPUControls && (
+        <div className="space-y-2">
+          <label className="text-sm text-gray-400">
+            CPU Threads: {threadCount} of {maxThreads}
+          </label>
+          <Slider
+            value={[threadCount]}
+            onValueChange={handleThreadChange}
+            min={1}
+            max={maxThreads}
+            step={1}
+            className="w-full"
+          />
+        </div>
+      )}
+
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-sm text-gray-400">
@@ -128,6 +156,7 @@ export function MiningControls({
           </TooltipProvider>
         </div>
       </div>
+
       <Button
         className="w-full"
         variant={isMining ? "destructive" : "default"}
