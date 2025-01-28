@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useMining } from "@/contexts/MiningContext";
+import { LeaderboardForm } from "./leaderboard/LeaderboardForm";
+import { LeaderboardSubmissionHandler } from "./leaderboard/LeaderboardSubmissionHandler";
 
 export function LeaderboardInfoPanel() {
   const { toast } = useToast();
@@ -12,103 +11,9 @@ export function LeaderboardInfoPanel() {
   const [username, setUsername] = useState("");
   const [leaderboardMessage, setLeaderboardMessage] = useState("");
   const [blockchainMessage, setBlockchainMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
-  const validateInputs = () => {
-    if (!/^[a-zA-Z0-9]{1,20}$/.test(username)) {
-      toast({
-        title: "Invalid username",
-        description: "Username must be 1-20 alphanumeric characters",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (leaderboardMessage.length > 120) {
-      toast({
-        title: "Invalid leaderboard message",
-        description: "Leaderboard message must be 120 characters or less",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!/^[a-zA-Z0-9]{0,30}$/.test(blockchainMessage)) {
-      toast({
-        title: "Invalid blockchain message",
-        description: "Blockchain message must be 30 alphanumeric characters or less",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmitBestHash = async () => {
-    if (!validateInputs()) return;
-    if (miningStats.bestHashes.length === 0) {
-      toast({
-        title: "No hashes found",
-        description: "You need to mine some hashes first!",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    const bestHash = miningStats.bestHashes[0];
-
-    try {
-      const { error } = await supabase.from("leaderboard").insert({
-        username,
-        leaderboard_message: leaderboardMessage,
-        blockchain_message: blockchainMessage,
-        hash: bestHash.hash,
-        binary_zeroes: bestHash.binaryZeroes,
-        hex_zeroes: bestHash.hexZeroes,
-        nonce: bestHash.nonce,
-        timestamp: bestHash.timestamp,
-        merkle_root: bestHash.merkleRoot,
-        previous_block: bestHash.previousBlock,
-        version: bestHash.version,
-        bits: bestHash.bits,
-        time_to_find: bestHash.timeToFind,
-      });
-
-      if (error) {
-        if (error.message.includes("rate limit")) {
-          toast({
-            title: "Rate limited",
-            description: "Please wait 1 minute before submitting again",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Submission failed",
-            description: "Your hash wasn't good enough for the leaderboard or another error occurred",
-            variant: "destructive",
-          });
-        }
-        return;
-      }
-
-      toast({
-        title: "Success!",
-        description: "Your hash has been added to the leaderboard",
-      });
-      setLastSubmissionTime(Date.now());
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to submit hash to leaderboard",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const submissionHandler = new LeaderboardSubmissionHandler(toast);
 
   // Auto-submit functionality
   useEffect(() => {
@@ -118,7 +23,31 @@ export function LeaderboardInfoPanel() {
         username &&
         Date.now() - lastSubmissionTime >= 60000 // 1 minute cooldown
       ) {
-        await handleSubmitBestHash();
+        const validation = submissionHandler.validateInputs(
+          username,
+          leaderboardMessage,
+          blockchainMessage
+        );
+
+        if (!validation.isValid) {
+          toast({
+            title: "Invalid input",
+            description: validation.error,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const success = await submissionHandler.submitHash(
+          username,
+          leaderboardMessage,
+          blockchainMessage,
+          miningStats.bestHashes[0]
+        );
+
+        if (success) {
+          setLastSubmissionTime(Date.now());
+        }
       }
     };
 
@@ -131,40 +60,14 @@ export function LeaderboardInfoPanel() {
       <p className="text-sm text-muted-foreground mb-4">
         This feature is completely optional - you don't need to provide any information if you don't want to be added to the leaderboard. However, if you'd like to participate, enter at least a username below. If you find a hash that ranks in the top 100, it will automatically be submitted to the Global Leaderboard. Submissions are limited to once per minute.
       </p>
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="username">Username (1-20 alphanumeric characters)</Label>
-          <Input
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
-            maxLength={20}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="leaderboardMessage">Leaderboard Message (up to 120 characters)</Label>
-          <Input
-            id="leaderboardMessage"
-            value={leaderboardMessage}
-            onChange={(e) => setLeaderboardMessage(e.target.value)}
-            placeholder="Optional message to display on the leaderboard"
-            maxLength={120}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="blockchainMessage">
-            Blockchain Message (up to 30 alphanumeric characters)
-          </Label>
-          <Input
-            id="blockchainMessage"
-            value={blockchainMessage}
-            onChange={(e) => setBlockchainMessage(e.target.value)}
-            placeholder="Optional message for the blockchain"
-            maxLength={30}
-          />
-        </div>
-      </div>
+      <LeaderboardForm
+        username={username}
+        setUsername={setUsername}
+        leaderboardMessage={leaderboardMessage}
+        setLeaderboardMessage={setLeaderboardMessage}
+        blockchainMessage={blockchainMessage}
+        setBlockchainMessage={setBlockchainMessage}
+      />
     </Card>
   );
 }
