@@ -25,7 +25,7 @@ export interface NetworkStats {
   requiredBinaryZeroes: number;
 }
 
-export type MiningMode = "cpu" | "gpu" | "hybrid" | "webgl" | "webgpu";
+export type MiningMode = "cpu" | "webgl" | "webgpu";
 
 export interface MiningWorkerMessage {
   type: "start" | "stop" | "updateSpeed" | "hash" | "hashRate";

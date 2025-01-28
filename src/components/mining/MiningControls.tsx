@@ -69,7 +69,7 @@ export function MiningControls({
   };
 
   const isValidAddress = btcAddress ? validateBitcoinAddress(btcAddress) : false;
-  const showCPUControls = miningMode === "cpu" || miningMode === "hybrid";
+  const showCPUControls = miningMode === "cpu";
 
   return (
     <div className="space-y-4">
@@ -82,15 +82,6 @@ export function MiningControls({
               id="cpu-mining"
               checked={miningMode === "cpu"}
               onCheckedChange={(checked) => toggleMiningMode("cpu", checked)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="gpu-mining">GPU Mining</Label>
-            <Switch
-              id="gpu-mining"
-              checked={miningMode === "gpu"}
-              onCheckedChange={(checked) => toggleMiningMode("gpu", checked)}
             />
           </div>
 
@@ -109,15 +100,6 @@ export function MiningControls({
               id="webgpu-mining"
               checked={miningMode === "webgpu"}
               onCheckedChange={(checked) => toggleMiningMode("webgpu", checked)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="hybrid-mining">Hybrid (CPU + GPU)</Label>
-            <Switch
-              id="hybrid-mining"
-              checked={miningMode === "hybrid"}
-              onCheckedChange={(checked) => toggleMiningMode("hybrid", checked)}
             />
           </div>
         </Card>

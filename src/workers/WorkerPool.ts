@@ -2,7 +2,6 @@ import { MiningMode } from "@/types/mining";
 
 export class WorkerPool {
   private cpuWorkers: Worker[] = [];
-  private gpuWorker: Worker | null = null;
   private webglWorker: Worker | null = null;
   private webgpuWorker: Worker | null = null;
   private active = false;
@@ -52,18 +51,11 @@ export class WorkerPool {
       case "cpu":
         this.createCPUWorkers();
         break;
-      case "gpu":
-        this.createGPUWorker();
-        break;
       case "webgl":
         this.createWebGLWorker();
         break;
       case "webgpu":
         this.createWebGPUWorker();
-        break;
-      case "hybrid":
-        this.createCPUWorkers();
-        this.createGPUWorker();
         break;
     }
   }
@@ -96,18 +88,9 @@ export class WorkerPool {
     }
   }
 
-  private createGPUWorker() {
-    this.gpuWorker = new Worker(
-      new URL('./gpuMiningWorker.ts', import.meta.url),
-      { type: 'module' }
-    );
-
-    this.setupWorkerHandlers(this.gpuWorker);
-  }
-
   private createWebGLWorker() {
     this.webglWorker = new Worker(
-      new URL('./gpuMiningWorker.ts', import.meta.url),
+      new URL('./webglMiningWorker.ts', import.meta.url),
       { type: 'module' }
     );
 
@@ -146,10 +129,6 @@ export class WorkerPool {
   stop() {
     this.active = false;
     this.cpuWorkers.forEach(worker => worker.terminate());
-    if (this.gpuWorker) {
-      this.gpuWorker.terminate();
-      this.gpuWorker = null;
-    }
     if (this.webglWorker) {
       this.webglWorker.terminate();
       this.webglWorker = null;
@@ -176,7 +155,7 @@ export class WorkerPool {
     this.threadCount = newThreadCount;
     this.sampleWindowSize = newThreadCount;
 
-    if (this.currentMode === "cpu" || this.currentMode === "hybrid") {
+    if (this.currentMode === "cpu") {
       this.createCPUWorkers();
     }
   }
@@ -199,7 +178,6 @@ export class WorkerPool {
       }
     };
 
-    updateWorker(this.gpuWorker);
     updateWorker(this.webglWorker);
     updateWorker(this.webgpuWorker);
   }
