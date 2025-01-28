@@ -50,7 +50,6 @@ const uint H[8] = uint[8](
     0x510e527fu, 0x9b05688cu, 0x1f83d9abu, 0x5be0cd19u
 );
 
-// Bitwise operations
 uint ROTR(uint x, uint n) {
     return (x >> n) | (x << (32u - n));
 }
@@ -79,9 +78,7 @@ uint sigma1(uint x) {
     return ROTR(x, 17u) ^ ROTR(x, 19u) ^ (x >> 10u);
 }
 
-// Main SHA-256 function
 vec4 sha256(vec4 input) {
-    // Initialize working variables
     uint a = H[0];
     uint b = H[1];
     uint c = H[2];
@@ -91,21 +88,17 @@ vec4 sha256(vec4 input) {
     uint g = H[6];
     uint h = H[7];
     
-    // Message schedule array
     uint W[64];
     
-    // Prepare message schedule
     W[0] = uint(input.x);
     W[1] = uint(input.y);
     W[2] = uint(input.z);
     W[3] = uint(input.w);
     
-    // Fill remaining words
     for(int t = 4; t < 64; t++) {
         W[t] = sigma1(W[t-2]) + W[t-7] + sigma0(W[t-15]) + W[t-16];
     }
     
-    // Main loop
     for(int t = 0; t < 64; t++) {
         uint T1 = h + Sigma1(e) + Ch(e, f, g) + K[t] + W[t];
         uint T2 = Sigma0(a) + Maj(a, b, c);
@@ -119,7 +112,6 @@ vec4 sha256(vec4 input) {
         a = T1 + T2;
     }
     
-    // Update hash values
     uint h0 = H[0] + a;
     uint h1 = H[1] + b;
     uint h2 = H[2] + c;
@@ -137,6 +129,52 @@ void main() {
     fragColor = sha256(u_blockHeader);
 }`;
 
+function initWebGL() {
+  const canvas = new OffscreenCanvas(1, 1);
+  gl = canvas.getContext('webgl2');
+  
+  if (!gl) {
+    throw new Error('WebGL 2 not supported');
+  }
+
+  // Create shader program
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  
+  if (!vertexShader || !fragmentShader) {
+    throw new Error('Failed to create shaders');
+  }
+
+  gl.shaderSource(vertexShader, vertexShaderSource);
+  gl.shaderSource(fragmentShader, fragmentShaderSource);
+  
+  gl.compileShader(vertexShader);
+  gl.compileShader(fragmentShader);
+
+  if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+    throw new Error(`Vertex shader compilation failed: ${gl.getShaderInfoLog(vertexShader)}`);
+  }
+
+  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+    throw new Error(`Fragment shader compilation failed: ${gl.getShaderInfoLog(fragmentShader)}`);
+  }
+
+  program = gl.createProgram();
+  if (!program) {
+    throw new Error('Failed to create shader program');
+  }
+
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    throw new Error(`Program linking failed: ${gl.getProgramInfoLog(program)}`);
+  }
+
+  gl.useProgram(program);
+}
+
 function updateHashRate(batchSize: number) {
   const currentTime = performance.now();
   const elapsedTime = currentTime - startTime;
@@ -152,7 +190,14 @@ function updateHashRate(batchSize: number) {
 }
 
 function mine(blockHeader: Partial<HashSolution>) {
-  if (!gl || !program) return;
+  if (!gl || !program) {
+    try {
+      initWebGL();
+    } catch (error) {
+      self.postMessage({ type: "error", data: error.message });
+      return;
+    }
+  }
 
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
   
@@ -168,12 +213,12 @@ function mine(blockHeader: Partial<HashSolution>) {
         nonce: nonce++,
       };
 
-      const blockData = new Float32Array([header.version || 0, parseInt(header.bits || "0", 16), header.timestamp || 0, 0]);
+      const blockData = new Float32Array([header.version || 0, parseInt(header.bits || "0", 16), header.timestamp || 0, header.nonce]);
       const blockHeaderLoc = gl.getUniformLocation(program, "u_blockHeader");
-      const nonceLoc = gl.getUniformLocation(program, "u_nonce");
       
       gl.uniform4fv(blockHeaderLoc, blockData);
-      gl.uniform1f(nonceLoc, header.nonce);
+
+      gl.drawArrays(gl.POINTS, 0, 1);
 
       const pixels = new Uint8Array(4);
       gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
