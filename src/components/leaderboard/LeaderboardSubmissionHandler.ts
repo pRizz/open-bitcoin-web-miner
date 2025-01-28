@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { HashSolution } from "@/types/mining";
-import { UseToastReturn } from "@/components/ui/use-toast";
+import { type Toast } from "@/hooks/use-toast";
 
 interface ValidationResult {
   isValid: boolean;
@@ -8,7 +8,7 @@ interface ValidationResult {
 }
 
 export class LeaderboardSubmissionHandler {
-  constructor(private toast: UseToastReturn["toast"]) {}
+  constructor(private toast: Toast) {}
 
   validateInputs(username: string, leaderboardMessage: string, blockchainMessage: string): ValidationResult {
     if (!/^[a-zA-Z0-9]{1,20}$/.test(username)) {
