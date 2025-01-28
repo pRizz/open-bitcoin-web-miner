@@ -44,7 +44,7 @@ const uint K[64] = uint[64](
     0x90befffau, 0xa4506cebu, 0xbef9a3f7u, 0xc67178f2u
 );
 
-// Initial hash values (first 32 bits of the fractional parts of the square roots of the first 8 primes)
+// Initial hash values
 const uint H[8] = uint[8](
     0x6a09e667u, 0xbb67ae85u, 0x3c6ef372u, 0xa54ff53au,
     0x510e527fu, 0x9b05688cu, 0x1f83d9abu, 0x5be0cd19u
@@ -95,7 +95,6 @@ vec4 sha256(vec4 input) {
     uint W[64];
     
     // Prepare message schedule
-    // First 16 words are the message itself
     W[0] = uint(input.x);
     W[1] = uint(input.y);
     W[2] = uint(input.z);
@@ -126,7 +125,6 @@ vec4 sha256(vec4 input) {
     uint h2 = H[2] + c;
     uint h3 = H[3] + d;
     
-    // Return first 128 bits of the hash
     return vec4(
         float(h0) / 4294967295.0,
         float(h1) / 4294967295.0,
@@ -134,6 +132,10 @@ vec4 sha256(vec4 input) {
         float(h3) / 4294967295.0
     );
 }
+
+void main() {
+    fragColor = sha256(u_blockHeader);
+}`;
 
 function updateHashRate(batchSize: number) {
   const currentTime = performance.now();
