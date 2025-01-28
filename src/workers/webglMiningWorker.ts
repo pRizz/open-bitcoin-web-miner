@@ -3,7 +3,7 @@ import { calculateLeadingZeroes } from "@/utils/mining";
 
 let running = false;
 let hashCount = 0;
-let lastHashRateUpdate = Date.now();
+let startTime = performance.now();
 let miningSpeed = 100;
 const HASH_RATE_UPDATE_INTERVAL = 1000;
 
@@ -135,39 +135,18 @@ vec4 sha256(vec4 input) {
     );
 }
 
-void main() {
-    vec4 blockData = u_blockHeader + vec4(u_nonce, 0.0, 0.0, 0.0);
-    fragColor = sha256(blockData);
-}`;
-
-function initWebGL() {
-  const canvas = new OffscreenCanvas(1, 1);
-  gl = canvas.getContext("webgl2");
+function updateHashRate(batchSize: number) {
+  const currentTime = performance.now();
+  const elapsedTime = currentTime - startTime;
   
-  if (!gl) {
-    throw new Error("WebGL2 not supported");
+  if (elapsedTime >= HASH_RATE_UPDATE_INTERVAL) {
+    const hashesPerSecond = (hashCount * 1000) / elapsedTime;
+    self.postMessage({ type: "hashRate", data: hashesPerSecond });
+    hashCount = 0;
+    startTime = currentTime;
   }
-
-  // Create shaders
-  const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-  gl.shaderSource(vertexShader, vertexShaderSource);
-  gl.compileShader(vertexShader);
-
-  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-  gl.shaderSource(fragmentShader, fragmentShaderSource);
-  gl.compileShader(fragmentShader);
-
-  // Create program
-  program = gl.createProgram()!;
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new Error("Unable to initialize WebGL program");
-  }
-
-  gl.useProgram(program);
+  
+  hashCount += batchSize;
 }
 
 function mine(blockHeader: Partial<HashSolution>) {
@@ -175,19 +154,6 @@ function mine(blockHeader: Partial<HashSolution>) {
 
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
   
-  const updateHashRate = () => {
-    const now = Date.now();
-    const elapsed = now - lastHashRateUpdate;
-    if (elapsed >= HASH_RATE_UPDATE_INTERVAL) {
-      const hashRate = (hashCount * 1000) / elapsed;
-      self.postMessage({ type: "hashRate", data: hashRate });
-      hashCount = 0;
-      lastHashRateUpdate = now;
-    }
-  };
-
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   const miningLoop = async () => {
     if (!running || !gl || !program) return;
 
@@ -200,29 +166,20 @@ function mine(blockHeader: Partial<HashSolution>) {
         nonce: nonce++,
       };
 
-      // Update uniforms
+      const blockData = new Float32Array([header.version || 0, parseInt(header.bits || "0", 16), header.timestamp || 0, 0]);
       const blockHeaderLoc = gl.getUniformLocation(program, "u_blockHeader");
       const nonceLoc = gl.getUniformLocation(program, "u_nonce");
       
-      gl.uniform4f(blockHeaderLoc, 
-        header.version || 0,
-        parseInt(header.bits || "0", 16),
-        header.timestamp || 0,
-        0
-      );
+      gl.uniform4fv(blockHeaderLoc, blockData);
       gl.uniform1f(nonceLoc, header.nonce);
 
-      // Read pixels
       const pixels = new Uint8Array(4);
       gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
       
-      // Convert pixels to hash
       const hash = Array.from(pixels)
         .map(x => x.toString(16).padStart(2, "0"))
         .join("");
       
-      hashCount++;
-
       const { binary } = calculateLeadingZeroes(hash);
       if (binary >= 10) {
         self.postMessage({
@@ -232,10 +189,10 @@ function mine(blockHeader: Partial<HashSolution>) {
       }
     }
 
-    updateHashRate();
+    updateHashRate(batchSize);
     
     if (sleepTime > 0) {
-      await sleep(sleepTime);
+      await new Promise(resolve => setTimeout(resolve, sleepTime));
     }
     
     requestAnimationFrame(() => miningLoop());
@@ -248,14 +205,6 @@ self.onmessage = (e) => {
   const { type, blockHeader, miningSpeed: newSpeed } = e.data;
   
   if (type === "start") {
-    if (!gl) {
-      try {
-        initWebGL();
-      } catch (error) {
-        self.postMessage({ type: "error", data: "GPU mining not supported" });
-        return;
-      }
-    }
     running = true;
     miningSpeed = newSpeed;
     mine(blockHeader);

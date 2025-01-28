@@ -4,7 +4,7 @@ import { calculateLeadingZeroes } from "@/utils/mining";
 
 let running = false;
 let hashCount = 0;
-let lastHashRateUpdate = Date.now();
+let startTime = performance.now();
 let miningSpeed = 100;
 const HASH_RATE_UPDATE_INTERVAL = 1000;
 
@@ -84,24 +84,25 @@ async function initWebGPU() {
   });
 }
 
+function updateHashRate(batchSize: number) {
+  const currentTime = performance.now();
+  const elapsedTime = currentTime - startTime;
+  
+  if (elapsedTime >= HASH_RATE_UPDATE_INTERVAL) {
+    const hashesPerSecond = (hashCount * 1000) / elapsedTime;
+    self.postMessage({ type: "hashRate", data: hashesPerSecond });
+    hashCount = 0;
+    startTime = currentTime;
+  }
+  
+  hashCount += batchSize;
+}
+
 async function mine(blockHeader: Partial<HashSolution>) {
   if (!device || !pipeline) return;
 
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
   
-  const updateHashRate = () => {
-    const now = Date.now();
-    const elapsed = now - lastHashRateUpdate;
-    if (elapsed >= HASH_RATE_UPDATE_INTERVAL) {
-      const hashRate = (hashCount * 1000) / elapsed;
-      self.postMessage({ type: "hashRate", data: hashRate });
-      hashCount = 0;
-      lastHashRateUpdate = now;
-    }
-  };
-
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   const miningLoop = async () => {
     if (!running || !device || !pipeline) return;
 
@@ -174,16 +175,12 @@ async function mine(blockHeader: Partial<HashSolution>) {
           data: { ...blockHeader, hash, nonce: nonce - batchSize + i },
         });
       }
-      
-      hashCount++;
     }
 
-    readBuffer.unmap();
-    
-    updateHashRate();
+    updateHashRate(batchSize);
     
     if (sleepTime > 0) {
-      await sleep(sleepTime);
+      await new Promise(resolve => setTimeout(resolve, sleepTime));
     }
     
     requestAnimationFrame(() => miningLoop());
