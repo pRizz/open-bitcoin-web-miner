@@ -3,6 +3,8 @@ import { MiningMode } from "@/types/mining";
 export class WorkerPool {
   private cpuWorkers: Worker[] = [];
   private gpuWorker: Worker | null = null;
+  private webglWorker: Worker | null = null;
+  private webgpuWorker: Worker | null = null;
   private active = false;
   private hashRateSamples: number[] = [];
   private sampleWindowSize: number;
@@ -46,12 +48,23 @@ export class WorkerPool {
     this.currentBlockHeader = blockHeader;
     this.currentMiningSpeed = miningSpeed;
     
-    if (this.currentMode === "cpu" || this.currentMode === "hybrid") {
-      this.createCPUWorkers();
-    }
-    
-    if (this.currentMode === "gpu" || this.currentMode === "hybrid") {
-      this.createGPUWorker();
+    switch (this.currentMode) {
+      case "cpu":
+        this.createCPUWorkers();
+        break;
+      case "gpu":
+        this.createGPUWorker();
+        break;
+      case "webgl":
+        this.createWebGLWorker();
+        break;
+      case "webgpu":
+        this.createWebGPUWorker();
+        break;
+      case "hybrid":
+        this.createCPUWorkers();
+        this.createGPUWorker();
+        break;
     }
   }
 
@@ -89,7 +102,29 @@ export class WorkerPool {
       { type: 'module' }
     );
 
-    this.gpuWorker.onmessage = (e) => {
+    this.setupWorkerHandlers(this.gpuWorker);
+  }
+
+  private createWebGLWorker() {
+    this.webglWorker = new Worker(
+      new URL('./gpuMiningWorker.ts', import.meta.url),
+      { type: 'module' }
+    );
+
+    this.setupWorkerHandlers(this.webglWorker);
+  }
+
+  private createWebGPUWorker() {
+    this.webgpuWorker = new Worker(
+      new URL('./webgpuMiningWorker.ts', import.meta.url),
+      { type: 'module' }
+    );
+
+    this.setupWorkerHandlers(this.webgpuWorker);
+  }
+
+  private setupWorkerHandlers(worker: Worker) {
+    worker.onmessage = (e) => {
       const { type, data } = e.data;
       if (type === "hash") {
         this.onHash(data);
@@ -101,7 +136,7 @@ export class WorkerPool {
       }
     };
 
-    this.gpuWorker.postMessage({
+    worker.postMessage({
       type: "start",
       blockHeader: this.currentBlockHeader,
       miningSpeed: this.currentMiningSpeed,
@@ -114,6 +149,14 @@ export class WorkerPool {
     if (this.gpuWorker) {
       this.gpuWorker.terminate();
       this.gpuWorker = null;
+    }
+    if (this.webglWorker) {
+      this.webglWorker.terminate();
+      this.webglWorker = null;
+    }
+    if (this.webgpuWorker) {
+      this.webgpuWorker.terminate();
+      this.webgpuWorker = null;
     }
     this.cpuWorkers = [];
     this.hashRateSamples = [];
@@ -146,11 +189,18 @@ export class WorkerPool {
         miningSpeed,
       });
     });
-    if (this.gpuWorker) {
-      this.gpuWorker.postMessage({
-        type: "updateSpeed",
-        miningSpeed,
-      });
-    }
+    
+    const updateWorker = (worker: Worker | null) => {
+      if (worker) {
+        worker.postMessage({
+          type: "updateSpeed",
+          miningSpeed,
+        });
+      }
+    };
+
+    updateWorker(this.gpuWorker);
+    updateWorker(this.webglWorker);
+    updateWorker(this.webgpuWorker);
   }
 }

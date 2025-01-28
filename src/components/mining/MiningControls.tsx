@@ -2,12 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMining } from "@/contexts/MiningContext";
 import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MiningMode } from "@/types/mining";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 
 interface MiningControlsProps {
   includeAutoStart: boolean;
@@ -59,8 +60,12 @@ export function MiningControls({
     setThreadCount(value[0]);
   };
 
-  const handleMiningModeChange = (value: MiningMode) => {
-    setMiningMode(value);
+  const toggleMiningMode = (mode: MiningMode, enabled: boolean) => {
+    if (enabled) {
+      setMiningMode(mode);
+    } else if (miningMode === mode) {
+      setMiningMode("cpu"); // Default to CPU mining when disabling a mode
+    }
   };
 
   const isValidAddress = btcAddress ? validateBitcoinAddress(btcAddress) : false;
@@ -69,17 +74,53 @@ export function MiningControls({
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-sm text-gray-400">Mining Mode</label>
-        <Select value={miningMode} onValueChange={handleMiningModeChange}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="cpu">CPU Mining</SelectItem>
-            <SelectItem value="gpu">GPU Mining</SelectItem>
-            <SelectItem value="hybrid">CPU + GPU Mining</SelectItem>
-          </SelectContent>
-        </Select>
+        <label className="text-sm text-gray-400">Mining Modes</label>
+        <Card className="p-4 mt-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="cpu-mining">CPU Mining</Label>
+            <Switch
+              id="cpu-mining"
+              checked={miningMode === "cpu"}
+              onCheckedChange={(checked) => toggleMiningMode("cpu", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="gpu-mining">GPU Mining</Label>
+            <Switch
+              id="gpu-mining"
+              checked={miningMode === "gpu"}
+              onCheckedChange={(checked) => toggleMiningMode("gpu", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="webgl-mining">WebGL Mining</Label>
+            <Switch
+              id="webgl-mining"
+              checked={miningMode === "webgl"}
+              onCheckedChange={(checked) => toggleMiningMode("webgl", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="webgpu-mining">WebGPU Mining</Label>
+            <Switch
+              id="webgpu-mining"
+              checked={miningMode === "webgpu"}
+              onCheckedChange={(checked) => toggleMiningMode("webgpu", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="hybrid-mining">Hybrid (CPU + GPU)</Label>
+            <Switch
+              id="hybrid-mining"
+              checked={miningMode === "hybrid"}
+              onCheckedChange={(checked) => toggleMiningMode("hybrid", checked)}
+            />
+          </div>
+        </Card>
       </div>
 
       <div>
