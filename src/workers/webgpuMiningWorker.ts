@@ -1,3 +1,4 @@
+/// <reference types="@webgpu/types" />
 import { HashSolution } from "@/types/mining";
 import { calculateLeadingZeroes } from "@/utils/mining";
 
