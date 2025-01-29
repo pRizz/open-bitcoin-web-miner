@@ -27,9 +27,13 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
 
   const findClosestComparison = (probability: number) => {
     const targetValue = 1 / probability;
-    // Find the first probability that's smaller than our target (since list is reversed)
-    return RANDOM_SELECTION_PROBABILITIES.find(p => p.value <= targetValue) || 
-           RANDOM_SELECTION_PROBABILITIES[RANDOM_SELECTION_PROBABILITIES.length - 1];
+    const targetLog = Math.log10(targetValue);
+    
+    return RANDOM_SELECTION_PROBABILITIES.reduce((closest, current) => {
+      const currentDelta = Math.abs(Math.log10(current.value) - targetLog);
+      const closestDelta = Math.abs(Math.log10(closest.value) - targetLog);
+      return currentDelta < closestDelta ? current : closest;
+    });
   };
 
   const probability = calculateProbability(stats.requiredBinaryZeroes);
