@@ -60,50 +60,84 @@ export class WorkerPool {
     }
   }
 
-  private createCPUWorkers() {
-    for (let i = 0; i < this.threadCount; i++) {
-      const worker = new Worker(
-        new URL('./miningWorker.ts', import.meta.url),
-        { type: 'module' }
-      );
-
-      worker.onmessage = (e) => {
-        const { type, data } = e.data;
-        if (type === "hash") {
-          this.onHash(data);
-        } else if (type === "hashRate") {
-          const movingAverage = this.calculateMovingAverage(data);
-          this.onHashRate(movingAverage * this.threadCount);
+  private createWorker(url: string): Worker {
+    try {
+      const worker = new Worker(url, { type: 'module' });
+      
+      // Add error handler for the worker
+      worker.onerror = (error: ErrorEvent) => {
+        if (this.onError) {
+          this.onError(`Worker initialization error: ${error.message}`);
         }
+        this.stop(); // Stop mining if worker fails to initialize
       };
+      
+      return worker;
+    } catch (error) {
+      if (this.onError) {
+        this.onError(`Failed to create worker: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      throw error; // Re-throw to prevent using an invalid worker
+    }
+  }
 
-      worker.postMessage({
-        type: "start",
-        blockHeader: this.currentBlockHeader,
-        miningSpeed: this.currentMiningSpeed,
-        workerId: i,
-      });
+  private createCPUWorkers() {
+    try {
+      for (let i = 0; i < this.threadCount; i++) {
+        const worker = this.createWorker(
+          new URL('./miningWorker.ts', import.meta.url)
+        );
 
-      this.cpuWorkers.push(worker);
+        worker.onmessage = (e) => {
+          const { type, data } = e.data;
+          if (type === "hash") {
+            this.onHash(data);
+          } else if (type === "hashRate") {
+            const movingAverage = this.calculateMovingAverage(data);
+            this.onHashRate(movingAverage * this.threadCount);
+          }
+        };
+
+        worker.postMessage({
+          type: "start",
+          blockHeader: this.currentBlockHeader,
+          miningSpeed: this.currentMiningSpeed,
+          workerId: i,
+        });
+
+        this.cpuWorkers.push(worker);
+      }
+    } catch (error) {
+      if (this.onError) {
+        this.onError(`Failed to initialize CPU workers: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
   }
 
   private createWebGLWorker() {
-    this.webglWorker = new Worker(
-      new URL('./webglMiningWorker.ts', import.meta.url),
-      { type: 'module' }
-    );
-
-    this.setupWorkerHandlers(this.webglWorker);
+    try {
+      this.webglWorker = this.createWorker(
+        new URL('./webglMiningWorker.ts', import.meta.url)
+      );
+      this.setupWorkerHandlers(this.webglWorker);
+    } catch (error) {
+      if (this.onError) {
+        this.onError(`Failed to initialize WebGL worker: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
   }
 
   private createWebGPUWorker() {
-    this.webgpuWorker = new Worker(
-      new URL('./webgpuMiningWorker.ts', import.meta.url),
-      { type: 'module' }
-    );
-
-    this.setupWorkerHandlers(this.webgpuWorker);
+    try {
+      this.webgpuWorker = this.createWorker(
+        new URL('./webgpuMiningWorker.ts', import.meta.url)
+      );
+      this.setupWorkerHandlers(this.webgpuWorker);
+    } catch (error) {
+      if (this.onError) {
+        this.onError(`Failed to initialize WebGPU worker: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
   }
 
   private setupWorkerHandlers(worker: Worker) {
