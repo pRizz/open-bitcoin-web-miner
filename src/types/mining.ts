@@ -1,8 +1,11 @@
 export interface MiningStats {
-  hashRate: number;
-  bestHashes: HashSolution[];
-  totalHashes: number;
-  startTime: number | null;
+  hashRate?: number;
+  bestHashes?: HashSolution[];
+  totalHashes?: number;
+  startTime?: number | null;
+  blockHeight?: number;
+  difficulty?: number;
+  requiredBinaryZeroes?: number;
 }
 
 export interface HashSolution {

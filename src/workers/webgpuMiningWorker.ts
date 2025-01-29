@@ -152,6 +152,23 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     output[index].hash[7] = state[7];
 }`;
 
+function formatBytes(bytes: number): string {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = bytes;
+  let unitIndex = 0;
+  
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+  
+  return `${value.toFixed(2)} ${units[unitIndex]}`;
+}
+
+function formatNumber(num: number): string {
+  return new Intl.NumberFormat().format(num);
+}
+
 async function initWebGPU() {
   if (!navigator.gpu) {
     throw new Error("WebGPU not supported");
@@ -162,7 +179,40 @@ async function initWebGPU() {
     throw new Error("No appropriate GPUAdapter found");
   }
 
-  device = await adapter.requestDevice();
+  // Get all relevant device limits
+  const {
+    maxStorageBufferBindingSize,
+    maxComputeWorkgroupsPerDimension,
+    maxComputeWorkgroupSizeX,
+    maxComputeWorkgroupSizeY,
+    maxComputeWorkgroupSizeZ,
+    maxComputeInvocationsPerWorkgroup,
+    maxTextureDimension2D
+  } = adapter.limits;
+
+  // Send GPU capabilities to UI
+  self.postMessage({
+    type: "gpuCapabilities",
+    data: {
+      maxStorageBufferSize: formatBytes(maxStorageBufferBindingSize),
+      maxWorkgroupsPerDimension: formatNumber(maxComputeWorkgroupsPerDimension),
+      maxWorkgroupSize: {
+        x: formatNumber(maxComputeWorkgroupSizeX),
+        y: formatNumber(maxComputeWorkgroupSizeY),
+        z: formatNumber(maxComputeWorkgroupSizeZ)
+      },
+      maxInvocationsPerWorkgroup: formatNumber(maxComputeInvocationsPerWorkgroup),
+      maxTextureDimension2D: formatNumber(maxTextureDimension2D),
+      adapterInfo: adapter.toString()
+    }
+  });
+  
+  device = await adapter.requestDevice({
+    requiredLimits: {
+      maxStorageBufferBindingSize,
+      maxComputeWorkgroupsPerDimension
+    }
+  });
   
   // Create compute pipeline
   const shaderModule = device.createShaderModule({
@@ -176,6 +226,11 @@ async function initWebGPU() {
       entryPoint: 'main',
     },
   });
+
+  return {
+    maxBufferSize: maxStorageBufferBindingSize,
+    maxComputeWorkgroupsPerDimension
+  };
 }
 
 function updateHashRate(batchSize: number) {
@@ -195,120 +250,154 @@ function updateHashRate(batchSize: number) {
 async function mine(blockHeader: Partial<HashSolution>) {
   if (!device || !pipeline) return;
 
+  // Get device limits
+  const { maxBufferSize, maxComputeWorkgroupsPerDimension } = await initWebGPU();
+  
+  // Calculate optimal batch size based on available memory
+  // Each hash needs: 4 bytes (input) + 32 bytes (output) = 36 bytes
+  // Leave 25% memory free for other operations
+  // Also ensure we don't exceed the maximum buffer size of 32MB (reduced from 256MB)
+  const MAX_BUFFER_SIZE = 32 * 1024 * 1024; // 32MB in bytes
+  const effectiveMaxBufferSize = Math.min(maxBufferSize * 0.75, MAX_BUFFER_SIZE);
+  const maxHashes = Math.floor(effectiveMaxBufferSize / 36);
+  
+  // Ensure we don't exceed workgroup limits
+  const WORKGROUP_SIZE = 256;  // Keep at 256 as it's optimal for most GPUs
+  const MAX_WORKGROUPS = Math.min(
+    maxComputeWorkgroupsPerDimension,
+    Math.floor(maxHashes / WORKGROUP_SIZE)
+  );
+  
+  // Calculate number of workgroups to stay within buffer limits
+  // Target around 16MB of GPU memory usage (reduced from 128MB)
+  const TARGET_MEMORY_USAGE = 16 * 1024 * 1024; // 16MB in bytes
+  const NUM_WORKGROUPS = Math.min(
+    MAX_WORKGROUPS,
+    Math.floor(TARGET_MEMORY_USAGE / (36 * WORKGROUP_SIZE))
+  );
+
+  console.log(`Running with ${NUM_WORKGROUPS} workgroups, processing ${NUM_WORKGROUPS * WORKGROUP_SIZE} hashes in parallel`);
+
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
   
   const miningLoop = async () => {
     if (!running || !device || !pipeline) return;
 
-    // Increase workgroup size and number of workgroups for massive parallelization
-    const WORKGROUP_SIZE = 256;  // Keep at 256 as it's optimal for most GPUs
-    const NUM_WORKGROUPS = 2048; // Process 524,288 hashes in parallel
     const batchSize = WORKGROUP_SIZE * NUM_WORKGROUPS;
     const sleepTime = Math.floor((100 - miningSpeed) * 10);
 
-    // Create input buffer for all workgroups
-    const inputBuffer = device.createBuffer({
-      size: batchSize * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    });
+    try {
+      // Create input buffer for all workgroups
+      const inputBuffer = device.createBuffer({
+        size: batchSize * 4,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        label: "Mining Input Buffer"
+      });
 
-    // Create output buffer for the structured output
-    const outputBuffer = device.createBuffer({
-      size: batchSize * 8 * 4, // 8 words per hash * 4 bytes per word * total hashes
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-    });
+      // Create output buffer for the structured output
+      const outputBuffer = device.createBuffer({
+        size: batchSize * 8 * 4,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+        label: "Mining Output Buffer"
+      });
 
-    // Update input buffer with new nonce values
-    // Use chunks to avoid allocation of large arrays
-    const CHUNK_SIZE = 65536; // Process in 64K chunks
-    for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
-      const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
-      const inputChunk = new Uint32Array(chunkSize);
-      for (let i = 0; i < chunkSize; i++) {
-        inputChunk[i] = nonce++;
+      // Increase chunk size for faster buffer updates but keep it smaller
+      const CHUNK_SIZE = Math.min(65536, batchSize); // Use 64K chunks (reduced from 256K) or batch size, whichever is smaller
+      for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
+        const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
+        const inputChunk = new Uint32Array(chunkSize);
+        for (let i = 0; i < chunkSize; i++) {
+          inputChunk[i] = nonce++;
+        }
+        device.queue.writeBuffer(inputBuffer, offset * 4, inputChunk);
       }
-      device.queue.writeBuffer(inputBuffer, offset * 4, inputChunk);
-    }
 
-    // Create bind group (unchanged)
-    const bindGroup = device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: inputBuffer } },
-        { binding: 1, resource: { buffer: outputBuffer } },
-      ],
-    });
+      // Create bind group
+      const bindGroup = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: inputBuffer } },
+          { binding: 1, resource: { buffer: outputBuffer } },
+        ],
+        label: "Mining Bind Group"
+      });
 
-    // Create command encoder and pass
-    const commandEncoder = device.createCommandEncoder();
-    const computePass = commandEncoder.beginComputePass();
-    computePass.setPipeline(pipeline);
-    computePass.setBindGroup(0, bindGroup);
-    computePass.dispatchWorkgroups(NUM_WORKGROUPS); // Dispatch multiple workgroups
-    computePass.end();
+      // Create command encoder and pass
+      const commandEncoder = device.createCommandEncoder({ label: "Mining Command Encoder" });
+      const computePass = commandEncoder.beginComputePass({ label: "Mining Compute Pass" });
+      computePass.setPipeline(pipeline);
+      computePass.setBindGroup(0, bindGroup);
+      computePass.dispatchWorkgroups(NUM_WORKGROUPS);
+      computePass.end();
 
-    // Execute GPU commands
-    device.queue.submit([commandEncoder.finish()]);
+      // Execute GPU commands
+      device.queue.submit([commandEncoder.finish()]);
 
-    // Create read buffer for the structured output
-    const readBuffer = device.createBuffer({
-      size: batchSize * 8 * 4,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
+      // Create read buffer for the structured output
+      const readBuffer = device.createBuffer({
+        size: batchSize * 8 * 4,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        label: "Mining Read Buffer"
+      });
 
-    // Copy the output to the read buffer
-    const copyEncoder = device.createCommandEncoder();
-    copyEncoder.copyBufferToBuffer(
-      outputBuffer,
-      0,
-      readBuffer,
-      0,
-      batchSize * 8 * 4
-    );
-    device.queue.submit([copyEncoder.finish()]);
+      // Copy the output to the read buffer
+      const copyEncoder = device.createCommandEncoder({ label: "Copy Command Encoder" });
+      copyEncoder.copyBufferToBuffer(
+        outputBuffer,
+        0,
+        readBuffer,
+        0,
+        batchSize * 8 * 4
+      );
+      device.queue.submit([copyEncoder.finish()]);
 
-    // Map and read the results in chunks to avoid large allocations
-    await readBuffer.mapAsync(GPUMapMode.READ);
-    const mappedRange = readBuffer.getMappedRange();
-    
-    for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
-      const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
-      const chunkStart = offset * 8 * 4; // 8 words * 4 bytes per word
-      const chunkEnd = (offset + chunkSize) * 8 * 4;
+      // Map and read the results in larger chunks for better performance
+      await readBuffer.mapAsync(GPUMapMode.READ);
+      const mappedRange = readBuffer.getMappedRange();
       
-      const resultsChunk = new Uint32Array(mappedRange.slice(chunkStart, chunkEnd));
-      
-      // Process results for this chunk
-      for (let i = 0; i < chunkSize; i++) {
-        const hashWords = Array.from(resultsChunk.slice(i * 8, (i + 1) * 8))
-          .map(word => word.toString(16).padStart(8, '0'))
-          .join('');
+      for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
+        const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
+        const chunkStart = offset * 8 * 4;
+        const chunkEnd = (offset + chunkSize) * 8 * 4;
         
-        const { binary } = calculateLeadingZeroes(hashWords);
+        const resultsChunk = new Uint32Array(mappedRange.slice(chunkStart, chunkEnd));
         
-        if (binary >= 10) {
-          self.postMessage({
-            type: "hash",
-            data: { ...blockHeader, hash: hashWords, nonce: nonce - batchSize + offset + i },
-          });
+        // Process results for this chunk
+        for (let i = 0; i < chunkSize; i++) {
+          const hashWords = Array.from(resultsChunk.slice(i * 8, (i + 1) * 8))
+            .map(word => word.toString(16).padStart(8, '0'))
+            .join('');
+          
+          const { binary } = calculateLeadingZeroes(hashWords);
+          
+          if (binary >= 10) {
+            self.postMessage({
+              type: "hash",
+              data: { ...blockHeader, hash: hashWords, nonce: nonce - batchSize + offset + i },
+            });
+          }
         }
       }
-    }
 
-    // Cleanup
-    readBuffer.unmap();
-    inputBuffer.destroy();
-    outputBuffer.destroy();
-    readBuffer.destroy();
+      // Cleanup
+      readBuffer.unmap();
+      inputBuffer.destroy();
+      outputBuffer.destroy();
+      readBuffer.destroy();
 
-    updateHashRate(batchSize);
-    
-    if (sleepTime > 0) {
-      await new Promise(resolve => setTimeout(resolve, sleepTime));
+      updateHashRate(batchSize);
+      
+      if (sleepTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, sleepTime));
+      }
+      
+      // Use setTimeout instead of requestAnimationFrame for more consistent timing
+      setTimeout(() => miningLoop(), 0);
+    } catch (error) {
+      console.error('Mining error:', error);
+      self.postMessage({ type: "error", data: error.message });
+      running = false;
     }
-    
-    // Use setTimeout instead of requestAnimationFrame for more consistent timing
-    setTimeout(() => miningLoop(), 0);
   };
 
   miningLoop();
@@ -319,15 +408,36 @@ self.onmessage = async (e) => {
   
   if (type === "start") {
     try {
-      await initWebGPU();
+      // Reset state
+      running = false;
+      hashCount = 0;
+      startTime = performance.now();
+      
+      // Initialize WebGPU if not already initialized
+      if (!device || !pipeline) {
+        await initWebGPU();
+      }
+      
+      // Set initial mining speed
+      miningSpeed = newSpeed ?? 100;
+      
+      // Start mining
       running = true;
-      miningSpeed = newSpeed;
       mine(blockHeader);
+      
+      // Confirm start to UI
+      self.postMessage({ type: "started" });
     } catch (error) {
-      self.postMessage({ type: "error", data: error.message });
+      console.error('Failed to start mining:', error);
+      self.postMessage({ 
+        type: "error", 
+        data: `Failed to start mining: ${error.message}` 
+      });
+      running = false;
     }
   } else if (type === "stop") {
     running = false;
+    self.postMessage({ type: "stopped" });
   } else if (type === "updateSpeed") {
     miningSpeed = newSpeed;
   }

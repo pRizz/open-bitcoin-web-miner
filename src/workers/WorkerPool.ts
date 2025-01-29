@@ -15,7 +15,8 @@ export class WorkerPool {
     private threadCount: number,
     private onHashRate: (hashRate: number) => void,
     private onHash: (data: any) => void,
-    private onError?: (error: string) => void
+    private onError?: (error: string) => void,
+    private onGPUCapabilities?: (capabilities: any) => void
   ) {
     this.sampleWindowSize = threadCount;
   }
@@ -182,6 +183,8 @@ export class WorkerPool {
         this.onHashRate(movingAverage);
       } else if (type === "error" && this.onError) {
         this.onError(data);
+      } else if (type === "gpuCapabilities" && this.onGPUCapabilities) {
+        this.onGPUCapabilities(data);
       }
     };
 
