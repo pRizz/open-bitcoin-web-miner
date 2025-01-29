@@ -14,10 +14,6 @@ let pipeline: GPUComputePipeline | null = null;
 // Example hash of height 881375; 20 hex zeros so that's 80 leading binary zeros
 // 000000000000000000009d4cbb3b19f5ba5aa1e0cfb47974ffb182f57953864b
 
-// FIXME: getting an error:
-// [Invalid ShaderModule (unlabeled)] is invalid.
-//  - While validating compute stage ([Invalid ShaderModule (unlabeled)], entryPoint: "main").
-
 const computeShaderCode = `
 struct Output {
   hash: array<u32, 8>
