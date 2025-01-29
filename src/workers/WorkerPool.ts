@@ -32,12 +32,38 @@ export class WorkerPool {
   }
 
   setMode(mode: MiningMode) {
-    if (this.active) {
-      this.stop();
+    if (mode === this.currentMode) {
+      return; // No change needed if mode is the same
     }
+
+    // Stop only the current mode's workers
+    if (this.currentMode === "cpu") {
+      this.cpuWorkers.forEach(worker => worker.terminate());
+      this.cpuWorkers = [];
+    } else if (this.currentMode === "webgl" && this.webglWorker) {
+      this.webglWorker.terminate();
+      this.webglWorker = null;
+    } else if (this.currentMode === "webgpu" && this.webgpuWorker) {
+      this.webgpuWorker.terminate();
+      this.webgpuWorker = null;
+    }
+
     this.currentMode = mode;
-    if (this.active) {
-      this.start(this.currentBlockHeader, this.currentMiningSpeed);
+    this.hashRateSamples = []; // Reset hash rate samples for new mode
+
+    // Start new mode's workers if mining is active
+    if (this.active && this.currentBlockHeader) {
+      switch (mode) {
+        case "cpu":
+          this.createCPUWorkers();
+          break;
+        case "webgl":
+          this.createWebGLWorker();
+          break;
+        case "webgpu":
+          this.createWebGPUWorker();
+          break;
+      }
     }
   }
 
