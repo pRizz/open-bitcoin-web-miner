@@ -3,12 +3,17 @@ import { NetworkStats as NetworkStatsType } from "@/types/mining";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
+import { formatLargeNumber } from "@/utils/formatters";
 
 interface NetworkStatsProps {
   stats: NetworkStatsType;
 }
 
 export function NetworkStats({ stats }: NetworkStatsProps) {
+  const calculateProbability = (zeroes: number) => {
+    return 1 / Math.pow(2, zeroes);
+  };
+
   return (
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Network Stats</h2>
@@ -32,6 +37,10 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
             </Dialog>
           </label>
           <p className="text-xl font-mono">{stats.requiredBinaryZeroes}</p>
+        </div>
+        <div>
+          <label className="text-sm text-gray-400">The Odds Any Random Hash Will Mine a Block</label>
+          <p className="text-xl font-mono">1 in {formatLargeNumber(Math.pow(2, stats.requiredBinaryZeroes))}</p>
         </div>
       </div>
     </Card>

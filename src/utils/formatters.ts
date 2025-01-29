@@ -6,3 +6,24 @@ export const formatDuration = (ms: number) => {
   const remainingSeconds = seconds % 60;
   return `${minutes}m ${remainingSeconds}s`;
 };
+
+export const formatLargeNumber = (num: number): string => {
+  const magnitudes = [
+    { value: 1e24, name: 'septillion' },
+    { value: 1e21, name: 'sextillion' },
+    { value: 1e18, name: 'quintillion' },
+    { value: 1e15, name: 'quadrillion' },
+    { value: 1e12, name: 'trillion' },
+    { value: 1e9, name: 'billion' },
+    { value: 1e6, name: 'million' },
+    { value: 1e3, name: 'thousand' }
+  ];
+
+  for (const { value, name } of magnitudes) {
+    if (num >= value) {
+      return `${(num / value).toFixed(2)} ${name}`;
+    }
+  }
+
+  return num.toLocaleString();
+};
