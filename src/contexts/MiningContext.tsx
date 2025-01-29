@@ -51,6 +51,17 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
 
   useEffect(() => {
+    return () => {
+      if (workerPool) {
+        workerPool.stop();
+        setWorkerPool(null);
+        setIsMining(false);
+        stopMiningStats();
+      }
+    };
+  }, [workerPool]);
+
+  useEffect(() => {
     if (navigator.hardwareConcurrency) {
       const cores = navigator.hardwareConcurrency;
       setMaxThreads(cores);
@@ -61,45 +72,58 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const startMining = () => {
     if (workerPool) return;
 
-    const pool = new WorkerPool(
-      threadCountState,
-      (hashRate) => updateHashRate(hashRate),
-      (data) => {
-        const { binary, hex } = calculateLeadingZeroes(data.hash);
-        const solution = {
-          id: crypto.randomUUID(),
-          ...data,
-          binaryZeroes: binary,
-          hexZeroes: hex,
-        };
-        updateMiningStats(solution, networkStats.requiredBinaryZeroes);
-      },
-      (error) => {
-        toast({
-          title: "Mining Error",
-          description: error,
-          variant: "destructive",
-        });
-        stopMining();
-      }
-    );
+    try {
+      const pool = new WorkerPool(
+        threadCountState,
+        (hashRate) => updateHashRate(hashRate),
+        (data) => {
+          const { binary, hex } = calculateLeadingZeroes(data.hash);
+          const solution = {
+            id: crypto.randomUUID(),
+            ...data,
+            binaryZeroes: binary,
+            hexZeroes: hex,
+          };
+          updateMiningStats(solution, networkStats.requiredBinaryZeroes);
+        },
+        (error) => {
+          toast({
+            title: "Mining Error",
+            description: error,
+            variant: "destructive",
+          });
+          safeStopMining();
+        }
+      );
 
-    setWorkerPool(pool);
-    setIsMining(true);
-    startMiningStats();
+      setWorkerPool(pool);
+      setIsMining(true);
+      startMiningStats();
 
-    pool.setMode(miningMode);
-    pool.start(generateMockBlockHeader(), miningSpeed);
+      pool.setMode(miningMode);
+      pool.start(generateMockBlockHeader(), miningSpeed);
+    } catch (error) {
+      toast({
+        title: "Failed to Start Mining",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+      safeStopMining();
+    }
   };
 
-  const stopMining = () => {
-    if (workerPool) {
-      workerPool.stop();
-      setWorkerPool(null);
-    }
+  const safeStopMining = () => {
+    setWorkerPool((currentPool) => {
+      if (currentPool) {
+        currentPool.stop();
+      }
+      return null;
+    });
     setIsMining(false);
     stopMiningStats();
   };
+
+  const stopMining = safeStopMining;
 
   const setThreadCount = (count: number) => {
     if (workerPool) {
@@ -116,7 +140,10 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (workerPool) {
-      workerPool.setMode(miningMode);
+      const timeoutId = setTimeout(() => {
+        workerPool.setMode(miningMode);
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
   }, [miningMode, workerPool]);
 

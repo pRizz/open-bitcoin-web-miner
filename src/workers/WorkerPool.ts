@@ -60,16 +60,22 @@ export class WorkerPool {
     }
   }
 
-  private createWorker(url: string): Worker {
+  private createWorker(url: URL): Worker {
     try {
       const worker = new Worker(url, { type: 'module' });
       
-      // Add error handler for the worker
       worker.onerror = (error: ErrorEvent) => {
         if (this.onError) {
           this.onError(`Worker initialization error: ${error.message}`);
         }
-        this.stop(); // Stop mining if worker fails to initialize
+        if (this.cpuWorkers.includes(worker)) {
+          worker.terminate();
+          this.cpuWorkers = this.cpuWorkers.filter(w => w !== worker);
+          
+          if (this.cpuWorkers.length === 0) {
+            this.stop();
+          }
+        }
       };
       
       return worker;
@@ -77,7 +83,7 @@ export class WorkerPool {
       if (this.onError) {
         this.onError(`Failed to create worker: ${error instanceof Error ? error.message : String(error)}`);
       }
-      throw error; // Re-throw to prevent using an invalid worker
+      throw error;
     }
   }
 
@@ -85,7 +91,7 @@ export class WorkerPool {
     try {
       for (let i = 0; i < this.threadCount; i++) {
         const worker = this.createWorker(
-          new URL('./miningWorker.ts', import.meta.url).toString()
+          new URL('./miningWorker.ts', import.meta.url)
         );
 
         worker.onmessage = (e) => {
@@ -117,7 +123,7 @@ export class WorkerPool {
   private createWebGLWorker() {
     try {
       this.webglWorker = this.createWorker(
-        new URL('./webglMiningWorker.ts', import.meta.url).toString()
+        new URL('./webglMiningWorker.ts', import.meta.url)
       );
       this.setupWorkerHandlers(this.webglWorker);
     } catch (error) {
@@ -130,7 +136,7 @@ export class WorkerPool {
   private createWebGPUWorker() {
     try {
       this.webgpuWorker = this.createWorker(
-        new URL('./webgpuMiningWorker.ts', import.meta.url).toString()
+        new URL('./webgpuMiningWorker.ts', import.meta.url)
       );
       this.setupWorkerHandlers(this.webgpuWorker);
     } catch (error) {
