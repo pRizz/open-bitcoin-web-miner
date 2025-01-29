@@ -31,12 +31,35 @@ export class WorkerPool {
   }
 
   setMode(mode: MiningMode) {
-    if (this.active) {
-      this.stop();
+    if (mode === this.currentMode) return;
+
+    const wasCPU = this.currentMode === "cpu" || this.currentMode === "hybrid";
+    const wasGPU = this.currentMode === "gpu" || this.currentMode === "hybrid";
+    const willBeCPU = mode === "cpu" || mode === "hybrid";
+    const willBeGPU = mode === "gpu" || mode === "hybrid";
+
+    // Clean up workers that won't be needed
+    if (wasCPU && !willBeCPU) {
+      this.cpuWorkers.forEach(worker => worker.terminate());
+      this.cpuWorkers = [];
     }
+    if (wasGPU && !willBeGPU) {
+      if (this.gpuWorker) {
+        this.gpuWorker.terminate();
+        this.gpuWorker = null;
+      }
+    }
+
     this.currentMode = mode;
+    
     if (this.active) {
-      this.start(this.currentBlockHeader, this.currentMiningSpeed);
+      // Create only the new workers needed
+      if (!wasCPU && willBeCPU) {
+        this.createCPUWorkers();
+      }
+      if (!wasGPU && willBeGPU) {
+        this.createGPUWorker();
+      }
     }
   }
 
