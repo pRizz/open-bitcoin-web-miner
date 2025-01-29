@@ -6,8 +6,6 @@ import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
 import { formatLargeNumber } from "@/utils/formatters";
 
 const RANDOM_SELECTION_PROBABILITIES = [
-  { odds: "1 in 1 decillion", value: 1e33, description: "picking a random atom in the Milky Way galaxy (~1 decillion atoms)" },
-  { odds: "1 in 1 nonillion", value: 1e30, description: "picking a random molecule of air in Earth's atmosphere (~1 nonillion molecules)" },
   { odds: "1 in 1 octillion", value: 1e27, description: "picking a random water molecule in a bathtub (~1 octillion molecules)" },
   { odds: "1 in 1 septillion", value: 1e24, description: "picking a random star in the observable universe (~1 septillion stars)" },
   { odds: "1 in 1 sextillion", value: 1e21, description: "picking a random bacterium on Earth (~5 sextillion bacteria)" },
