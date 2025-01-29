@@ -129,9 +129,9 @@ export function MiningControls({
             <Slider
               value={[miningSpeed]}
               onValueChange={handleSpeedChange}
-              min={1}
+              min={5}
               max={100}
-              step={1}
+              step={5}
             />
             <div className="text-xs text-muted-foreground">
               Adjust to balance between mining speed and system responsiveness

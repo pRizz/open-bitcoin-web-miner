@@ -256,8 +256,8 @@ async function mine(blockHeader: Partial<HashSolution>) {
   // Calculate optimal batch size based on available memory
   // Each hash needs: 4 bytes (input) + 32 bytes (output) = 36 bytes
   // Leave 25% memory free for other operations
-  // Also ensure we don't exceed the maximum buffer size of 32MB (reduced from 256MB)
-  const MAX_BUFFER_SIZE = 32 * 1024 * 1024; // 32MB in bytes
+  // Also ensure we don't exceed the maximum buffer size of 16MB (reduced from 32MB)
+  const MAX_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB in bytes
   const effectiveMaxBufferSize = Math.min(maxBufferSize * 0.75, MAX_BUFFER_SIZE);
   const maxHashes = Math.floor(effectiveMaxBufferSize / 36);
   
@@ -269,8 +269,8 @@ async function mine(blockHeader: Partial<HashSolution>) {
   );
   
   // Calculate number of workgroups to stay within buffer limits
-  // Target around 16MB of GPU memory usage (reduced from 128MB)
-  const TARGET_MEMORY_USAGE = 16 * 1024 * 1024; // 16MB in bytes
+  // Target around 8MB of GPU memory usage (reduced from 16MB)
+  const TARGET_MEMORY_USAGE = 8 * 1024 * 1024; // 8MB in bytes
   const NUM_WORKGROUPS = Math.min(
     MAX_WORKGROUPS,
     Math.floor(TARGET_MEMORY_USAGE / (36 * WORKGROUP_SIZE))
@@ -284,7 +284,7 @@ async function mine(blockHeader: Partial<HashSolution>) {
     if (!running || !device || !pipeline) return;
 
     const batchSize = WORKGROUP_SIZE * NUM_WORKGROUPS;
-    const sleepTime = Math.floor((100 - miningSpeed) * 10);
+    const sleepTime = Math.floor((100 - miningSpeed) * 15); // Increased sleep multiplier from 10 to 15
 
     try {
       // Create input buffer for all workgroups
@@ -302,7 +302,7 @@ async function mine(blockHeader: Partial<HashSolution>) {
       });
 
       // Increase chunk size for faster buffer updates but keep it smaller
-      const CHUNK_SIZE = Math.min(65536, batchSize); // Use 64K chunks (reduced from 256K) or batch size, whichever is smaller
+      const CHUNK_SIZE = Math.min(32768, batchSize); // Use 32K chunks (reduced from 64K) or batch size, whichever is smaller
       for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
         const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
         const inputChunk = new Uint32Array(chunkSize);
