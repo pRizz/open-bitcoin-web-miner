@@ -85,7 +85,7 @@ export class WorkerPool {
     try {
       for (let i = 0; i < this.threadCount; i++) {
         const worker = this.createWorker(
-          new URL('./miningWorker.ts', import.meta.url)
+          new URL('./miningWorker.ts', import.meta.url).toString()
         );
 
         worker.onmessage = (e) => {
@@ -117,7 +117,7 @@ export class WorkerPool {
   private createWebGLWorker() {
     try {
       this.webglWorker = this.createWorker(
-        new URL('./webglMiningWorker.ts', import.meta.url)
+        new URL('./webglMiningWorker.ts', import.meta.url).toString()
       );
       this.setupWorkerHandlers(this.webglWorker);
     } catch (error) {
@@ -130,7 +130,7 @@ export class WorkerPool {
   private createWebGPUWorker() {
     try {
       this.webgpuWorker = this.createWorker(
-        new URL('./webgpuMiningWorker.ts', import.meta.url)
+        new URL('./webgpuMiningWorker.ts', import.meta.url).toString()
       );
       this.setupWorkerHandlers(this.webgpuWorker);
     } catch (error) {
