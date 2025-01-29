@@ -200,10 +200,13 @@ async function mine(blockHeader: Partial<HashSolution>) {
   const miningLoop = async () => {
     if (!running || !device || !pipeline) return;
 
-    const batchSize = 256; // WebGPU workgroup size
+    // Increase workgroup size and number of workgroups for massive parallelization
+    const WORKGROUP_SIZE = 256;  // Keep at 256 as it's optimal for most GPUs
+    const NUM_WORKGROUPS = 2048; // Process 524,288 hashes in parallel
+    const batchSize = WORKGROUP_SIZE * NUM_WORKGROUPS;
     const sleepTime = Math.floor((100 - miningSpeed) * 10);
 
-    // Create input buffer (unchanged)
+    // Create input buffer for all workgroups
     const inputBuffer = device.createBuffer({
       size: batchSize * 4,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -211,18 +214,21 @@ async function mine(blockHeader: Partial<HashSolution>) {
 
     // Create output buffer for the structured output
     const outputBuffer = device.createBuffer({
-      // Each Output struct has an array of 8 u32s
-      // So each thread needs 8 * 4 bytes
-      size: batchSize * 8 * 4,
+      size: batchSize * 8 * 4, // 8 words per hash * 4 bytes per word * total hashes
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     });
 
     // Update input buffer with new nonce values
-    const inputData = new Uint32Array(batchSize);
-    for (let i = 0; i < batchSize; i++) {
-      inputData[i] = nonce++;
+    // Use chunks to avoid allocation of large arrays
+    const CHUNK_SIZE = 65536; // Process in 64K chunks
+    for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
+      const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
+      const inputChunk = new Uint32Array(chunkSize);
+      for (let i = 0; i < chunkSize; i++) {
+        inputChunk[i] = nonce++;
+      }
+      device.queue.writeBuffer(inputBuffer, offset * 4, inputChunk);
     }
-    device.queue.writeBuffer(inputBuffer, 0, inputData);
 
     // Create bind group (unchanged)
     const bindGroup = device.createBindGroup({
@@ -233,12 +239,12 @@ async function mine(blockHeader: Partial<HashSolution>) {
       ],
     });
 
-    // Create command encoder and pass (unchanged)
+    // Create command encoder and pass
     const commandEncoder = device.createCommandEncoder();
     const computePass = commandEncoder.beginComputePass();
     computePass.setPipeline(pipeline);
     computePass.setBindGroup(0, bindGroup);
-    computePass.dispatchWorkgroups(Math.ceil(batchSize / 256));
+    computePass.dispatchWorkgroups(NUM_WORKGROUPS); // Dispatch multiple workgroups
     computePass.end();
 
     // Execute GPU commands
@@ -261,24 +267,31 @@ async function mine(blockHeader: Partial<HashSolution>) {
     );
     device.queue.submit([copyEncoder.finish()]);
 
-    // Map and read the results
+    // Map and read the results in chunks to avoid large allocations
     await readBuffer.mapAsync(GPUMapMode.READ);
-    const results = new Uint32Array(readBuffer.getMappedRange());
+    const mappedRange = readBuffer.getMappedRange();
     
-    // Process results - each thread's output is an array of 8 u32s
-    for (let i = 0; i < batchSize; i++) {
-      // Get the 8 words for this thread's hash
-      const hashWords = Array.from(results.slice(i * 8, (i + 1) * 8))
-        .map(word => word.toString(16).padStart(8, '0'))
-        .join('');
+    for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
+      const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
+      const chunkStart = offset * 8 * 4; // 8 words * 4 bytes per word
+      const chunkEnd = (offset + chunkSize) * 8 * 4;
       
-      const { binary } = calculateLeadingZeroes(hashWords);
+      const resultsChunk = new Uint32Array(mappedRange.slice(chunkStart, chunkEnd));
       
-      if (binary >= 10) {
-        self.postMessage({
-          type: "hash",
-          data: { ...blockHeader, hash: hashWords, nonce: nonce - batchSize + i },
-        });
+      // Process results for this chunk
+      for (let i = 0; i < chunkSize; i++) {
+        const hashWords = Array.from(resultsChunk.slice(i * 8, (i + 1) * 8))
+          .map(word => word.toString(16).padStart(8, '0'))
+          .join('');
+        
+        const { binary } = calculateLeadingZeroes(hashWords);
+        
+        if (binary >= 10) {
+          self.postMessage({
+            type: "hash",
+            data: { ...blockHeader, hash: hashWords, nonce: nonce - batchSize + offset + i },
+          });
+        }
       }
     }
 
@@ -294,7 +307,8 @@ async function mine(blockHeader: Partial<HashSolution>) {
       await new Promise(resolve => setTimeout(resolve, sleepTime));
     }
     
-    requestAnimationFrame(() => miningLoop());
+    // Use setTimeout instead of requestAnimationFrame for more consistent timing
+    setTimeout(() => miningLoop(), 0);
   };
 
   miningLoop();
