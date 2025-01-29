@@ -9,10 +9,11 @@ const HASH_RATE_UPDATE_INTERVAL = 1000; // 1 second
 const BATCH_SIZE = 10000;
 
 // Add global error handler for the worker
-self.onerror = (error) => {
+self.onerror = (error: ErrorEvent | string) => {
+  const errorMessage = error instanceof ErrorEvent ? error.message : error;
   self.postMessage({
     type: 'error',
-    data: `Mining worker error: ${error.message}`,
+    data: `Mining worker error: ${errorMessage}`,
   });
   running = false;
 };
