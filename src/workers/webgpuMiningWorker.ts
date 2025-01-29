@@ -11,6 +11,9 @@ const HASH_RATE_UPDATE_INTERVAL = 1000;
 let device: GPUDevice | null = null;
 let pipeline: GPUComputePipeline | null = null;
 
+// Example hash of height 881375; 20 hex zeros so that's 80 leading binary zeros
+// 000000000000000000009d4cbb3b19f5ba5aa1e0cfb47974ffb182f57953864b
+
 const computeShaderCode = `
 @group(0) @binding(0) var<storage, read> input: array<u32>;
 @group(0) @binding(1) var<storage, read_write> output: array<u32>;
