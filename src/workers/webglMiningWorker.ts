@@ -10,6 +10,11 @@ const HASH_RATE_UPDATE_INTERVAL = 1000;
 let gl: WebGL2RenderingContext | null = null;
 let program: WebGLProgram | null = null;
 
+// FIXME: getting an error:
+// Fragment shader compilation failed: ERROR: 0:63: 'input' : Illegal use of reserved word
+// ERROR: 0:63: 'input' : syntax error
+
+
 const vertexShaderSource = `#version 300 es
 in vec4 position;
 void main() {
