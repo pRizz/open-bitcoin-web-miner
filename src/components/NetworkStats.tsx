@@ -5,6 +5,17 @@ import { HelpCircle } from "lucide-react";
 import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
 import { formatLargeNumber } from "@/utils/formatters";
 
+const RANDOM_SELECTION_PROBABILITIES = [
+  { odds: "1 in 1 million", value: 1e6, description: "Picking a random resident of San Francisco (~1M people)" },
+  { odds: "1 in 1 billion", value: 1e9, description: "Picking a random person on Earth (~8B people)" },
+  { odds: "1 in 1 trillion", value: 1e12, description: "Picking a random grain of sand in a large sandbox (~1T grains)" },
+  { odds: "1 in 1 quadrillion", value: 1e15, description: "Picking a random cell in a human body (~37T cells)" },
+  { odds: "1 in 1 quintillion", value: 1e18, description: "Picking a random grain of sand on a small beach (~1 quintillion grains)" },
+  { odds: "1 in 1 sextillion", value: 1e21, description: "Picking a random bacterium on Earth (~5 sextillion bacteria)" },
+  { odds: "1 in 1 septillion", value: 1e24, description: "Picking a random star in the observable universe (~1 septillion stars)" },
+  { odds: "1 in 1 octillion", value: 1e27, description: "Picking a random water molecule in a bathtub (~1 octillion molecules)" }
+];
+
 interface NetworkStatsProps {
   stats: NetworkStatsType;
 }
@@ -13,6 +24,19 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
   const calculateProbability = (zeroes: number) => {
     return 1 / Math.pow(2, zeroes);
   };
+
+  const findClosestComparison = (probability: number) => {
+    const targetValue = 1 / probability;
+    return RANDOM_SELECTION_PROBABILITIES.reduce((prev, curr) => {
+      return Math.abs(Math.log10(curr.value) - Math.log10(targetValue)) < 
+             Math.abs(Math.log10(prev.value) - Math.log10(targetValue)) 
+             ? curr 
+             : prev;
+    });
+  };
+
+  const probability = calculateProbability(stats.requiredBinaryZeroes);
+  const comparison = findClosestComparison(probability);
 
   return (
     <Card className="p-6 glass-card">
@@ -41,6 +65,10 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
         <div>
           <label className="text-sm text-gray-400">The Odds Any Random Hash Will Mine a Block</label>
           <p className="text-xl font-mono">1 in {formatLargeNumber(Math.pow(2, stats.requiredBinaryZeroes))}</p>
+        </div>
+        <div>
+          <label className="text-sm text-gray-400">To Put That In Perspective...</label>
+          <p className="text-xl font-mono">That's similar to {comparison.description}</p>
         </div>
       </div>
     </Card>
