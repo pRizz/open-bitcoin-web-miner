@@ -8,6 +8,15 @@ let miningSpeed = 100;
 const HASH_RATE_UPDATE_INTERVAL = 1000; // 1 second
 const BATCH_SIZE = 10000;
 
+// Add global error handler for the worker
+self.onerror = (error) => {
+  self.postMessage({
+    type: 'error',
+    data: `Mining worker error: ${error.message}`,
+  });
+  running = false;
+};
+
 self.onmessage = (e) => {
   const { type, blockHeader, miningSpeed: newSpeed } = e.data;
   
@@ -39,36 +48,44 @@ function mine(blockHeader: Partial<HashSolution>) {
   const miningLoop = () => {
     if (!running) return;
 
-    const startTime = Date.now();
-    let batchCount = 0;
+    try {
+      const startTime = Date.now();
+      let batchCount = 0;
 
-    while (running && batchCount < BATCH_SIZE) {
-      const header = {
-        ...blockHeader,
-        nonce: nonce++,
-      };
+      while (running && batchCount < BATCH_SIZE) {
+        const header = {
+          ...blockHeader,
+          nonce: nonce++,
+        };
 
-      const hash = simulateHash(header);
-      hashCount++;
-      batchCount++;
+        const hash = simulateHash(header);
+        hashCount++;
+        batchCount++;
 
-      const { binary } = calculateLeadingZeroes(hash);
-      if (binary >= 10) {
-        self.postMessage({
-          type: 'hash',
-          data: { ...header, hash },
-        });
+        const { binary } = calculateLeadingZeroes(hash);
+        if (binary >= 10) {
+          self.postMessage({
+            type: 'hash',
+            data: { ...header, hash },
+          });
+        }
       }
+
+      updateHashRate();
+      
+      // Calculate sleep time based on mining speed
+      const elapsedTime = Date.now() - startTime;
+      const targetTime = (BATCH_SIZE / 10000) * (100 / miningSpeed) * 100; // Adjust time based on mining speed
+      const sleepTime = Math.max(0, targetTime - elapsedTime);
+
+      setTimeout(() => miningLoop(), sleepTime);
+    } catch (error) {
+      self.postMessage({
+        type: 'error',
+        data: `Mining error: ${error instanceof Error ? error.message : String(error)}`,
+      });
+      running = false;
     }
-
-    updateHashRate();
-    
-    // Calculate sleep time based on mining speed
-    const elapsedTime = Date.now() - startTime;
-    const targetTime = (BATCH_SIZE / 10000) * (100 / miningSpeed) * 100; // Adjust time based on mining speed
-    const sleepTime = Math.max(0, targetTime - elapsedTime);
-
-    setTimeout(() => miningLoop(), sleepTime);
   };
 
   miningLoop();
