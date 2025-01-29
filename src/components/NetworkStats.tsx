@@ -6,14 +6,14 @@ import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
 import { formatLargeNumber } from "@/utils/formatters";
 
 const RANDOM_SELECTION_PROBABILITIES = [
-  { odds: "1 in 1 octillion", value: 1e27, description: "Picking a random water molecule in a bathtub (~1 octillion molecules)" },
-  { odds: "1 in 1 septillion", value: 1e24, description: "Picking a random star in the observable universe (~1 septillion stars)" },
-  { odds: "1 in 1 sextillion", value: 1e21, description: "Picking a random bacterium on Earth (~5 sextillion bacteria)" },
-  { odds: "1 in 1 quintillion", value: 1e18, description: "Picking a random grain of sand on a small beach (~1 quintillion grains)" },
-  { odds: "1 in 1 quadrillion", value: 1e15, description: "Picking a random cell in a human body (~37T cells)" },
-  { odds: "1 in 1 trillion", value: 1e12, description: "Picking a random grain of sand in a large sandbox (~1T grains)" },
-  { odds: "1 in 1 billion", value: 1e9, description: "Picking a random person on Earth (~8B people)" },
-  { odds: "1 in 1 million", value: 1e6, description: "Picking a random resident of San Francisco (~1M people)" }
+  { odds: "1 in 1 octillion", value: 1e27, description: "picking a random water molecule in a bathtub (~1 octillion molecules)" },
+  { odds: "1 in 1 septillion", value: 1e24, description: "picking a random star in the observable universe (~1 septillion stars)" },
+  { odds: "1 in 1 sextillion", value: 1e21, description: "picking a random bacterium on Earth (~5 sextillion bacteria)" },
+  { odds: "1 in 1 quintillion", value: 1e18, description: "picking a random grain of sand on a small beach (~1 quintillion grains)" },
+  { odds: "1 in 1 quadrillion", value: 1e15, description: "picking a random cell in a human body (~37T cells)" },
+  { odds: "1 in 1 trillion", value: 1e12, description: "picking a random grain of sand in a large sandbox (~1T grains)" },
+  { odds: "1 in 1 billion", value: 1e9, description: "picking a random person on Earth (~8B people)" },
+  { odds: "1 in 1 million", value: 1e6, description: "picking a random resident of San Francisco (~1M people)" }
 ];
 
 interface NetworkStatsProps {
