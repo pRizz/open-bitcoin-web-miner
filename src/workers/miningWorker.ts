@@ -6,6 +6,7 @@ let hashCount = 0;
 let lastHashRateUpdate = Date.now();
 let miningSpeed = 100;
 const HASH_RATE_UPDATE_INTERVAL = 1000; // 1 second
+const BATCH_SIZE = 10000;
 
 self.onmessage = (e) => {
   const { type, blockHeader, miningSpeed: newSpeed } = e.data;
@@ -35,15 +36,13 @@ function mine(blockHeader: Partial<HashSolution>) {
     }
   };
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const miningLoop = async () => {
+  const miningLoop = () => {
     if (!running) return;
 
-    const batchSize = 10000;
-    const sleepTime = Math.floor((100 - miningSpeed) * 10); // 0ms at 100%, 900ms at 10%
+    const startTime = Date.now();
+    let batchCount = 0;
 
-    for (let i = 0; i < batchSize; i++) {
+    while (running && batchCount < BATCH_SIZE) {
       const header = {
         ...blockHeader,
         nonce: nonce++,
@@ -51,6 +50,7 @@ function mine(blockHeader: Partial<HashSolution>) {
 
       const hash = simulateHash(header);
       hashCount++;
+      batchCount++;
 
       const { binary } = calculateLeadingZeroes(hash);
       if (binary >= 10) {
@@ -63,11 +63,12 @@ function mine(blockHeader: Partial<HashSolution>) {
 
     updateHashRate();
     
-    if (sleepTime > 0) {
-      await sleep(sleepTime);
-    }
-    
-    requestAnimationFrame(() => miningLoop());
+    // Calculate sleep time based on mining speed
+    const elapsedTime = Date.now() - startTime;
+    const targetTime = (BATCH_SIZE / 10000) * (100 / miningSpeed) * 100; // Adjust time based on mining speed
+    const sleepTime = Math.max(0, targetTime - elapsedTime);
+
+    setTimeout(() => miningLoop(), sleepTime);
   };
 
   miningLoop();
