@@ -106,7 +106,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     if (navigator.hardwareConcurrency) {
       const cores = navigator.hardwareConcurrency;
       setMaxThreads(cores);
-      setThreadCountState(Math.max(1, Math.floor(cores / 2)));
+      setThreadCountState(Math.max(1, Math.floor(cores * 0.75))); // Changed from cores / 2 to cores * 0.75
     }
   }, []);
 
