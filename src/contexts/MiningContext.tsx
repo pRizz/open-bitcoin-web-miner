@@ -103,6 +103,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleSetMiningSpeed = (speed: number) => {
+    const statusText = isMining ? "Mining speed updated to" : "Mining speed set to";
+    addLog(`${statusText} ${speed}%`);
+    setMiningSpeed(speed);
+  };
+
   return (
     <MiningContext.Provider
       value={{
@@ -116,7 +122,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         miningMode,
         gpuCapabilities,
         setBtcAddress,
-        setMiningSpeed,
+        setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
         setMiningMode,
         startMining,
