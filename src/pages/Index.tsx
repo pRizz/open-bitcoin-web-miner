@@ -49,7 +49,12 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 glass-card">
             <h2 className="text-2xl font-bold mb-4">Mining Controls</h2>
-            <MiningControls />
+            <MiningControls
+              includeAutoStart={includeAutoStart}
+              setIncludeAutoStart={setIncludeAutoStart}
+              includeAddress={includeAddress}
+              setIncludeAddress={setIncludeAddress}
+            />
           </Card>
 
           <NetworkStats stats={networkStats} />
