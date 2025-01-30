@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Share } from "lucide-react";
 import { URL_PARAMS } from "@/constants/mining";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShareControlsProps {
   includeAutoStart: boolean;
@@ -13,7 +14,9 @@ export function ShareControls({
   includeAddress,
   btcAddress,
 }: ShareControlsProps) {
-  const handleShare = () => {
+  const { toast } = useToast();
+
+  const handleShare = async () => {
     const url = new URL(window.location.href);
     if (includeAutoStart) {
       url.searchParams.set(URL_PARAMS.AUTO_START, "true");
@@ -21,7 +24,20 @@ export function ShareControls({
     if (includeAddress && btcAddress) {
       url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, btcAddress);
     }
-    navigator.clipboard.writeText(url.toString());
+    
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      toast({
+        title: "Link copied!",
+        description: "The URL has been copied to your clipboard.",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Please try copying the URL manually.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
