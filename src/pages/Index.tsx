@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { URL_PARAMS } from "@/constants/mining";
 import { MiningControls } from "@/components/mining/MiningControls";
 import { LeaderboardInfoPanel } from "@/components/LeaderboardInfoPanel";
+import { DebugLogPanel } from "@/components/debug/DebugLogPanel";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -45,6 +46,7 @@ const Index = () => {
         </div>
 
         <HashRateGauge hashRate={miningStats.hashRate} />
+        <DebugLogPanel />
         <LeaderboardInfoPanel />
         <HashList hashes={miningStats.bestHashes} />
       </div>

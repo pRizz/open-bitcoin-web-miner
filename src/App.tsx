@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { MiningProvider } from "@/contexts/MiningContext";
 import { ShareProvider } from "@/contexts/ShareContext";
+import { DebugProvider } from "@/contexts/DebugContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
@@ -31,8 +32,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <MiningProvider>
         <ShareProvider>
-          <RouterProvider router={router} />
-          <Toaster />
+          <DebugProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+          </DebugProvider>
         </ShareProvider>
       </MiningProvider>
     </QueryClientProvider>
