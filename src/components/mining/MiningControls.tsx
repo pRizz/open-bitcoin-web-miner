@@ -95,7 +95,6 @@ export function MiningControls() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="cpu">CPU Mining</SelectItem>
-                <SelectItem value="webgl">WebGL Mining</SelectItem>
                 <SelectItem value="webgpu">WebGPU Mining</SelectItem>
               </SelectContent>
             </Select>
