@@ -1,4 +1,4 @@
-import { Home, Trophy } from "lucide-react";
+import { Home, Trophy, Trash2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
+import { useMining } from "@/contexts/MiningContext";
 
 const menuItems = [
   {
@@ -26,6 +27,7 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { resetData } = useMining();
 
   return (
     <Sidebar>
@@ -50,6 +52,25 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-6">
+          <SidebarGroupLabel className="px-6 text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold mb-2">
+            Actions
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem className="px-3">
+                <SidebarMenuButton
+                  onClick={resetData}
+                  className="px-3 py-2 w-full transition-colors duration-200 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-3" />
+                  <span className="font-medium">Clear Data</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

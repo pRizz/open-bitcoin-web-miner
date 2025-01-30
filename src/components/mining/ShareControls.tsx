@@ -1,65 +1,62 @@
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Share } from "lucide-react";
 import { URL_PARAMS } from "@/constants/mining";
 
 interface ShareControlsProps {
   includeAutoStart: boolean;
+  setIncludeAutoStart?: (value: boolean) => void;
   includeAddress: boolean;
-  btcAddress: string;
-  onReset: () => void;
+  setIncludeAddress?: (value: boolean) => void;
+  btcAddress?: string;
 }
 
 export function ShareControls({
   includeAutoStart,
+  setIncludeAutoStart,
   includeAddress,
+  setIncludeAddress,
   btcAddress,
-  onReset,
 }: ShareControlsProps) {
-  const { toast } = useToast();
-
-  const handleShare = async () => {
+  const handleShare = () => {
     const url = new URL(window.location.href);
-    
     if (includeAutoStart) {
       url.searchParams.set(URL_PARAMS.AUTO_START, "true");
-    } else {
-      url.searchParams.delete(URL_PARAMS.AUTO_START);
     }
-
     if (includeAddress && btcAddress) {
       url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, btcAddress);
-    } else {
-      url.searchParams.delete(URL_PARAMS.BITCOIN_ADDRESS);
     }
-    
-    try {
-      await navigator.clipboard.writeText(url.toString());
-      toast({
-        title: "Link Copied!",
-        description: "The URL has been copied to your clipboard",
-      });
-    } catch (err) {
-      toast({
-        title: "Failed to Copy",
-        description: "Could not copy the URL to clipboard",
-        variant: "destructive",
-      });
-    }
+    navigator.clipboard.writeText(url.toString());
   };
 
   return (
-    <div className="flex gap-2">
-      <Button
-        variant="outline"
-        onClick={handleShare}
-        className="flex items-center gap-2"
-      >
-        <Share2 className="h-4 w-4" />
+    <div className="flex items-center justify-end gap-4">
+      <div className="flex items-center gap-4">
+        {setIncludeAutoStart && (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="auto-start"
+              checked={includeAutoStart}
+              onCheckedChange={setIncludeAutoStart}
+            />
+            <Label htmlFor="auto-start">Include Auto-start</Label>
+          </div>
+        )}
+        {setIncludeAddress && (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="include-address"
+              checked={includeAddress}
+              onCheckedChange={setIncludeAddress}
+            />
+            <Label htmlFor="include-address">Include Address</Label>
+          </div>
+        )}
+      </div>
+      <Button onClick={handleShare} variant="outline">
+        <Share className="h-4 w-4 mr-2" />
         Share
-      </Button>
-      <Button variant="destructive" onClick={onReset}>
-        Reset Data
       </Button>
     </div>
   );
