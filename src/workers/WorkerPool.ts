@@ -93,7 +93,9 @@ export class WorkerPool {
       
       worker.onerror = (error: ErrorEvent) => {
         if (this.onError) {
-          this.onError(`Worker initialization error: ${error.message}`);
+          // Ensure we pass a meaningful error message
+          const errorMessage = error.message || 'Unknown worker initialization error';
+          this.onError(errorMessage);
         }
         if (this.cpuWorkers.includes(worker)) {
           worker.terminate();
@@ -108,7 +110,9 @@ export class WorkerPool {
       return worker;
     } catch (error) {
       if (this.onError) {
-        this.onError(`Failed to create worker: ${error instanceof Error ? error.message : String(error)}`);
+        // Ensure we pass a meaningful error message for other types of errors
+        const errorMessage = error instanceof Error ? error.message : 'Failed to create worker';
+        this.onError(errorMessage);
       }
       throw error;
     }
