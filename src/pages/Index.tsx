@@ -9,6 +9,7 @@ import { URL_PARAMS } from "@/constants/mining";
 import { MiningControls } from "@/components/mining/MiningControls";
 import { ShareControls } from "@/components/mining/ShareControls";
 import { LeaderboardInfoPanel } from "@/components/LeaderboardInfoPanel";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
