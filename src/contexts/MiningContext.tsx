@@ -1,41 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { MiningStats, NetworkStats, MiningMode } from "@/types/mining";
-import { calculateLeadingZeroes, generateMockBlockHeader } from "@/utils/mining";
+import React, { createContext, useContext, useState } from "react";
+import { MiningMode } from "@/types/mining";
+import { calculateLeadingZeroes } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
-import { WorkerPool } from "@/workers/WorkerPool";
-import { useToast } from "@/hooks/use-toast";
-
-interface GPUCapabilities {
-  maxStorageBufferSize: string;
-  maxWorkgroupsPerDimension: string;
-  maxWorkgroupSize: {
-    x: string;
-    y: string;
-    z: string;
-  };
-  maxInvocationsPerWorkgroup: string;
-  maxTextureDimension2D: string;
-  adapterInfo: string;
-}
-
-interface MiningContextType {
-  miningStats: MiningStats;
-  networkStats: NetworkStats;
-  isMining: boolean;
-  btcAddress: string;
-  miningSpeed: number;
-  threadCount: number;
-  maxThreads: number;
-  miningMode: MiningMode;
-  gpuCapabilities?: GPUCapabilities;
-  setBtcAddress: (address: string) => void;
-  setMiningSpeed: (speed: number) => void;
-  setThreadCount: (count: number) => void;
-  setMiningMode: (mode: MiningMode) => void;
-  startMining: () => void;
-  stopMining: () => void;
-  resetData: () => void;
-}
+import { MiningContextType } from "./mining/types";
+import { useWorkerPool } from "./mining/useWorkerPool";
+import { useThreadCount } from "./mining/useThreadCount";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -66,7 +35,6 @@ const defaultContext: MiningContextType = {
 const MiningContext = createContext<MiningContextType>(defaultContext);
 
 export function MiningProvider({ children }: { children: React.ReactNode }) {
-  const { toast } = useToast();
   const {
     miningStats,
     updateMiningStats,
@@ -76,7 +44,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     stopMining: stopMiningStats,
   } = useMiningState();
   
-  const [networkStats] = useState<NetworkStats>({
+  const [networkStats] = useState({
     blockHeight: 828848,
     difficulty: 75e12,
     requiredBinaryZeroes: 78,
@@ -85,121 +53,43 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [isMining, setIsMining] = useState(false);
   const [btcAddress, setBtcAddress] = useState("");
   const [miningSpeed, setMiningSpeed] = useState(100);
-  const [maxThreads, setMaxThreads] = useState(1);
-  const [threadCountState, setThreadCountState] = useState(1);
   const [miningMode, setMiningMode] = useState<MiningMode>("cpu");
-  const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
-  const [gpuCapabilities, setGpuCapabilities] = useState<GPUCapabilities>();
 
-  useEffect(() => {
-    return () => {
-      if (workerPool) {
-        workerPool.stop();
-        setWorkerPool(null);
-        setIsMining(false);
-        stopMiningStats();
-      }
-    };
-  }, [workerPool]);
+  const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useThreadCount();
 
-  useEffect(() => {
-    if (navigator.hardwareConcurrency) {
-      const cores = navigator.hardwareConcurrency;
-      setMaxThreads(cores);
-      setThreadCountState(Math.max(1, Math.floor(cores * 0.75))); // Changed from cores / 2 to cores * 0.75
+  const { gpuCapabilities, startMining: startWorkerPool, stopMining: stopWorkerPool, updateThreadCount } = useWorkerPool(
+    threadCount,
+    miningSpeed,
+    miningMode,
+    updateHashRate,
+    (data) => {
+      const { binary, hex } = calculateLeadingZeroes(data.hash);
+      const solution = {
+        id: crypto.randomUUID(),
+        ...data,
+        binaryZeroes: binary,
+        hexZeroes: hex,
+      };
+      updateMiningStats(solution, networkStats.requiredBinaryZeroes);
     }
-  }, []);
+  );
 
   const startMining = () => {
-    if (workerPool) return;
-
-    try {
-      const pool = new WorkerPool(
-        threadCountState,
-        (hashRate) => updateHashRate(hashRate),
-        (data) => {
-          const { binary, hex } = calculateLeadingZeroes(data.hash);
-          const solution = {
-            id: crypto.randomUUID(),
-            ...data,
-            binaryZeroes: binary,
-            hexZeroes: hex,
-          };
-          updateMiningStats(solution, networkStats.requiredBinaryZeroes);
-        },
-        (error) => {
-          toast({
-            title: "Mining Error",
-            description: error,
-            variant: "destructive",
-          });
-          safeStopMining();
-        },
-        (capabilities) => {
-          setGpuCapabilities(capabilities);
-        }
-      );
-
-      setWorkerPool(pool);
-      setIsMining(true);
-      startMiningStats();
-
-      pool.setMode(miningMode);
-      pool.start(generateMockBlockHeader(), miningSpeed);
-    } catch (error) {
-      toast({
-        title: "Failed to Start Mining",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
-      });
-      safeStopMining();
-    }
+    startWorkerPool();
+    setIsMining(true);
+    startMiningStats();
   };
 
-  const safeStopMining = () => {
-    setWorkerPool((currentPool) => {
-      if (currentPool) {
-        currentPool.stop();
-      }
-      return null;
-    });
+  const stopMining = () => {
+    stopWorkerPool();
     setIsMining(false);
     stopMiningStats();
   };
 
-  const stopMining = safeStopMining;
-
   const setThreadCount = (count: number) => {
-    if (workerPool) {
-      workerPool.updateThreadCount(count);
-    }
+    updateThreadCount(count);
     setThreadCountState(count);
   };
-
-  useEffect(() => {
-    if (workerPool) {
-      workerPool.updateSpeed(miningSpeed);
-    }
-  }, [miningSpeed, workerPool]);
-
-  useEffect(() => {
-    if (workerPool) {
-      const timeoutId = setTimeout(() => {
-        workerPool.setMode(miningMode);
-      }, 0);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [miningMode, workerPool]);
-
-  const handleWorkerMessage = useCallback((e: MessageEvent) => {
-    const { type, data } = e.data;
-    
-    switch (type) {
-      case 'gpuCapabilities':
-        setGpuCapabilities(data);
-        break;
-    }
-  }, []);
 
   return (
     <MiningContext.Provider
@@ -209,7 +99,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         isMining,
         btcAddress,
         miningSpeed,
-        threadCount: threadCountState,
+        threadCount,
         maxThreads,
         miningMode,
         gpuCapabilities,
