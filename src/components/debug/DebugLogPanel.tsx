@@ -30,11 +30,17 @@ export function DebugLogPanel() {
                   Clear Logs
                 </Button>
               </div>
-              <Textarea
-                value={logText}
-                readOnly
-                className="font-mono text-sm h-[200px]"
-              />
+              {logs.length === 0 ? (
+                <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                  No logs yet...
+                </div>
+              ) : (
+                <Textarea
+                  value={logText}
+                  readOnly
+                  className="font-mono text-sm h-[200px]"
+                />
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>
