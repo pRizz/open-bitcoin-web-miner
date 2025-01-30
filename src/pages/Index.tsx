@@ -40,7 +40,6 @@ const Index = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <h1 className="text-4xl font-bold mb-6">Personal Mining</h1>
       <div className="space-y-6">
         <div className="flex justify-end">
           <ShareControls
