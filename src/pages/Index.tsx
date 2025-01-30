@@ -9,7 +9,6 @@ import { URL_PARAMS } from "@/constants/mining";
 import { MiningControls } from "@/components/mining/MiningControls";
 import { ShareControls } from "@/components/mining/ShareControls";
 import { LeaderboardInfoPanel } from "@/components/LeaderboardInfoPanel";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -41,11 +40,7 @@ const Index = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <SidebarTrigger className="h-8 w-8" />
-            <h1 className="text-4xl font-bold">Personal Mining</h1>
-          </div>
+        <div className="flex justify-end">
           <ShareControls
             includeAutoStart={includeAutoStart}
             includeAddress={includeAddress}
