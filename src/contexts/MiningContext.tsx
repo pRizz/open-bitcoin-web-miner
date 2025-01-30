@@ -5,6 +5,7 @@ import { useMiningState } from "@/hooks/useMiningState";
 import { MiningContextType } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useThreadCount } from "./mining/useThreadCount";
+import { useDebug } from "./DebugContext";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -35,6 +36,7 @@ const defaultContext: MiningContextType = {
 const MiningContext = createContext<MiningContextType>(defaultContext);
 
 export function MiningProvider({ children }: { children: React.ReactNode }) {
+  const { addLog } = useDebug();
   const {
     miningStats,
     updateMiningStats,
@@ -75,12 +77,19 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   );
 
   const startMining = () => {
+    const modeString = miningMode.toUpperCase();
+    const threadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
+    addLog(`Starting ${modeString} mining${threadInfo} at ${miningSpeed}% speed`);
+    
     startWorkerPool();
     setIsMining(true);
     startMiningStats();
   };
 
   const stopMining = () => {
+    const modeString = miningMode.toUpperCase();
+    addLog(`Stopping ${modeString} mining`);
+    
     stopWorkerPool();
     setIsMining(false);
     stopMiningStats();
@@ -89,6 +98,9 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const setThreadCount = (count: number) => {
     updateThreadCount(count);
     setThreadCountState(count);
+    if (isMining) {
+      addLog(`Updating CPU mining thread count to ${count}`);
+    }
   };
 
   return (
