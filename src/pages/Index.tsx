@@ -41,14 +41,12 @@ const Index = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="space-y-6">
-        <div className="flex justify-end">
-          <ShareControls
-            includeAutoStart={includeAutoStart}
-            includeAddress={includeAddress}
-            btcAddress={btcAddress}
-            onReset={resetData}
-          />
-        </div>
+        <ShareControls
+          includeAutoStart={includeAutoStart}
+          includeAddress={includeAddress}
+          btcAddress={btcAddress}
+          onReset={resetData}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 glass-card">
