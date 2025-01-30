@@ -30,14 +30,14 @@ const router = createBrowserRouter([
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <MiningProvider>
-        <ShareProvider>
-          <DebugProvider>
+      <DebugProvider>
+        <MiningProvider>
+          <ShareProvider>
             <RouterProvider router={router} />
             <Toaster />
-          </DebugProvider>
-        </ShareProvider>
-      </MiningProvider>
+          </ShareProvider>
+        </MiningProvider>
+      </DebugProvider>
     </QueryClientProvider>
   );
 }

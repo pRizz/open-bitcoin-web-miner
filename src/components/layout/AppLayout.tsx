@@ -4,7 +4,6 @@ import { Outlet, useLocation } from "react-router-dom";
 import { ShareControls } from "@/components/mining/ShareControls";
 import { useMining } from "@/contexts/MiningContext";
 import { useShare } from "@/contexts/ShareContext";
-import { DebugProvider } from "@/contexts/DebugContext";
 
 export function AppLayout() {
   const location = useLocation();
@@ -16,28 +15,26 @@ export function AppLayout() {
   };
 
   return (
-    <DebugProvider>
-      <SidebarProvider defaultOpen={false}>
-        <div className="min-h-screen flex w-full">
-          <AppSidebar />
-          <main className="flex-1 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="h-8 w-8" />
-                <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
-              </div>
-              {location.pathname === "/" && (
-                <ShareControls
-                  includeAutoStart={includeAutoStart}
-                  includeAddress={includeAddress}
-                  btcAddress={btcAddress}
-                />
-              )}
+    <SidebarProvider defaultOpen={false}>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <main className="flex-1 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="h-8 w-8" />
+              <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
             </div>
-            <Outlet />
-          </main>
-        </div>
-      </SidebarProvider>
-    </DebugProvider>
+            {location.pathname === "/" && (
+              <ShareControls
+                includeAutoStart={includeAutoStart}
+                includeAddress={includeAddress}
+                btcAddress={btcAddress}
+              />
+            )}
+          </div>
+          <Outlet />
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
