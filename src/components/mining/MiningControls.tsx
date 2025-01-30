@@ -3,10 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useMining } from "@/contexts/MiningContext";
+import { useShare } from "@/contexts/ShareContext";
 import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MiningMode } from "@/types/mining";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,19 +18,7 @@ import {
 } from "@/components/ui/select";
 import { GPUCapabilities } from "../GPUCapabilities";
 
-interface MiningControlsProps {
-  includeAutoStart: boolean;
-  setIncludeAutoStart: (value: boolean) => void;
-  includeAddress: boolean;
-  setIncludeAddress: (value: boolean) => void;
-}
-
-export function MiningControls({
-  includeAutoStart,
-  setIncludeAutoStart,
-  includeAddress,
-  setIncludeAddress,
-}: MiningControlsProps) {
+export function MiningControls() {
   const { toast } = useToast();
   const {
     isMining,
@@ -47,6 +35,13 @@ export function MiningControls({
     startMining,
     stopMining,
   } = useMining();
+
+  const { 
+    includeAutoStart, 
+    setIncludeAutoStart, 
+    includeAddress, 
+    setIncludeAddress 
+  } = useShare();
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;

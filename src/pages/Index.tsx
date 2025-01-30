@@ -4,21 +4,17 @@ import { NetworkStats } from "@/components/NetworkStats";
 import { HashList } from "@/components/HashList";
 import { useMining } from "@/contexts/MiningContext";
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { URL_PARAMS } from "@/constants/mining";
 import { MiningControls } from "@/components/mining/MiningControls";
 import { LeaderboardInfoPanel } from "@/components/LeaderboardInfoPanel";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
-  const [includeAutoStart, setIncludeAutoStart] = useState(false);
-  const [includeAddress, setIncludeAddress] = useState(false);
-  
   const {
     miningStats,
     networkStats,
     isMining,
-    btcAddress,
     startMining,
     setBtcAddress,
   } = useMining();
@@ -42,12 +38,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 glass-card">
             <h2 className="text-2xl font-bold mb-4">Mining Controls</h2>
-            <MiningControls
-              includeAutoStart={includeAutoStart}
-              setIncludeAutoStart={setIncludeAutoStart}
-              includeAddress={includeAddress}
-              setIncludeAddress={setIncludeAddress}
-            />
+            <MiningControls />
           </Card>
 
           <NetworkStats stats={networkStats} />

@@ -3,10 +3,12 @@ import { AppSidebar } from "./AppSidebar";
 import { Outlet, useLocation } from "react-router-dom";
 import { ShareControls } from "@/components/mining/ShareControls";
 import { useMining } from "@/contexts/MiningContext";
+import { useShare } from "@/contexts/ShareContext";
 
 export function AppLayout() {
   const location = useLocation();
   const { btcAddress } = useMining();
+  const { includeAutoStart, includeAddress } = useShare();
 
   const getPageTitle = () => {
     return location.pathname === "/" ? "Personal Mining" : "Global Leaderboard";
@@ -24,8 +26,8 @@ export function AppLayout() {
             </div>
             {location.pathname === "/" && (
               <ShareControls
-                includeAutoStart={false}
-                includeAddress={false}
+                includeAutoStart={includeAutoStart}
+                includeAddress={includeAddress}
                 btcAddress={btcAddress}
               />
             )}

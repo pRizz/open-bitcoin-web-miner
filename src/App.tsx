@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { MiningProvider } from "@/contexts/MiningContext";
+import { ShareProvider } from "@/contexts/ShareContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
@@ -29,8 +30,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <MiningProvider>
-        <RouterProvider router={router} />
-        <Toaster />
+        <ShareProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </ShareProvider>
       </MiningProvider>
     </QueryClientProvider>
   );
