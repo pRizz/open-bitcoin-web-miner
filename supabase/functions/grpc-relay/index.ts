@@ -23,7 +23,10 @@ serve(async (req) => {
   if (upgradeHeader.toLowerCase() !== "websocket") {
     // Get the project reference from the host header
     const host = req.headers.get("host") || "";
+    console.log("Host header value:", host);
+    
     const projectRef = host.split('.')[0];
+    console.log("Extracted project reference:", projectRef);
     
     // Construct the WebSocket URL using the project reference
     const wsUrl = `wss://${projectRef}.supabase.co/functions/v1/grpc-relay`;
