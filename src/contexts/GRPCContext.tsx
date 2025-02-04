@@ -31,6 +31,12 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
           throw new Error('No WebSocket URL returned from server');
         }
 
+        console.log('Retrieved WebSocket URL:', data.wsUrl);
+        console.log('Waiting 2 seconds before connecting...');
+        
+        // Add 2 second delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
         console.log('Connecting to WebSocket URL:', data.wsUrl);
         const socket = new WebSocket(data.wsUrl);
 
