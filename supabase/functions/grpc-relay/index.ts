@@ -8,19 +8,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+// export type Handler = (
+//   request: Request,
+//   connInfo: ConnInfo,
+// ) => Response | Promise<Response>;
+
+serve(async (req: Request, connInfo: ConnInfo) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Pretty print the whole request
-  console.log("Received request:", JSON.stringify(req, null, 2));
+  console.log("Received request:", req);
+  console.log("Received connInfo:", connInfo);
 
   console.log("Received request:", req.url);
   console.log("Headers:", req.headers);
-  // Pretty print the headers
-  console.log("Headers:", JSON.stringify(req.headers, null, 2));
 
   // Check if it's a WebSocket upgrade request
   const upgradeHeader = req.headers.get("upgrade") || "";
