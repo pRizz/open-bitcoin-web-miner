@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const GRPC_ENDPOINT = "https://degen-server.lightningfaucet.us:443";
-
+// https://hewfqryvvczqdsnsqzxs.supabase.co/functions/v1/grpc-relay
+// wss://edge-runtime.supabase.com/functions/v1/grpc-relay
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
