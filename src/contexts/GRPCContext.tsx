@@ -27,10 +27,12 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
           throw error;
         }
 
-        const wsUrl = `wss://${supabase.functions.url.hostname}/functions/v1/grpc-relay`;
-        console.log('Connecting to WebSocket URL:', wsUrl);
-        
-        const socket = new WebSocket(wsUrl);
+        if (!data?.wsUrl) {
+          throw new Error('No WebSocket URL returned from server');
+        }
+
+        console.log('Connecting to WebSocket URL:', data.wsUrl);
+        const socket = new WebSocket(data.wsUrl);
 
         socket.onopen = () => {
           console.log('WebSocket connected');
