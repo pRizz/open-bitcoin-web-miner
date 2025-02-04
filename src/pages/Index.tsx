@@ -38,7 +38,8 @@ const Index = () => {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 glass-card">
-            <h2 className="text-2xl font-bold mb-4">Mining Controls</h2>
+            <h2 className="text-2xl font-bold mb-1">Mining Controls</h2>
+            <p className="text-muted-foreground mb-4">Configure your mining settings</p>
             <MiningControls />
           </Card>
 
