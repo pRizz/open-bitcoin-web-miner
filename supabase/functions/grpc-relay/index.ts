@@ -13,6 +13,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log("Received request:", req.url);
+  console.log("Headers:", req.headers);
+  // Pretty print the headers
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+
   // Check if it's a WebSocket upgrade request
   const upgradeHeader = req.headers.get("upgrade") || "";
   if (upgradeHeader.toLowerCase() !== "websocket") {
