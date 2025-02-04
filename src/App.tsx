@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { MiningProvider } from "@/contexts/MiningContext";
 import { ShareProvider } from "@/contexts/ShareContext";
 import { DebugProvider } from "@/contexts/DebugContext";
+import { GRPCProvider } from "@/contexts/GRPCContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
@@ -33,8 +34,10 @@ function App() {
       <DebugProvider>
         <MiningProvider>
           <ShareProvider>
-            <RouterProvider router={router} />
-            <Toaster />
+            <GRPCProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+            </GRPCProvider>
           </ShareProvider>
         </MiningProvider>
       </DebugProvider>
