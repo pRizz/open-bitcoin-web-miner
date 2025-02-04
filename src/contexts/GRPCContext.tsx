@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface GRPCContextType {
@@ -19,13 +18,9 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const connectWebSocket = async () => {
       try {
-        const { data } = await supabase.functions.invoke('grpc-relay');
-        const wsUrl = data?.url?.replace('http', 'ws') || '';
+        // Construct WebSocket URL directly
+        const wsUrl = `wss://hewfqryvvczqdsnsqzxs.supabase.co/functions/v1/grpc-relay`;
         
-        if (!wsUrl) {
-          throw new Error('Failed to get WebSocket URL');
-        }
-
         const socket = new WebSocket(wsUrl);
 
         socket.onopen = () => {
