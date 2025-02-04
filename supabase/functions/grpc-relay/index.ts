@@ -19,22 +19,11 @@ serve(async (req: Request, connInfo: ConnInfo) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log("Received request:", req);
-  console.log("Received connInfo:", connInfo);
-
-  console.log("Received request:", req.url);
-  console.log("Headers:", req.headers);
-
   // Check if it's a WebSocket upgrade request
   const upgradeHeader = req.headers.get("upgrade") || "";
-  if (upgradeHeader.toLowerCase() !== "websocket") {
-    // Get the project reference from the host header
-    const projectRef = req.headers.get("project_ref") || "";
-    console.log("project_ref header value:", projectRef);
-    
-    // Construct the WebSocket URL using the project reference
+  if (upgradeHeader.toLowerCase() !== "websocket") {    
     // FIXME: This is a hack to get the WebSocket URL for the project. The url might change.
-    const wsUrl = `wss://${projectRef}.supabase.co/functions/v1/grpc-relay`;
+    const wsUrl = `wss://hewfqryvvczqdsnsqzxs.supabase.co/functions/v1/grpc-relay`;
 
     console.log("Returning WebSocket URL:", wsUrl);
     return new Response(JSON.stringify({ wsUrl }), { 
