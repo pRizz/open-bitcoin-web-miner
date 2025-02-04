@@ -22,10 +22,15 @@ serve(async (req) => {
   // Check if it's a WebSocket upgrade request
   const upgradeHeader = req.headers.get("upgrade") || "";
   if (upgradeHeader.toLowerCase() !== "websocket") {
-    // Return the WebSocket URL for regular HTTP requests
-    // const wsProtocol = req.url.startsWith('https') ? 'wss' : 'ws';
-    const wsProtocol = 'wss'; // Always use wss for the WebSocket URL
-    const wsUrl = `${wsProtocol}://${new URL(req.url).host}/functions/v1/grpc-relay`;
+    // Get the project reference from the host header
+    const host = req.headers.get("host") || "";
+    console.log("Host header value:", host);
+    
+    const projectRef = host.split('.')[0];
+    console.log("Extracted project reference:", projectRef);
+    
+    // Construct the WebSocket URL using the project reference
+    const wsUrl = `wss://${projectRef}.supabase.co/functions/v1/grpc-relay`;
 
     console.log("Returning WebSocket URL:", wsUrl);
     return new Response(JSON.stringify({ wsUrl }), { 
