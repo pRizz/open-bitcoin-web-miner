@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package degen_server;
+
+// TODO: audit
+message NoncelessBlockHeader {
+    bytes version = 1;
+    bytes previous_block_hash = 2;
+    bytes merkle_root = 3;
+    bytes timestamp = 4;
+    // Is equivalent to the bitcoin blockchain compact target value.
+    bytes compact_target = 5;
+}
+
+message NoncedBlockHeader {
+    NoncelessBlockHeader nonceless_block_header = 1;
+    bytes nonce = 2;
+}
+
+message Event {
+    string event_id = 1;
+    string event_type = 2;
+    bytes event_data = 3;
+    int64 timestamp = 4;
+}
+
+message GetEventsRequest {
+    int64 start_time = 1;
+    int64 end_time = 2;
+    int32 limit = 3;
+}
+
+message GetEventsResponseOk {
+    repeated Event events = 1;
+}
+
+message GetEventsResponseError {
+    enum GetEventsResponseErrorEnum {
+        Unknown = 0;
+        InvalidTimestamp = 1;
+        InvalidLimit = 2;
+    }
+
+    GetEventsResponseErrorEnum error_enum = 1;
+    string error_message = 2;
+}
+
+message GetEventsResponse {
+    oneof result {
+        GetEventsResponseOk ok = 1;
+        GetEventsResponseError error = 2;
+    }
+}
+
+message StreamingWorkClientMessage {
+    oneof content {
+        StreamingWorkChallengeRequest challenge_request = 1;
+        StreamingWorkSubmissionRequest submission_request = 2;
+    }
+}
+
+message StreamingWorkServerMessage {
+    oneof content {
+        StreamingWorkChallengeResponse challenge_response = 1;
+        StreamingWorkSubmissionResponse submission_response = 2;
+        BlockTemplateUpdate block_template_update = 3;
+    }
+}
+
+message StreamingWorkChallengeRequest {
+    int32 min_leading_zero_count_u8 = 1;
+    // TODO: audit min_solution_count_u32 > 0 usage; make this a OneOf instead of checking for 0 everywhere in code.
+    // A min solution count is the minimum number of solutions that the client must find for a job. If this is 0, then let's run in continuous mode.
+    int32 min_solution_count_u32 = 2;
+    string requestor_service_name = 3;
+}
+
+message StreamingWorkChallengeResponse {
+    string job_id = 1;
+    NoncelessBlockHeader nonceless_block_header = 2;
+    // TODO: maybe unnecessary
+    int32 hash_target_leading_zero_count_u8 = 3;
+}
+
+message StreamingWorkSubmissionRequest {
+    string job_id = 1;
+    repeated NoncedBlockHeader nonced_block_headers = 2;
+}
+
+message StreamingWorkSubmissionResponse {
+    enum Status {
+        ACCEPTED = 0;
+        REJECTED = 1;
+        OUTDATED = 2;
+        ACCEPTED_AND_FOUND_BLOCK = 3;
+    }
+    // TODO: maybe unnecessary
+    Status status = 1;
+    string message = 2;
+}
+
+message BlockTemplateUpdate {
+    NoncelessBlockHeader nonceless_block_header = 1;
+}
+
+message GetBitcoinNetworkInfoRequest {
+}
+
+message GetBitcoinNetworkInfoResponseOk {
+    int32 block_height = 1;
+    // Network difficulty as a floating point number
+    double network_difficulty = 2;
+}
+
+message GetBitcoinNetworkInfoResponseError {
+    enum GetBitcoinNetworkInfoErrorEnum {
+        Unknown = 0;
+        BitcoinNodeNotConnected = 1;
+        BitcoinNodeSyncing = 2;
+    }
+
+    GetBitcoinNetworkInfoErrorEnum error_enum = 1;
+    string error_message = 2;
+}
+
+message GetBitcoinNetworkInfoResponse {
+    oneof result {
+        GetBitcoinNetworkInfoResponseOk ok = 1;
+        GetBitcoinNetworkInfoResponseError error = 2;
+    }
+}
+
+service DegenService {
+    rpc GetEvents(GetEventsRequest) returns (GetEventsResponse);
+
+    // The caller is some other business service related to getting work.
+    // It should have knowledge/control for how difficult the work is to do.
+    // For now, we will do just 1 job per streaming work channel. Therefore, every service will likely have many streaming work channels to the degen service.
+    rpc StreamingWork(stream StreamingWorkClientMessage) returns (stream StreamingWorkServerMessage);
+
+    // Get current information about the Bitcoin network
+    rpc GetBitcoinNetworkInfo(GetBitcoinNetworkInfoRequest) returns (GetBitcoinNetworkInfoResponse);
+}
