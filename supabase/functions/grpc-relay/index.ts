@@ -17,13 +17,10 @@ serve(async (req) => {
   const upgradeHeader = req.headers.get("upgrade") || "";
   if (upgradeHeader.toLowerCase() !== "websocket") {
     // Return the WebSocket URL for regular HTTP requests
-    console.log("Returning WebSocket URL for regular HTTP request");
-    console.log(req.url);
-    const wsProtocol = req.url.startsWith('https') ? 'wss' : 'ws';
-    console.log(wsProtocol);
+    // const wsProtocol = req.url.startsWith('https') ? 'wss' : 'ws';
+    const wsProtocol = 'wss'; // Always use wss for the WebSocket URL
     const wsUrl = `${wsProtocol}://${new URL(req.url).host}/functions/v1/grpc-relay`;
-    console.log(wsUrl);
-    
+
     console.log("Returning WebSocket URL:", wsUrl);
     return new Response(JSON.stringify({ wsUrl }), { 
       status: 200,
