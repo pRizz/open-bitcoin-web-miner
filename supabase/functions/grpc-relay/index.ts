@@ -14,6 +14,9 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Pretty print the whole request
+  console.log("Received request:", JSON.stringify(req, null, 2));
+
   console.log("Received request:", req.url);
   console.log("Headers:", req.headers);
   // Pretty print the headers
@@ -23,13 +26,11 @@ serve(async (req) => {
   const upgradeHeader = req.headers.get("upgrade") || "";
   if (upgradeHeader.toLowerCase() !== "websocket") {
     // Get the project reference from the host header
-    const host = req.headers.get("host") || "";
-    console.log("Host header value:", host);
-    
-    const projectRef = host.split('.')[0];
-    console.log("Extracted project reference:", projectRef);
+    const projectRef = req.headers.get("project_ref") || "";
+    console.log("project_ref header value:", projectRef);
     
     // Construct the WebSocket URL using the project reference
+    // FIXME: This is a hack to get the WebSocket URL for the project. The url might change.
     const wsUrl = `wss://${projectRef}.supabase.co/functions/v1/grpc-relay`;
 
     console.log("Returning WebSocket URL:", wsUrl);
