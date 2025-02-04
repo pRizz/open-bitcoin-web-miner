@@ -8,7 +8,7 @@ import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GPUCapabilities } from "../GPUCapabilities";
 import {
   Select,
   SelectContent,
@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GPUCapabilities } from "../GPUCapabilities";
 
 export function MiningControls() {
   const { toast } = useToast();
@@ -68,118 +67,114 @@ export function MiningControls() {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          {/* BTC Address Input */}
-          <div className="space-y-2">
-            <Label htmlFor="btc-address">Bitcoin Address</Label>
-            <Input
-              id="btc-address"
-              placeholder="Enter your BTC address"
-              value={btcAddress}
-              onChange={handleAddressChange}
-              className="font-mono"
-            />
+      {/* BTC Address Input */}
+      <div className="space-y-2">
+        <Label htmlFor="btc-address">Bitcoin Address</Label>
+        <Input
+          id="btc-address"
+          placeholder="Enter your BTC address"
+          value={btcAddress}
+          onChange={handleAddressChange}
+          className="font-mono"
+        />
+      </div>
+
+      {/* Mining Mode Selection */}
+      <div className="space-y-2">
+        <Label>Mining Mode</Label>
+        <Select value={miningMode} onValueChange={setMiningMode}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select mining mode" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cpu">CPU Mining</SelectItem>
+            <SelectItem value="webgpu">WebGPU Mining</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Thread Count Control (CPU Only) */}
+      {miningMode === "cpu" && (
+        <div className="space-y-2">
+          <Label>Thread Count: {threadCount}</Label>
+          <Slider
+            value={[threadCount]}
+            onValueChange={handleThreadChange}
+            min={1}
+            max={maxThreads}
+            step={1}
+          />
+          <div className="text-xs text-muted-foreground">
+            Available Threads: {maxThreads}
           </div>
+        </div>
+      )}
 
-          {/* Mining Mode Selection */}
-          <div className="space-y-2">
-            <Label>Mining Mode</Label>
-            <Select value={miningMode} onValueChange={setMiningMode}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select mining mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cpu">CPU Mining</SelectItem>
-                <SelectItem value="webgpu">WebGPU Mining</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Mining Speed Control */}
+      <div className="space-y-2">
+        <Label>Mining Speed: {miningSpeed}%</Label>
+        <Slider
+          value={[miningSpeed]}
+          onValueChange={handleSpeedChange}
+          min={5}
+          max={100}
+          step={5}
+        />
+        <div className="text-xs text-muted-foreground">
+          Adjust to balance between mining speed and system responsiveness
+        </div>
+      </div>
 
-          {/* Thread Count Control (CPU Only) */}
-          {miningMode === "cpu" && (
-            <div className="space-y-2">
-              <Label>Thread Count: {threadCount}</Label>
-              <Slider
-                value={[threadCount]}
-                onValueChange={handleThreadChange}
-                min={1}
-                max={maxThreads}
-                step={1}
-              />
-              <div className="text-xs text-muted-foreground">
-                Available Threads: {maxThreads}
-              </div>
-            </div>
-          )}
+      {/* Sharing Options */}
+      <div className="space-y-3 pt-2 border-t">
+        <Label className="text-sm text-muted-foreground">Sharing Options</Label>
+        
+        <div className="flex items-center justify-between">
+          <Label htmlFor="auto-start" className="text-sm">
+            Auto-start when sharing
+          </Label>
+          <Switch
+            id="auto-start"
+            checked={includeAutoStart}
+            onCheckedChange={setIncludeAutoStart}
+          />
+        </div>
 
-          {/* Mining Speed Control */}
-          <div className="space-y-2">
-            <Label>Mining Speed: {miningSpeed}%</Label>
-            <Slider
-              value={[miningSpeed]}
-              onValueChange={handleSpeedChange}
-              min={5}
-              max={100}
-              step={5}
-            />
-            <div className="text-xs text-muted-foreground">
-              Adjust to balance between mining speed and system responsiveness
-            </div>
-          </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="include-address" className="text-sm">
+            Include Bitcoin address in share link
+          </Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Switch
+                    id="include-address"
+                    checked={includeAddress}
+                    onCheckedChange={setIncludeAddress}
+                    disabled={!isValidAddress}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Enter a valid Bitcoin address to enable this option</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
 
-          {/* Sharing Options */}
-          <div className="space-y-3 pt-2 border-t">
-            <Label className="text-sm text-muted-foreground">Sharing Options</Label>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="auto-start" className="text-sm">
-                Auto-start when sharing
-              </Label>
-              <Switch
-                id="auto-start"
-                checked={includeAutoStart}
-                onCheckedChange={setIncludeAutoStart}
-              />
-            </div>
+      {/* Start/Stop Button */}
+      <Button
+        className="w-full"
+        onClick={isMining ? stopMining : startMining}
+        variant={isMining ? "destructive" : "default"}
+        disabled={btcAddress ? !isValidAddress : false}
+      >
+        {isMining ? "Stop Mining" : "Start Mining"}
+      </Button>
 
-            <div className="flex items-center justify-between">
-              <Label htmlFor="include-address" className="text-sm">
-                Include Bitcoin address in share link
-              </Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Switch
-                        id="include-address"
-                        checked={includeAddress}
-                        onCheckedChange={setIncludeAddress}
-                        disabled={!isValidAddress}
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Enter a valid Bitcoin address to enable this option</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-
-          {/* Start/Stop Button */}
-          <Button
-            className="w-full"
-            onClick={isMining ? stopMining : startMining}
-            variant={isMining ? "destructive" : "default"}
-            disabled={btcAddress ? !isValidAddress : false}
-          >
-            {isMining ? "Stop Mining" : "Start Mining"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* GPU Capabilities Card */}
+      {/* GPU Capabilities */}
       {miningMode === "webgpu" && (
         <GPUCapabilities capabilities={gpuCapabilities} />
       )}
