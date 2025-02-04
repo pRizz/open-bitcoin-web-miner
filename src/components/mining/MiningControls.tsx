@@ -8,7 +8,7 @@ import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -69,11 +69,7 @@ export function MiningControls() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Mining Controls</CardTitle>
-          <CardDescription>Configure your mining settings</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-6">
           {/* BTC Address Input */}
           <div className="space-y-2">
             <Label htmlFor="btc-address">Bitcoin Address</Label>
