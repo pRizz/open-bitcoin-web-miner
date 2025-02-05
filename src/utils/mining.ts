@@ -166,3 +166,14 @@ export function formatTime(seconds: number): string {
 
   return `${Math.round(seconds)}s`;
 }
+
+// FIXME: probably wrong; AI generated
+export function calculateRequiredBinaryZeroes(difficulty: number): number {
+  // The difficulty is inversely proportional to the target
+  // Higher difficulty means more zeros required
+  // Using log2 to determine the number of binary zeros needed
+  // Adding a base offset to account for Bitcoin's difficulty calculation
+  const baseOffset = 64; // Bitcoin uses a 256-bit number (64 hex chars)
+  const difficultyBits = Math.log2(difficulty);
+  return Math.floor(baseOffset + difficultyBits);
+}

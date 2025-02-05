@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { MiningMode } from "@/types/mining";
-import { calculateLeadingZeroes } from "@/utils/mining";
+import { calculateLeadingZeroes, calculateRequiredBinaryZeroes } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
 import { MiningContextType } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
+import { useGRPC } from "./GRPCContext";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -37,6 +38,7 @@ const MiningContext = createContext<MiningContextType>(defaultContext);
 
 export function MiningProvider({ children }: { children: React.ReactNode }) {
   const { addLog } = useDebug();
+  const { getNetworkInfo } = useGRPC();
   const {
     miningStats,
     updateMiningStats,
@@ -46,10 +48,10 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     stopMining: stopMiningStats,
   } = useMiningState();
   
-  const [networkStats] = useState({
-    blockHeight: 828848,
-    difficulty: 75e12,
-    requiredBinaryZeroes: 78,
+  const [networkStats, setNetworkStats] = useState({
+    blockHeight: 0,
+    difficulty: 0,
+    requiredBinaryZeroes: 0,
   });
   
   const [isMining, setIsMining] = useState(false);
@@ -75,6 +77,34 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       updateMiningStats(solution, networkStats.requiredBinaryZeroes);
     }
   );
+
+  useEffect(() => {
+    const updateNetworkInfo = async () => {
+      try {
+        const info = await getNetworkInfo();
+        if (info?.blockHeight && info?.networkDifficulty) {
+          const requiredZeroes = calculateRequiredBinaryZeroes(info.networkDifficulty);
+          setNetworkStats({
+            blockHeight: info.blockHeight,
+            difficulty: info.networkDifficulty,
+            requiredBinaryZeroes: requiredZeroes,
+          });
+          addLog(`Network difficulty updated: ${info.networkDifficulty}, required zeros: ${requiredZeroes}`);
+        } else {
+          addLog(`Failed to parse values from network info: ${info}`);
+          console.log(`Failed to parse values from network info: ${info}`);
+        }
+      } catch (error) {
+        addLog(`Failed to fetch network info: ${error}`);
+      }
+
+    };
+
+    updateNetworkInfo();
+    const interval = setInterval(updateNetworkInfo, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [getNetworkInfo, addLog]);
 
   const startMining = () => {
     const modeString = miningMode.toUpperCase();
