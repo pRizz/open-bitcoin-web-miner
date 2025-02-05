@@ -32,14 +32,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DebugProvider>
-        <MiningProvider>
-          <ShareProvider>
-            <GRPCProvider>
+        <GRPCProvider>
+          <MiningProvider>
+            <ShareProvider>
               <RouterProvider router={router} />
               <Toaster />
-            </GRPCProvider>
-          </ShareProvider>
-        </MiningProvider>
+            </ShareProvider>
+          </MiningProvider>
+        </GRPCProvider>
       </DebugProvider>
     </QueryClientProvider>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 
 interface DebugContextType {
   logs: string[];
@@ -11,14 +11,14 @@ const DebugContext = createContext<DebugContextType | undefined>(undefined);
 export function DebugProvider({ children }: { children: React.ReactNode }) {
   const [logs, setLogs] = useState<string[]>([]);
 
-  const addLog = (message: string) => {
+  const addLog = useCallback((message: string) => {
     const timestamp = new Date().toISOString();
     setLogs((prev) => [...prev, `${timestamp} - ${message}`]);
-  };
+  }, []);
 
-  const clearLogs = () => {
+  const clearLogs = useCallback(() => {
     setLogs([]);
-  };
+  }, []);
 
   return (
     <DebugContext.Provider value={{ logs, addLog, clearLogs }}>

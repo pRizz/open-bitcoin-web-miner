@@ -91,9 +91,10 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           });
           addLog(`Network difficulty updated: ${info.networkDifficulty}, required zeros: ${requiredZeroes}`);
         } else {
-          addLog(`Failed to parse values from network info: ${info}`);
-          console.log(`Failed to parse values from network info: ${info}`);
+          addLog(`Failed to parse values from network info: ${JSON.stringify(info)}`);
+          console.log(`Failed to parse values from network info: ${JSON.stringify(info)}`);
         }
+
       } catch (error) {
         addLog(`Failed to fetch network info: ${error}`);
       }

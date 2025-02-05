@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 // import * as pb from "@/generated/external/degen_server_pb";
@@ -108,7 +108,7 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const getNetworkInfo = async () => {
+  const getNetworkInfo = useCallback(async () => {
     try {
       const { data, error } = await supabase.functions.invoke('grpc-relay');
       
@@ -124,7 +124,7 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
       console.error('Error getting network info:', error);
       throw error;
     }
-  };
+  }, []);
 
   return (
     <GRPCContext.Provider value={{ isConnected, sendMessage, lastMessage, getNetworkInfo }}>
