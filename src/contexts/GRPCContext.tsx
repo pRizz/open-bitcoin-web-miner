@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import * as pb from "@/generated/external/degen_server_pb";
+// import * as pb from "@/generated/external/degen_server_pb";
+// import * as pb from "../../../external/src/degen_server_pb";
 
 interface GRPCContextType {
   isConnected: boolean;
   sendMessage: (message: string) => void;
   lastMessage: string | null;
-  getNetworkInfo: () => Promise<pb.GetBitcoinNetworkInfoResponse>;
+  // getNetworkInfo: () => Promise<pb.GetBitcoinNetworkInfoResponse>;
 }
 
 const GRPCContext = createContext<GRPCContextType | undefined>(undefined);
@@ -107,22 +108,22 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const getNetworkInfo = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('get-bitcoin-network-info');
+  // const getNetworkInfo = async () => {
+  //   try {
+  //     const { data, error } = await supabase.functions.invoke('get-bitcoin-network-info');
       
-      if (error) throw error;
+  //     if (error) throw error;
       
-      // Parse the response into a GetBitcoinNetworkInfoResponse object
-      return pb.GetBitcoinNetworkInfoResponse.deserializeBinary(data);
-    } catch (error) {
-      console.error('Error getting network info:', error);
-      throw error;
-    }
-  };
+  //     // Parse the response into a GetBitcoinNetworkInfoResponse object
+  //     return pb.GetBitcoinNetworkInfoResponse.deserializeBinary(data);
+  //   } catch (error) {
+  //     console.error('Error getting network info:', error);
+  //     throw error;
+  //   }
+  // };
 
   return (
-    <GRPCContext.Provider value={{ isConnected, sendMessage, lastMessage, getNetworkInfo }}>
+    <GRPCContext.Provider value={{ isConnected, sendMessage, lastMessage }}>
       {children}
     </GRPCContext.Provider>
   );
