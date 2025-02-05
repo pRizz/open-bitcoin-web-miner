@@ -1,0 +1,15 @@
+{
+  "name": "external",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.2.3",
+    "nice-grpc-common": "^2.0.2"
+  }
+}

@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "generate-proto": "protoc --plugin=protoc-gen-grpc-web=/mnt/c/Users/prysz/bin/protoc-gen-grpc-web-1.5.0-windows-x86_64.exe --js_out=import_style=typescript,binary:src/generated/ --grpc-web_out=import_style=typescript,mode=grpcwebtext:src/generated/  external/degen_server.proto"
+    "deploy-supabase-functions": "supabase functions deploy grpc-relay",
+    "run-grpc-relay": "deno run -A ./supabase/functions/grpc-relay/index.ts",
+    "protoc-tsproto-nicegrpc": "./node_modules/.bin/grpc_tools_node_protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./external/src --ts_proto_opt=outputServices=nice-grpc,outputServices=generic-definitions,useExactTypes=false --proto_path=./external ./external/degen_server.proto",
+    "protoc-tsproto-nicegrpc-comment": "cd external; npm init; tsc --init; npm i @bufbuild/protobuf nice-grpc-common; npx denoify; rename deno_. dir on windows without period since it breaks stuff; deno run thatFile; then deno run ./supabase/functions/grpc-relay/index.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -52,6 +55,8 @@
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
+    "nice-grpc": "^2.1.10",
+    "nice-grpc-common": "^2.0.2",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -78,10 +83,12 @@
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
     "google-protobuf": "^3.21.4",
+    "grpc-tools": "^1.12.4",
     "grpc-web": "^1.5.0",
     "lovable-tagger": "^1.0.19",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
+    "ts-proto": "^2.6.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1",

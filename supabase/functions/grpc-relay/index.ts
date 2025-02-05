@@ -1,8 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const GRPC_ENDPOINT = "https://degen-server.lightningfaucet.us:443";
+// WSL:
+// import * as degen_server from "file:///mnt/c/Users/prysz/Repos/leading-zero-lab/external/deno_./degen_server.ts";
+
+// Running deno from Powershell onWindows:
+import * as degen_server from "../../../external/deno_./degen_server.ts";
+
+import { type CallContext, type CallOptions } from "npm:nice-grpc-common@2.0.2";
+import {createChannel, createClient} from 'npm:nice-grpc@2.1.10';
+
+const LOCAL_GRPC_ENDPOINT = "http://localhost:8080";
+const REMOTE_GRPC_ENDPOINT = "https://degen-server.lightningfaucet.us:443";
+const GRPC_ENDPOINT = REMOTE_GRPC_ENDPOINT;
 // https://hewfqryvvczqdsnsqzxs.supabase.co/functions/v1/grpc-relay
-// wss://edge-runtime.supabase.com/functions/v1/grpc-relay
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -17,6 +28,59 @@ serve(async (req: Request, connInfo: ConnInfo) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    console.log("GRPC_ENDPOINT:", GRPC_ENDPOINT);
+    const channel = createChannel(GRPC_ENDPOINT);
+
+    const client = createClient(
+      degen_server.DegenServiceDefinition,
+      channel,
+    );
+  
+    console.log("Client:", client);
+
+    const request = degen_server.GetBitcoinNetworkInfoRequest.create();
+    const response = await client.getBitcoinNetworkInfo(request);
+    console.log("Bitcoin Network Info Response:", response);
+
+
+    // Extract data based on whether it's an OK or Error response
+    let responseData;
+    if (response.ok) {
+      responseData = {
+        status: 'ok',
+        blockHeight: response.ok.blockHeight,
+        networkDifficulty: response.ok.networkDifficulty
+      };
+    } else if (response.error) {
+      responseData = {
+        status: 'error',
+        errorEnum: degen_server.getBitcoinNetworkInfoResponseError_GetBitcoinNetworkInfoErrorEnumToJSON(response.error.errorEnum),
+        errorMessage: response.error.errorMessage
+      };
+    }
+
+    return new Response(JSON.stringify(responseData), { 
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error("Error getting Bitcoin network info:", error);
+    return new Response(JSON.stringify({ 
+      status: 'error',
+      message: error.message 
+    }), { 
+      status: 500,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
   }
 
   // Check if it's a WebSocket upgrade request
