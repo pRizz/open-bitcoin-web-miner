@@ -1,3 +1,4 @@
 project_id = "hewfqryvvczqdsnsqzxs"
-[functions.grpc-relay]
+
+[get-bitcoin-network-info]
 verify_jwt = false
