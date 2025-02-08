@@ -1,17 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // WSL:
-// import * as degen_server from "file:///mnt/c/Users/prysz/Repos/leading-zero-lab/external/deno_./degen_server.ts";
+// import * as degen_server from "file:///mnt/c/Users/prysz/Repos/leading-zero-lab/external/deno_/degen_server.ts";
 
 // Running deno from Powershell onWindows:
-import * as degen_server from "../../../external/deno_./degen_server.ts";
+import * as degen_server from "./degen_server.ts";
 
 import { type CallContext, type CallOptions } from "npm:nice-grpc-common@2.0.2";
 import {createChannel, createClient} from 'npm:nice-grpc@2.1.10';
 
 const LOCAL_GRPC_ENDPOINT = "http://localhost:8080";
 const REMOTE_GRPC_ENDPOINT = "https://degen-server.lightningfaucet.us:443";
-const GRPC_ENDPOINT = REMOTE_GRPC_ENDPOINT;
+const GRPC_ENDPOINT = LOCAL_GRPC_ENDPOINT;
+// const GRPC_ENDPOINT = REMOTE_GRPC_ENDPOINT;
 // https://hewfqryvvczqdsnsqzxs.supabase.co/functions/v1/grpc-relay
 
 const corsHeaders = {
