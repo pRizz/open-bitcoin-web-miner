@@ -3,13 +3,28 @@ import React, { createContext, useContext } from "react";
 
 interface GRPCContextType {
   isConnected: boolean;
+  getNetworkInfo: () => Promise<{
+    blockHeight?: number;
+    networkDifficulty?: number;
+  }>;
 }
 
 const GRPCContext = createContext<GRPCContextType | undefined>(undefined);
 
 export function GRPCProvider({ children }: { children: React.ReactNode }) {
+  const getNetworkInfo = async () => {
+    // Since we've removed the GRPC integration, return mock data
+    return {
+      blockHeight: 0,
+      networkDifficulty: 0
+    };
+  };
+
   return (
-    <GRPCContext.Provider value={{ isConnected: false }}>
+    <GRPCContext.Provider value={{ 
+      isConnected: false,
+      getNetworkInfo
+    }}>
       {children}
     </GRPCContext.Provider>
   );
