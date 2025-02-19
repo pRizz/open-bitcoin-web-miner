@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import API_CONFIG from "@/config/api";
 
 interface NetworkInfoResponse {
   data: {
@@ -32,7 +33,7 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchNetworkInfo = async () => {
       try {
-        const response = await fetch('https://btc-mining-webapp.lightningfaucet.us:443/network-info');
+        const response = await fetch(`${API_CONFIG.baseUrl}/network-info`);
         const data: NetworkInfoResponse = await response.json();
         console.log('Network info response:', data);
 
