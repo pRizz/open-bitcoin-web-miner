@@ -1,5 +1,17 @@
 
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+interface NetworkInfoResponse {
+  data: {
+    result: {
+      Ok: {
+        block_height: number;
+        network_difficulty: number;
+      }
+    }
+  };
+  status: string;
+}
 
 interface GRPCContextType {
   isConnected: boolean;
@@ -12,12 +24,25 @@ interface GRPCContextType {
 const GRPCContext = createContext<GRPCContextType | undefined>(undefined);
 
 export function GRPCProvider({ children }: { children: React.ReactNode }) {
+  const [networkInfo, setNetworkInfo] = useState<{
+    blockHeight?: number;
+    networkDifficulty?: number;
+  }>({});
+
   useEffect(() => {
     const fetchNetworkInfo = async () => {
       try {
         const response = await fetch('https://btc-mining-webapp.lightningfaucet.us:443/network-info');
-        const data = await response.json();
+        const data: NetworkInfoResponse = await response.json();
         console.log('Network info response:', data);
+
+        if (data.status === 'success' && data.data.result.Ok) {
+          const { block_height, network_difficulty } = data.data.result.Ok;
+          setNetworkInfo({
+            blockHeight: block_height,
+            networkDifficulty: network_difficulty
+          });
+        }
       } catch (error) {
         console.error('Error fetching network info:', error);
       }
@@ -34,11 +59,7 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const getNetworkInfo = async () => {
-    // Since we've removed the GRPC integration, return mock data
-    return {
-      blockHeight: 0,
-      networkDifficulty: 0
-    };
+    return networkInfo;
   };
 
   return (
