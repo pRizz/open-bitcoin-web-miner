@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { MiningMode } from "@/types/mining";
 import { calculateLeadingZeroes, calculateRequiredBinaryZeroes } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
@@ -7,6 +7,7 @@ import { useWorkerPool } from "./mining/useWorkerPool";
 import { useThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useGRPC } from "./GRPCContext";
+import API_CONFIG from "@/config/api";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -39,6 +40,8 @@ const MiningContext = createContext<MiningContextType>(defaultContext);
 export function MiningProvider({ children }: { children: React.ReactNode }) {
   const { addLog } = useDebug();
   const { getNetworkInfo } = useGRPC();
+  const websocketRef = useRef<WebSocket | null>(null);
+  
   const {
     miningStats,
     updateMiningStats,
@@ -78,6 +81,44 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     }
   );
 
+  const connectWebSocket = () => {
+    const wsProtocol = API_CONFIG.baseUrl.startsWith('https') ? 'wss' : 'ws';
+    const wsUrl = `${wsProtocol}://${API_CONFIG.baseUrl.split('://')[1]}/mining-work`;
+    
+    console.log(`Connecting to WebSocket: ${wsUrl}`);
+    
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+      addLog('WebSocket connection established');
+    };
+    
+    ws.onmessage = (event) => {
+      console.log('WebSocket message received:', event.data);
+      addLog(`WebSocket message: ${event.data}`);
+    };
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      addLog(`WebSocket error occurred`);
+    };
+    
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+      addLog('WebSocket connection closed');
+    };
+    
+    websocketRef.current = ws;
+  };
+
+  const disconnectWebSocket = () => {
+    if (websocketRef.current) {
+      websocketRef.current.close();
+      websocketRef.current = null;
+    }
+  };
+
   useEffect(() => {
     const updateNetworkInfo = async () => {
       try {
@@ -112,6 +153,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     const threadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
     addLog(`Starting ${modeString} mining${threadInfo} at ${miningSpeed}% speed`);
     
+    connectWebSocket();
     startWorkerPool();
     setIsMining(true);
     startMiningStats();
@@ -121,6 +163,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     const modeString = miningMode.toUpperCase();
     addLog(`Stopping ${modeString} mining`);
     
+    disconnectWebSocket();
     stopWorkerPool();
     setIsMining(false);
     stopMiningStats();
@@ -139,6 +182,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     addLog(`${statusText} ${speed}%`);
     setMiningSpeed(speed);
   };
+
+  useEffect(() => {
+    return () => {
+      disconnectWebSocket();
+    };
+  }, []);
 
   return (
     <MiningContext.Provider
