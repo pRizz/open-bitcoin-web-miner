@@ -4,6 +4,10 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
 import { formatLargeNumber } from "@/utils/formatters";
+import { Switch } from "@/components/ui/switch";
+import { useState, useEffect } from "react";
+import API_CONFIG from "@/config/api";
+import { toast } from "sonner";
 
 const RANDOM_SELECTION_PROBABILITIES = [
   { odds: "1 in 1 million", value: 1e6, description: "picking the correct resident of San Francisco (~1M people)" },
@@ -29,6 +33,27 @@ interface NetworkStatsProps {
 }
 
 export function NetworkStats({ stats }: NetworkStatsProps) {
+  const [isLocalhost, setIsLocalhost] = useState(false);
+
+  useEffect(() => {
+    const currentUrl = API_CONFIG.baseUrl;
+    setIsLocalhost(currentUrl.includes('localhost'));
+  }, []);
+
+  const toggleEndpoint = () => {
+    const newUrl = isLocalhost 
+      ? 'https://btc-mining-webapp.lightningfaucet.us:443'
+      : 'http://localhost:3000';
+    
+    // Update the environment variable
+    // @ts-ignore - we know this exists in Vite
+    import.meta.env.VITE_API_URL = newUrl;
+    API_CONFIG.baseUrl = newUrl;
+    
+    setIsLocalhost(!isLocalhost);
+    toast.success(`Switched to ${isLocalhost ? 'production' : 'localhost'} endpoint`);
+  };
+
   const calculateProbability = (zeroes: number) => {
     return 1 / Math.pow(2, zeroes);
   };
@@ -49,7 +74,17 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
 
   return (
     <Card className="p-6 glass-card">
-      <h2 className="text-2xl font-bold mb-4">Network Stats</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Network Stats</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400">Production</span>
+          <Switch 
+            checked={isLocalhost}
+            onCheckedChange={toggleEndpoint}
+          />
+          <span className="text-sm text-gray-400">Localhost</span>
+        </div>
+      </div>
       <div className="space-y-4">
         <div>
           <label className="text-sm text-gray-400">Block Height</label>
