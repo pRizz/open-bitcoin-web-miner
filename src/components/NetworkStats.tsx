@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { NetworkStats as NetworkStatsType } from "@/types/mining";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -43,7 +44,7 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
   const toggleEndpoint = () => {
     const newUrl = isLocalhost 
       ? 'https://btc-mining-webapp.lightningfaucet.us:443'
-      : 'http://localhost:3000';
+      : 'http://localhost:3007';
     
     // Update the environment variable
     // @ts-ignore - we know this exists in Vite
