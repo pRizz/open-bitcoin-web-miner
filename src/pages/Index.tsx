@@ -23,11 +23,11 @@ const Index = () => {
   useEffect(() => {
     const shouldAutoStart = searchParams.get(URL_PARAMS.AUTO_START) === "true";
     const prefilledAddress = searchParams.get(URL_PARAMS.BITCOIN_ADDRESS);
-    
+
     if (prefilledAddress) {
       setBtcAddress(prefilledAddress);
     }
-    
+
     if (shouldAutoStart && !isMining) {
       startMining();
     }

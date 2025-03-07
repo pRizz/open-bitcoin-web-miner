@@ -20,7 +20,7 @@ self.onerror = (error: ErrorEvent | string) => {
 
 self.onmessage = (e) => {
   const { type, blockHeader, miningSpeed: newSpeed } = e.data;
-  
+
   if (type === 'start') {
     running = true;
     miningSpeed = newSpeed;
@@ -34,7 +34,7 @@ self.onmessage = (e) => {
 
 function mine(blockHeader: Partial<HashSolution>) {
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
-  
+
   const updateHashRate = () => {
     const now = Date.now();
     const elapsed = now - lastHashRateUpdate;
@@ -73,7 +73,7 @@ function mine(blockHeader: Partial<HashSolution>) {
       }
 
       updateHashRate();
-      
+
       // Calculate sleep time based on mining speed
       const elapsedTime = Date.now() - startTime;
       const targetTime = (BATCH_SIZE / 10000) * (100 / miningSpeed) * 100; // Adjust time based on mining speed

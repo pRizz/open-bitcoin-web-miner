@@ -23,11 +23,11 @@ export class WorkerPool {
 
   private calculateMovingAverage(newSample: number): number {
     this.hashRateSamples.push(newSample);
-    
+
     if (this.hashRateSamples.length > this.sampleWindowSize) {
       this.hashRateSamples.shift();
     }
-    
+
     const sum = this.hashRateSamples.reduce((acc, val) => acc + val, 0);
     return sum / this.hashRateSamples.length;
   }
@@ -55,26 +55,6 @@ export class WorkerPool {
     // Start new mode's workers if mining is active
     if (this.active && this.currentBlockHeader) {
       switch (mode) {
-        case "cpu":
-          this.createCPUWorkers();
-          break;
-        case "webgl":
-          this.createWebGLWorker();
-          break;
-        case "webgpu":
-          this.createWebGPUWorker();
-          break;
-      }
-    }
-  }
-
-  start(blockHeader: any, miningSpeed: number) {
-    this.active = true;
-    this.hashRateSamples = [];
-    this.currentBlockHeader = blockHeader;
-    this.currentMiningSpeed = miningSpeed;
-    
-    switch (this.currentMode) {
       case "cpu":
         this.createCPUWorkers();
         break;
@@ -84,13 +64,33 @@ export class WorkerPool {
       case "webgpu":
         this.createWebGPUWorker();
         break;
+      }
+    }
+  }
+
+  start(blockHeader: any, miningSpeed: number) {
+    this.active = true;
+    this.hashRateSamples = [];
+    this.currentBlockHeader = blockHeader;
+    this.currentMiningSpeed = miningSpeed;
+
+    switch (this.currentMode) {
+    case "cpu":
+      this.createCPUWorkers();
+      break;
+    case "webgl":
+      this.createWebGLWorker();
+      break;
+    case "webgpu":
+      this.createWebGPUWorker();
+      break;
     }
   }
 
   private createWorker(url: URL): Worker {
     try {
       const worker = new Worker(url, { type: 'module' });
-      
+
       worker.onerror = (error: ErrorEvent) => {
         if (this.onError) {
           // Ensure we pass a meaningful error message
@@ -100,13 +100,13 @@ export class WorkerPool {
         if (this.cpuWorkers.includes(worker)) {
           worker.terminate();
           this.cpuWorkers = this.cpuWorkers.filter(w => w !== worker);
-          
+
           if (this.cpuWorkers.length === 0) {
             this.stop();
           }
         }
       };
-      
+
       return worker;
     } catch (error) {
       if (this.onError) {
@@ -241,7 +241,7 @@ export class WorkerPool {
         miningSpeed,
       });
     });
-    
+
     const updateWorker = (worker: Worker | null) => {
       if (worker) {
         worker.postMessage({

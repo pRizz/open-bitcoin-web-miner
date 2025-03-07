@@ -58,4 +58,4 @@ export function GPUCapabilities({ capabilities }: GPUCapabilitiesProps) {
       </CardContent>
     </Card>
   );
-} 
+}

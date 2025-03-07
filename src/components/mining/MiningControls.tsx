@@ -35,17 +35,17 @@ export function MiningControls() {
     stopMining,
   } = useMining();
 
-  const { 
-    includeAutoStart, 
-    setIncludeAutoStart, 
-    includeAddress, 
-    setIncludeAddress 
+  const {
+    includeAutoStart,
+    setIncludeAutoStart,
+    includeAddress,
+    setIncludeAddress
   } = useShare();
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
     setBtcAddress(address);
-    
+
     if (address && !validateBitcoinAddress(address)) {
       toast({
         title: "Invalid Bitcoin Address",
@@ -128,7 +128,7 @@ export function MiningControls() {
       {/* Sharing Options */}
       <div className="space-y-3 pt-2 border-t">
         <Label className="text-sm text-muted-foreground">Sharing Options</Label>
-        
+
         <div className="flex items-center justify-between">
           <Label htmlFor="auto-start" className="text-sm">
             Auto-start when sharing

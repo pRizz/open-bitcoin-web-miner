@@ -64,7 +64,7 @@ export function GRPCProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <GRPCContext.Provider value={{ 
+    <GRPCContext.Provider value={{
       isConnected: false,
       getNetworkInfo
     }}>

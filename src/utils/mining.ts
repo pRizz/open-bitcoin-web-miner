@@ -32,7 +32,7 @@ export function hex2bin(hex: string): string {
     '8': '1000', '9': '1001', 'a': '1010', 'b': '1011',
     'c': '1100', 'd': '1101', 'e': '1110', 'f': '1111'
   };
-  
+
   let bin = '';
   for (let i = 0; i < hex.length; i++) {
     bin += binLookup[hex[i].toLowerCase()] || '';
@@ -84,10 +84,10 @@ export function generateMockBlockHeader(): Partial<HashSolution> {
 export function calculateSecondsToFindBlock(hashRate: number, requiredZeroes: number, confidence: number): number {
   // Return Infinity for invalid hash rates
   if (hashRate <= 0) return Infinity;
-  
+
   // Probability of finding required zeroes on a single hash attempt
   const successProbability = Math.pow(2, -requiredZeroes);
-  
+
   // For extremely small probabilities, use approximation to avoid numerical issues
   if (successProbability < 1e-300) {
     // Use approximation based on confidence level
@@ -95,25 +95,25 @@ export function calculateSecondsToFindBlock(hashRate: number, requiredZeroes: nu
     const estimatedHashesNeeded = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
     return estimatedHashesNeeded / hashRate;
   }
-  
+
   // Calculate number of hashes needed for given confidence
   // Using geometric distribution: P(X ≤ k) = 1 - (1-p)^k
   // Solve for k: k = log(1-confidence) / log(1-p)
   const geometricDistributionTerm = Math.log(1 - confidence) / Math.log(1 - successProbability);
-  
+
   // If log calculation resulted in NaN or Infinity, use approximation
   if (!isFinite(geometricDistributionTerm) || isNaN(geometricDistributionTerm)) {
     const estimatedHashesNeeded = Math.pow(2, requiredZeroes) * Math.log(1 / (1 - confidence));
     return estimatedHashesNeeded / hashRate;
   }
-  
+
   const totalHashesNeeded = Math.ceil(geometricDistributionTerm);
   return totalHashesNeeded / hashRate;
 }
 
 export function formatTime(seconds: number): string {
   if (!isFinite(seconds)) return "∞";
-  
+
   const timeUnits = [
     { unit: 'year', seconds: 31536000 },
     { unit: 'month', seconds: 2592000 },
@@ -134,7 +134,7 @@ export function formatTime(seconds: number): string {
   for (const { unit, seconds: unitSeconds } of timeUnits) {
     if (seconds >= unitSeconds) {
       const value = Math.round(seconds / unitSeconds);
-      
+
       // Special handling for years with large numbers
       if (unit === 'year') {
         const largeNumbers = [
@@ -157,7 +157,7 @@ export function formatTime(seconds: number): string {
           }
         }
       }
-      
+
       // Add 's' for plural units except when value is 1
       const plural = value === 1 ? '' : 's';
       return `${value} ${unit}${plural}`;

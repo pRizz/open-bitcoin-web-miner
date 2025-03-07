@@ -24,7 +24,7 @@ export function ShareControls({
     if (includeAddress && btcAddress) {
       url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, btcAddress);
     }
-    
+
     try {
       await navigator.clipboard.writeText(url.toString());
       toast({

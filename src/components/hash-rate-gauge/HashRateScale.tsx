@@ -47,7 +47,7 @@ export function HashRateScale({ maxHashRate, minerReferences }: HashRateScalePro
           );
         })}
       </div>
-      
+
       {/* Reference labels */}
       <div className="relative h-16 mt-4">
         {minerReferences.map((miner) => {

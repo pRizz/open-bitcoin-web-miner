@@ -30,7 +30,7 @@ interface HashRateGaugeProps {
 export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   const { networkStats } = useMining();
   const maxHashRate = 100e12; // 100 TH/s (Antminer S21)
-  
+
   // Use logarithmic scale for better visualization of small hash rates
   const getLogScale = (value: number) => {
     // Add 1 to handle 0 hash rate
@@ -38,7 +38,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     const logMax = Math.log10(maxHashRate + 1);
     return (logValue / logMax) * 100;
   };
-  
+
   const percentage = Math.min(getLogScale(hashRate), 100);
 
   // Helper function to format hash rate without decimals
@@ -120,7 +120,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
           ))}
         </div>
       </div>
-      
+
       <div className="relative">
         <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
           <div
@@ -154,7 +154,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
             );
           })}
         </div>
-        
+
         {/* Reference labels */}
         <div className="relative h-16 mt-4">
           {MINER_REFERENCES.map((miner) => {

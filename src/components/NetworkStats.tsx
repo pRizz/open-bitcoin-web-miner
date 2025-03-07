@@ -42,15 +42,15 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
   }, []);
 
   const toggleEndpoint = () => {
-    const newUrl = isLocalhost 
+    const newUrl = isLocalhost
       ? 'https://btc-mining-webapp.lightningfaucet.us:443'
       : 'http://localhost:3007';
-    
+
     // Update the environment variable
     // @ts-ignore - we know this exists in Vite
     import.meta.env.VITE_API_URL = newUrl;
     API_CONFIG.baseUrl = newUrl;
-    
+
     setIsLocalhost(!isLocalhost);
     toast.success(`Switched to ${isLocalhost ? 'production' : 'localhost'} endpoint`);
   };
@@ -62,7 +62,7 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
   const findClosestComparison = (probability: number) => {
     const targetValue = 1 / probability;
     const targetLog = Math.log10(targetValue);
-    
+
     return RANDOM_SELECTION_PROBABILITIES.reduce((closest, current) => {
       const currentDelta = Math.abs(Math.log10(current.value) - targetLog);
       const closestDelta = Math.abs(Math.log10(closest.value) - targetLog);
@@ -79,7 +79,7 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
         <h2 className="text-2xl font-bold">Network Stats</h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-400">Production</span>
-          <Switch 
+          <Switch
             checked={isLocalhost}
             onCheckedChange={toggleEndpoint}
           />

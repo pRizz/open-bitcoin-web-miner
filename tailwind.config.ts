@@ -83,7 +83,7 @@ export default {
           "50%": { opacity: "0.5" },
         },
         "fade-up": {
-          "0%": { 
+          "0%": {
             opacity: "0",
             transform: "translateY(10px)",
           },

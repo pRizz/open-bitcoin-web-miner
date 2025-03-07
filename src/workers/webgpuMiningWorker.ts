@@ -156,12 +156,12 @@ function formatBytes(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let value = bytes;
   let unitIndex = 0;
-  
+
   while (value >= 1024 && unitIndex < units.length - 1) {
     value /= 1024;
     unitIndex++;
   }
-  
+
   return `${value.toFixed(2)} ${units[unitIndex]}`;
 }
 
@@ -206,14 +206,14 @@ async function initWebGPU() {
       adapterInfo: adapter.toString()
     }
   });
-  
+
   device = await adapter.requestDevice({
     requiredLimits: {
       maxStorageBufferBindingSize,
       maxComputeWorkgroupsPerDimension
     }
   });
-  
+
   // Create compute pipeline
   const shaderModule = device.createShaderModule({
     code: computeShaderCode,
@@ -236,14 +236,14 @@ async function initWebGPU() {
 function updateHashRate(batchSize: number) {
   const currentTime = performance.now();
   const elapsedTime = currentTime - startTime;
-  
+
   if (elapsedTime >= HASH_RATE_UPDATE_INTERVAL) {
     const hashesPerSecond = (hashCount * 1000) / elapsedTime;
     self.postMessage({ type: "hashRate", data: hashesPerSecond });
     hashCount = 0;
     startTime = currentTime;
   }
-  
+
   hashCount += batchSize;
 }
 
@@ -252,7 +252,7 @@ async function mine(blockHeader: Partial<HashSolution>) {
 
   // Get device limits
   const { maxBufferSize, maxComputeWorkgroupsPerDimension } = await initWebGPU();
-  
+
   // Calculate optimal batch size based on available memory
   // Each hash needs: 4 bytes (input) + 32 bytes (output) = 36 bytes
   // Leave 25% memory free for other operations
@@ -260,14 +260,14 @@ async function mine(blockHeader: Partial<HashSolution>) {
   const MAX_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB in bytes
   const effectiveMaxBufferSize = Math.min(maxBufferSize * 0.75, MAX_BUFFER_SIZE);
   const maxHashes = Math.floor(effectiveMaxBufferSize / 36);
-  
+
   // Ensure we don't exceed workgroup limits
   const WORKGROUP_SIZE = 256;  // Keep at 256 as it's optimal for most GPUs
   const MAX_WORKGROUPS = Math.min(
     maxComputeWorkgroupsPerDimension,
     Math.floor(maxHashes / WORKGROUP_SIZE)
   );
-  
+
   // Calculate number of workgroups to stay within buffer limits
   // Target around 8MB of GPU memory usage (reduced from 16MB)
   const TARGET_MEMORY_USAGE = 8 * 1024 * 1024; // 8MB in bytes
@@ -279,7 +279,7 @@ async function mine(blockHeader: Partial<HashSolution>) {
   console.log(`Running with ${NUM_WORKGROUPS} workgroups, processing ${NUM_WORKGROUPS * WORKGROUP_SIZE} hashes in parallel`);
 
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
-  
+
   const miningLoop = async () => {
     if (!running || !device || !pipeline) return;
 
@@ -354,22 +354,22 @@ async function mine(blockHeader: Partial<HashSolution>) {
       // Map and read the results in larger chunks for better performance
       await readBuffer.mapAsync(GPUMapMode.READ);
       const mappedRange = readBuffer.getMappedRange();
-      
+
       for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
         const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
         const chunkStart = offset * 8 * 4;
         const chunkEnd = (offset + chunkSize) * 8 * 4;
-        
+
         const resultsChunk = new Uint32Array(mappedRange.slice(chunkStart, chunkEnd));
-        
+
         // Process results for this chunk
         for (let i = 0; i < chunkSize; i++) {
           const hashWords = Array.from(resultsChunk.slice(i * 8, (i + 1) * 8))
             .map(word => word.toString(16).padStart(8, '0'))
             .join('');
-          
+
           const { binary } = calculateLeadingZeroes(hashWords);
-          
+
           if (binary >= 10) {
             self.postMessage({
               type: "hash",
@@ -386,11 +386,11 @@ async function mine(blockHeader: Partial<HashSolution>) {
       readBuffer.destroy();
 
       updateHashRate(batchSize);
-      
+
       if (sleepTime > 0) {
         await new Promise(resolve => setTimeout(resolve, sleepTime));
       }
-      
+
       // Use setTimeout instead of requestAnimationFrame for more consistent timing
       setTimeout(() => miningLoop(), 0);
     } catch (error) {
@@ -405,33 +405,33 @@ async function mine(blockHeader: Partial<HashSolution>) {
 
 self.onmessage = async (e) => {
   const { type, blockHeader, miningSpeed: newSpeed } = e.data;
-  
+
   if (type === "start") {
     try {
       // Reset state
       running = false;
       hashCount = 0;
       startTime = performance.now();
-      
+
       // Initialize WebGPU if not already initialized
       if (!device || !pipeline) {
         await initWebGPU();
       }
-      
+
       // Set initial mining speed
       miningSpeed = newSpeed ?? 100;
-      
+
       // Start mining
       running = true;
       mine(blockHeader);
-      
+
       // Confirm start to UI
       self.postMessage({ type: "started" });
     } catch (error) {
       console.error('Failed to start mining:', error);
-      self.postMessage({ 
-        type: "error", 
-        data: `Failed to start mining: ${error.message}` 
+      self.postMessage({
+        type: "error",
+        data: `Failed to start mining: ${error.message}`
       });
       running = false;
     }

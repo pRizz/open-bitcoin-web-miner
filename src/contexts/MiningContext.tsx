@@ -41,7 +41,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const { addLog } = useDebug();
   const { getNetworkInfo } = useGRPC();
   const websocketRef = useRef<WebSocket | null>(null);
-  
+
   const {
     miningStats,
     updateMiningStats,
@@ -50,13 +50,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     startMining: startMiningStats,
     stopMining: stopMiningStats,
   } = useMiningState();
-  
+
   const [networkStats, setNetworkStats] = useState({
     blockHeight: 0,
     difficulty: 0,
     requiredBinaryZeroes: 0,
   });
-  
+
   const [isMining, setIsMining] = useState(false);
   const [btcAddress, setBtcAddress] = useState("");
   const [miningSpeed, setMiningSpeed] = useState(100);
@@ -84,31 +84,31 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const connectWebSocket = () => {
     const wsProtocol = API_CONFIG.baseUrl.startsWith('https') ? 'wss' : 'ws';
     const wsUrl = `${wsProtocol}://${API_CONFIG.baseUrl.split('://')[1]}/mining-work`;
-    
+
     console.log(`Connecting to WebSocket: ${wsUrl}`);
-    
+
     const ws = new WebSocket(wsUrl);
-    
+
     ws.onopen = () => {
       console.log('WebSocket connection established');
       addLog('WebSocket connection established');
     };
-    
+
     ws.onmessage = (event) => {
       console.log('WebSocket message received:', event.data);
       addLog(`WebSocket message: ${event.data}`);
     };
-    
+
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
       addLog(`WebSocket error occurred`);
     };
-    
+
     ws.onclose = () => {
       console.log('WebSocket connection closed');
       addLog('WebSocket connection closed');
     };
-    
+
     websocketRef.current = ws;
   };
 
@@ -152,7 +152,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     const modeString = miningMode.toUpperCase();
     const threadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
     addLog(`Starting ${modeString} mining${threadInfo} at ${miningSpeed}% speed`);
-    
+
     connectWebSocket();
     startWorkerPool();
     setIsMining(true);
@@ -162,7 +162,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const stopMining = () => {
     const modeString = miningMode.toUpperCase();
     addLog(`Stopping ${modeString} mining`);
-    
+
     disconnectWebSocket();
     stopWorkerPool();
     setIsMining(false);

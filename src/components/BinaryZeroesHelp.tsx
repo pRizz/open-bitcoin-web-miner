@@ -14,21 +14,21 @@ export function BinaryZeroesHelp() {
         <p>
           When we talk about leading zeroes in hash values, we count them in binary (base-2) format rather than hexadecimal (base-16) format. This gives us more precise control over the difficulty since each hexadecimal digit represents 4 binary digits (bits).
         </p>
-        
+
         <div className="space-y-2">
           <p className="font-semibold text-green-400">Example 1: Multiple Leading Zeroes</p>
           <p>Let's look at this hash value:</p>
           <div className="font-mono bg-gray-900 p-4 rounded-md">
             0x0000f423...
           </div>
-          
+
           <p>In hexadecimal format, this has 4 leading zeroes.</p>
-          
+
           <p>When we convert it to binary:</p>
           <div className="font-mono bg-gray-900 p-4 rounded-md whitespace-pre-wrap break-all">
             0000 0000 0000 0000 1111 0100...
           </div>
-          
+
           <p>We can see it has 16 leading zeroes in binary!</p>
         </div>
 
@@ -38,14 +38,14 @@ export function BinaryZeroesHelp() {
           <div className="font-mono bg-gray-900 p-4 rounded-md">
             0x3423...
           </div>
-          
+
           <p>In hexadecimal format, this has no leading zeroes.</p>
-          
+
           <p>But when we convert 3 to binary:</p>
           <div className="font-mono bg-gray-900 p-4 rounded-md whitespace-pre-wrap break-all">
             0011 0100...
           </div>
-          
+
           <p className="text-green-400">Notice that even though the hex value starts with 3, its binary representation still has 2 leading zeroes!</p>
         </div>
 

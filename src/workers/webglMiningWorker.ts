@@ -14,7 +14,6 @@ let program: WebGLProgram | null = null;
 // Fragment shader compilation failed: ERROR: 0:63: 'input' : Illegal use of reserved word
 // ERROR: 0:63: 'input' : syntax error
 
-
 const vertexShaderSource = `#version 300 es
 in vec4 position;
 void main() {
@@ -137,7 +136,7 @@ void main() {
 function initWebGL() {
   const canvas = new OffscreenCanvas(1, 1);
   gl = canvas.getContext('webgl2');
-  
+
   if (!gl) {
     throw new Error('WebGL 2 not supported');
   }
@@ -145,14 +144,14 @@ function initWebGL() {
   // Create shader program
   const vertexShader = gl.createShader(gl.VERTEX_SHADER);
   const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  
+
   if (!vertexShader || !fragmentShader) {
     throw new Error('Failed to create shaders');
   }
 
   gl.shaderSource(vertexShader, vertexShaderSource);
   gl.shaderSource(fragmentShader, fragmentShaderSource);
-  
+
   gl.compileShader(vertexShader);
   gl.compileShader(fragmentShader);
 
@@ -183,14 +182,14 @@ function initWebGL() {
 function updateHashRate(batchSize: number) {
   const currentTime = performance.now();
   const elapsedTime = currentTime - startTime;
-  
+
   if (elapsedTime >= HASH_RATE_UPDATE_INTERVAL) {
     const hashesPerSecond = (hashCount * 1000) / elapsedTime;
     self.postMessage({ type: "hashRate", data: hashesPerSecond });
     hashCount = 0;
     startTime = currentTime;
   }
-  
+
   hashCount += batchSize;
 }
 
@@ -205,7 +204,7 @@ function mine(blockHeader: Partial<HashSolution>) {
   }
 
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
-  
+
   const miningLoop = async () => {
     if (!running || !gl || !program) return;
 
@@ -220,18 +219,18 @@ function mine(blockHeader: Partial<HashSolution>) {
 
       const blockData = new Float32Array([header.version || 0, parseInt(header.bits || "0", 16), header.timestamp || 0, header.nonce]);
       const blockHeaderLoc = gl.getUniformLocation(program, "u_blockHeader");
-      
+
       gl.uniform4fv(blockHeaderLoc, blockData);
 
       gl.drawArrays(gl.POINTS, 0, 1);
 
       const pixels = new Uint8Array(4);
       gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-      
+
       const hash = Array.from(pixels)
         .map(x => x.toString(16).padStart(2, "0"))
         .join("");
-      
+
       const { binary } = calculateLeadingZeroes(hash);
       if (binary >= 10) {
         self.postMessage({
@@ -242,11 +241,11 @@ function mine(blockHeader: Partial<HashSolution>) {
     }
 
     updateHashRate(batchSize);
-    
+
     if (sleepTime > 0) {
       await new Promise(resolve => setTimeout(resolve, sleepTime));
     }
-    
+
     requestAnimationFrame(() => miningLoop());
   };
 
@@ -255,7 +254,7 @@ function mine(blockHeader: Partial<HashSolution>) {
 
 self.onmessage = (e) => {
   const { type, blockHeader, miningSpeed: newSpeed } = e.data;
-  
+
   if (type === "start") {
     running = true;
     miningSpeed = newSpeed;

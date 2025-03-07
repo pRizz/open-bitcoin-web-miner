@@ -19,7 +19,7 @@ export const useMiningState = () => {
   const updateMiningStats = (solution: HashSolution, networkRequiredZeroes: number) => {
     setMiningStats(prev => {
       const currentBest = prev.bestHashes[0];
-      
+
       if (!currentBest || solution.binaryZeroes > currentBest.binaryZeroes) {
         // Calculate time to find if mining has started
         const timeToFind = prev.startTime ? Date.now() - prev.startTime : 0;

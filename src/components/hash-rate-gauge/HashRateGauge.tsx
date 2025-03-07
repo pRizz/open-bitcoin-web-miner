@@ -16,7 +16,7 @@ interface HashRateGaugeProps {
 export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   const { networkStats } = useMining();
   const maxHashRate = 100e12; // 100 TH/s (Antminer S21)
-  
+
   // Use logarithmic scale for better visualization of small hash rates
   const getLogScale = (value: number) => {
     // Add 1 to handle 0 hash rate
@@ -24,13 +24,13 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     const logMax = Math.log10(maxHashRate + 1);
     return (logValue / logMax) * 100;
   };
-  
+
   const percentage = Math.min(getLogScale(hashRate), 100);
-  
+
   return (
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
-      
+
       <div className="relative mb-16">
         <GaugeBar percentage={percentage} hashRate={hashRate} />
         <HashRateScale maxHashRate={maxHashRate} minerReferences={MINER_REFERENCES} />
