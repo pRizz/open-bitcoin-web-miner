@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { HashRateGauge } from "@/components/HashRateGauge";
 import { NetworkStats } from "@/components/NetworkStats";
 import { HashList } from "@/components/HashList";
-import { useMining } from "@/contexts/MiningWebsocketContext";
+import { useMining } from "@/contexts/MiningContext";
 import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { URL_PARAMS } from "@/constants/mining";

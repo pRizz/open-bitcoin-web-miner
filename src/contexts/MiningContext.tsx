@@ -50,7 +50,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   console.log("MiningProvider constructor called");
   const { addLog } = useDebug();
   const { getNetworkInfo } = useGRPC();
-  const webSocketManager = useRef<MiningWebSocketManager>(new MiningWebSocketManager());
+  const [webSocketManager] = useState(MiningWebSocketManager());
 
   const {
     miningStats,
@@ -142,13 +142,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   }, [addLog, updateMiningChallenge]);
 
   const disconnectWebSocket = useCallback(() => {
-    webSocketManager.current.disconnect();
+    webSocketManager.disconnect();
   }, []);
 
   const submitSolution = useCallback((submission: MiningSubmission) => {
-    webSocketManager.current.submitSolution(submission);
+    webSocketManager.submitSolution(submission);
     addLog(`Submitted mining solution for job ${submission.job_id}`);
-  }, [addLog]);
+  }, [addLog, webSocketManager]);
 
   const stopMining = useCallback(() => {
     const modeString = miningMode.toUpperCase();
@@ -160,7 +160,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     stopMiningStats();
   }, [miningMode, addLog, disconnectWebSocket, stopWorkerPool, stopMiningStats]);
 
-  const miningWebSocketManagerCallbacks = useMemo(() => ({
+  const miningWebSocketManagerCallbacks = {
     onNewChallenge: handleNewChallenge,
     onBlockTemplateUpdate: handleBlockTemplateUpdate,
     onSubmissionResponse: (status, message) => {
@@ -175,12 +175,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     onError: (error) => {
       addLog(`WebSocket error: ${error}`);
     }
-  }), [handleNewChallenge, handleBlockTemplateUpdate, stopMining]);
+  };
 
-  webSocketManager.current.setCallbacks(miningWebSocketManagerCallbacks);
+  webSocketManager.setCallbacks(miningWebSocketManagerCallbacks);
 
   const connectWebSocket = useCallback(() => {
-    webSocketManager.current.connect();
+    webSocketManager.connect();
   }, [addLog, handleNewChallenge, handleBlockTemplateUpdate, stopMining, miningWebSocketManagerCallbacks]);
 
   const startMining = useCallback(() => {

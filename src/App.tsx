@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { MiningProvider } from "@/contexts/MiningWebsocketContext";
+import { MiningProvider } from "@/contexts/MiningContext";
 import { ShareProvider } from "@/contexts/ShareContext";
 import { DebugProvider } from "@/contexts/DebugContext";
 import { GRPCProvider } from "@/contexts/GRPCContext";

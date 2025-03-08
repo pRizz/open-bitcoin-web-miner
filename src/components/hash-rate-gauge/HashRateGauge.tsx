@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { useMining } from "@/contexts/MiningWebsocketContext";
+import { useMining } from "@/contexts/MiningContext";
 import { GaugeBar } from "./GaugeBar";
 import { HashRateScale } from "./HashRateScale";
 import { ProbabilityInfo } from "./ProbabilityInfo";

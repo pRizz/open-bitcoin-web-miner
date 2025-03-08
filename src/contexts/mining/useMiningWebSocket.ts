@@ -1,5 +1,6 @@
 import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
+import { useRef } from "react";
 
 interface WebSocketCallbacks {
   onNewChallenge: (jobId: string, blockHeader: NoncelessBlockHeader, targetZeros: number) => void;
@@ -9,21 +10,19 @@ interface WebSocketCallbacks {
   onError: (error: string) => void;
 }
 
-export class MiningWebSocketManager {
-  private maybeWebSocket: WebSocket | null = null;
-  private maybeCallbacks: WebSocketCallbacks | null = null;
+export function MiningWebSocketManager() {
+  let maybeWebSocket = useRef<WebSocket | null>(null);
+  let maybeCallbacks = useRef<WebSocketCallbacks | null>(null);
 
-  constructor() {
-    console.log("MiningWebSocketManager constructor called");
-  }
+  console.log("MiningWebSocketManager constructor called");
 
-  setCallbacks(callbacks: WebSocketCallbacks) {
+  const setCallbacks = (callbacks: WebSocketCallbacks) => {
     console.log("Setting MiningWebSocketManager callbacks");
-    this.maybeCallbacks = callbacks;
+    maybeCallbacks.current = callbacks;
   }
 
-  connect() {
-    if (this.maybeWebSocket) {
+  const connect = () => {
+    if (maybeWebSocket.current) {
       console.log("WebSocket already connected");
       return;
     }
@@ -37,7 +36,7 @@ export class MiningWebSocketManager {
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
-      this.maybeCallbacks.onConnectionStateChange(true);
+      maybeCallbacks.current?.onConnectionStateChange(true);
     };
 
     ws.onmessage = (event) => {
@@ -48,7 +47,7 @@ export class MiningWebSocketManager {
         switch (message.type) {
         case "ChallengeResponse": {
           const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
-          this.maybeCallbacks.onNewChallenge(
+          maybeCallbacks.current?.onNewChallenge(
             job_id,
             nonceless_block_header,
             target_leading_zero_count
@@ -57,46 +56,46 @@ export class MiningWebSocketManager {
         }
         case "SubmissionResponse": {
           const { status, message: responseMessage } = message.data;
-          this.maybeCallbacks.onSubmissionResponse(status.toString(), responseMessage);
+          maybeCallbacks.current?.onSubmissionResponse(status.toString(), responseMessage);
           break;
         }
         case "BlockTemplateUpdate": {
           const { nonceless_block_header } = message.data;
-          this.maybeCallbacks.onBlockTemplateUpdate(nonceless_block_header);
+          maybeCallbacks.current?.onBlockTemplateUpdate(nonceless_block_header);
           break;
         }
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
-        this.maybeCallbacks.onError(`Error processing WebSocket message: ${error}`);
+        maybeCallbacks.current?.onError(`Error processing WebSocket message: ${error}`);
       }
     };
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
-      this.maybeCallbacks.onError('WebSocket error occurred');
+      maybeCallbacks.current?.onError('WebSocket error occurred');
     };
 
     ws.onclose = () => {
       console.log('WebSocket connection closed');
-      this.maybeCallbacks.onConnectionStateChange(false);
-      this.maybeWebSocket = null;
+      maybeCallbacks.current?.onConnectionStateChange(false);
+      maybeWebSocket.current = null;
     };
 
-    this.maybeWebSocket = ws;
+    maybeWebSocket.current = ws;
   }
 
-  disconnect() {
+  const disconnect = () => {
     console.log('Disconnecting WebSocket');
-    if (this.maybeWebSocket) {
-      this.maybeWebSocket.close();
-      this.maybeWebSocket = null;
+    if (maybeWebSocket.current) {
+      maybeWebSocket.current.close();
+      maybeWebSocket.current = null;
     }
   }
 
-  submitSolution(submission: MiningSubmission) {
-    if (!this.maybeWebSocket || this.maybeWebSocket.readyState !== WebSocket.OPEN) {
-      this.maybeCallbacks.onError('Cannot submit solution: WebSocket not connected');
+  const submitSolution = (submission: MiningSubmission) => {
+    if (!maybeWebSocket.current || maybeWebSocket.current.readyState !== WebSocket.OPEN) {
+      maybeCallbacks.current?.onError('Cannot submit solution: WebSocket not connected');
       return;
     }
 
@@ -105,6 +104,13 @@ export class MiningWebSocketManager {
       data: submission
     };
 
-    this.maybeWebSocket.send(JSON.stringify(message));
+    maybeWebSocket.current.send(JSON.stringify(message));
+  }
+
+  return {
+    connect,
+    disconnect,
+    submitSolution,
+    setCallbacks
   }
 }

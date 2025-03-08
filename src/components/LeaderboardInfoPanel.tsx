@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { useMining } from "@/contexts/MiningWebsocketContext";
+import { useMining } from "@/contexts/MiningContext";
 import { LeaderboardForm } from "./leaderboard/LeaderboardForm";
 import { LeaderboardSubmissionHandler } from "./leaderboard/LeaderboardSubmissionHandler";
 
