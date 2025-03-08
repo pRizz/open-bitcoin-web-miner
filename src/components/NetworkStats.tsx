@@ -34,7 +34,7 @@ interface NetworkStatsProps {
 }
 
 export function NetworkStats({ stats }: NetworkStatsProps) {
-  const [isLocalhost, setIsLocalhost] = useState(false);
+  const [isLocalhost, setIsLocalhost] = useState(true);
 
   useEffect(() => {
     const currentUrl = API_CONFIG.baseUrl;

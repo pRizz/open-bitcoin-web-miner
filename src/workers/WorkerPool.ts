@@ -1,20 +1,21 @@
-import { MiningMode } from "@/types/mining";
+import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
+import { NoncelessBlockHeader } from "@/types/websocket";
 
 export class WorkerPool {
   private cpuWorkers: Worker[] = [];
-  private webglWorker: Worker | null = null;
-  private webgpuWorker: Worker | null = null;
+  private maybeWebGLWorker: Worker | null = null;
+  private maybeWebGPUWorker: Worker | null = null;
   private active = false;
   private hashRateSamples: number[] = [];
   private sampleWindowSize: number;
-  private currentBlockHeader: any;
+  private maybeCurrentChallenge: MiningChallenge | null = null;
   private currentMiningSpeed: number;
   private currentMode: MiningMode = "cpu";
 
   constructor(
     private threadCount: number,
     private onHashRate: (hashRate: number) => void,
-    private onHash: (data: any) => void,
+    private onHash: (solution: MiningSolution) => void,
     private onError?: (error: string) => void,
     private onGPUCapabilities?: (capabilities: any) => void
   ) {
@@ -41,19 +42,19 @@ export class WorkerPool {
     if (this.currentMode === "cpu") {
       this.cpuWorkers.forEach(worker => worker.terminate());
       this.cpuWorkers = [];
-    } else if (this.currentMode === "webgl" && this.webglWorker) {
-      this.webglWorker.terminate();
-      this.webglWorker = null;
-    } else if (this.currentMode === "webgpu" && this.webgpuWorker) {
-      this.webgpuWorker.terminate();
-      this.webgpuWorker = null;
+    } else if (this.currentMode === "webgl" && this.maybeWebGLWorker) {
+      this.maybeWebGLWorker.terminate();
+      this.maybeWebGLWorker = null;
+    } else if (this.currentMode === "webgpu" && this.maybeWebGPUWorker) {
+      this.maybeWebGPUWorker.terminate();
+      this.maybeWebGPUWorker = null;
     }
 
     this.currentMode = mode;
     this.hashRateSamples = []; // Reset hash rate samples for new mode
 
     // Start new mode's workers if mining is active
-    if (this.active && this.currentBlockHeader) {
+    if (this.active && this.maybeCurrentChallenge) {
       switch (mode) {
       case "cpu":
         this.createCPUWorkers();
@@ -68,10 +69,10 @@ export class WorkerPool {
     }
   }
 
-  start(blockHeader: any, miningSpeed: number) {
+  start(challenge: MiningChallenge, miningSpeed: number) {
     this.active = true;
     this.hashRateSamples = [];
-    this.currentBlockHeader = blockHeader;
+    this.maybeCurrentChallenge = challenge;
     this.currentMiningSpeed = miningSpeed;
 
     switch (this.currentMode) {
@@ -122,13 +123,19 @@ export class WorkerPool {
     try {
       for (let i = 0; i < this.threadCount; i++) {
         const worker = this.createWorker(
-          new URL('./miningWorker.ts', import.meta.url)
+          new URL('./cpuMiningWorker.ts', import.meta.url)
         );
 
         worker.onmessage = (e) => {
           const { type, data } = e.data;
           if (type === "hash") {
-            this.onHash(data);
+            const solution: MiningSolution = {
+              hash: data.hash,
+              nonce: data.nonce,
+              jobId: this.maybeCurrentChallenge?.jobId,
+              blockHeader: this.maybeCurrentChallenge?.blockHeader
+            };
+            this.onHash(solution);
           } else if (type === "hashRate") {
             const movingAverage = this.calculateMovingAverage(data);
             this.onHashRate(movingAverage * this.threadCount);
@@ -137,7 +144,7 @@ export class WorkerPool {
 
         worker.postMessage({
           type: "start",
-          blockHeader: this.currentBlockHeader,
+          challenge: this.maybeCurrentChallenge,
           miningSpeed: this.currentMiningSpeed,
           workerId: i,
         });
@@ -153,10 +160,10 @@ export class WorkerPool {
 
   private createWebGLWorker() {
     try {
-      this.webglWorker = this.createWorker(
+      this.maybeWebGLWorker = this.createWorker(
         new URL('./webglMiningWorker.ts', import.meta.url)
       );
-      this.setupWorkerHandlers(this.webglWorker);
+      this.setupWorkerHandlers(this.maybeWebGLWorker);
     } catch (error) {
       if (this.onError) {
         this.onError(`Failed to initialize WebGL worker: ${error instanceof Error ? error.message : String(error)}`);
@@ -166,10 +173,10 @@ export class WorkerPool {
 
   private createWebGPUWorker() {
     try {
-      this.webgpuWorker = this.createWorker(
+      this.maybeWebGPUWorker = this.createWorker(
         new URL('./webgpuMiningWorker.ts', import.meta.url)
       );
-      this.setupWorkerHandlers(this.webgpuWorker);
+      this.setupWorkerHandlers(this.maybeWebGPUWorker);
     } catch (error) {
       if (this.onError) {
         this.onError(`Failed to initialize WebGPU worker: ${error instanceof Error ? error.message : String(error)}`);
@@ -181,7 +188,13 @@ export class WorkerPool {
     worker.onmessage = (e) => {
       const { type, data } = e.data;
       if (type === "hash") {
-        this.onHash(data);
+        const solution: MiningSolution = {
+          hash: data.hash,
+          nonce: data.nonce,
+          jobId: this.maybeCurrentChallenge?.jobId,
+          blockHeader: this.maybeCurrentChallenge?.blockHeader
+        };
+        this.onHash(solution);
       } else if (type === "hashRate") {
         const movingAverage = this.calculateMovingAverage(data);
         this.onHashRate(movingAverage);
@@ -194,7 +207,7 @@ export class WorkerPool {
 
     worker.postMessage({
       type: "start",
-      blockHeader: this.currentBlockHeader,
+      challenge: this.maybeCurrentChallenge,
       miningSpeed: this.currentMiningSpeed,
     });
   }
@@ -202,13 +215,13 @@ export class WorkerPool {
   stop() {
     this.active = false;
     this.cpuWorkers.forEach(worker => worker.terminate());
-    if (this.webglWorker) {
-      this.webglWorker.terminate();
-      this.webglWorker = null;
+    if (this.maybeWebGLWorker) {
+      this.maybeWebGLWorker.terminate();
+      this.maybeWebGLWorker = null;
     }
-    if (this.webgpuWorker) {
-      this.webgpuWorker.terminate();
-      this.webgpuWorker = null;
+    if (this.maybeWebGPUWorker) {
+      this.maybeWebGPUWorker.terminate();
+      this.maybeWebGPUWorker = null;
     }
     this.cpuWorkers = [];
     this.hashRateSamples = [];
@@ -251,7 +264,29 @@ export class WorkerPool {
       }
     };
 
-    updateWorker(this.webglWorker);
-    updateWorker(this.webgpuWorker);
+    updateWorker(this.maybeWebGLWorker);
+    updateWorker(this.maybeWebGPUWorker);
+  }
+
+  updateChallenge(challenge: MiningChallenge & { maybeKeepExisting?: boolean }) {
+    if (challenge.maybeKeepExisting && this.maybeCurrentChallenge) {
+      // Only update the block header, keep existing jobId and targetZeros
+      this.maybeCurrentChallenge = {
+        ...this.maybeCurrentChallenge,
+        blockHeader: challenge.blockHeader
+      };
+    } else {
+      this.maybeCurrentChallenge = challenge;
+    }
+
+    // Update all active workers with new challenge
+    const message = {
+      type: "updateChallenge",
+      challenge: this.maybeCurrentChallenge
+    };
+
+    this.cpuWorkers.forEach(worker => worker.postMessage(message));
+    if (this.maybeWebGLWorker) this.maybeWebGLWorker.postMessage(message);
+    if (this.maybeWebGPUWorker) this.maybeWebGPUWorker.postMessage(message);
   }
 }

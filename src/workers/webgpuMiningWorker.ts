@@ -1,5 +1,5 @@
 /// <reference types="@webgpu/types" />
-import { HashSolution } from "@/types/mining";
+import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes } from "@/utils/mining";
 
 let running = false;
@@ -8,8 +8,15 @@ let startTime = performance.now();
 let miningSpeed = 100;
 const HASH_RATE_UPDATE_INTERVAL = 1000;
 
-let device: GPUDevice | null = null;
-let pipeline: GPUComputePipeline | null = null;
+let maybeGPUDevice: GPUDevice | null = null;
+let maybeGPUComputePipeline: GPUComputePipeline | null = null;
+let maybeCurrentChallenge: MiningChallenge | null = null;
+
+interface WorkerMessage {
+  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
+  maybeChallenge?: MiningChallenge;
+  maybeMiningSpeed?: number;
+}
 
 // Example hash of height 881375; 20 hex zeros so that's 80 leading binary zeros
 // 000000000000000000009d4cbb3b19f5ba5aa1e0cfb47974ffb182f57953864b
@@ -207,7 +214,7 @@ async function initWebGPU() {
     }
   });
 
-  device = await adapter.requestDevice({
+  maybeGPUDevice = await adapter.requestDevice({
     requiredLimits: {
       maxStorageBufferBindingSize,
       maxComputeWorkgroupsPerDimension
@@ -215,11 +222,11 @@ async function initWebGPU() {
   });
 
   // Create compute pipeline
-  const shaderModule = device.createShaderModule({
+  const shaderModule = maybeGPUDevice.createShaderModule({
     code: computeShaderCode,
   });
 
-  pipeline = await device.createComputePipelineAsync({
+  maybeGPUComputePipeline = await maybeGPUDevice.createComputePipelineAsync({
     layout: 'auto',
     compute: {
       module: shaderModule,
@@ -247,10 +254,9 @@ function updateHashRate(batchSize: number) {
   hashCount += batchSize;
 }
 
-async function mine(blockHeader: Partial<HashSolution>) {
-  if (!device || !pipeline) return;
+async function mine() {
+  if (!maybeGPUDevice || !maybeGPUComputePipeline || !maybeCurrentChallenge) return;
 
-  // Get device limits
   const { maxBufferSize, maxComputeWorkgroupsPerDimension } = await initWebGPU();
 
   // Calculate optimal batch size based on available memory
@@ -281,21 +287,21 @@ async function mine(blockHeader: Partial<HashSolution>) {
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
 
   const miningLoop = async () => {
-    if (!running || !device || !pipeline) return;
+    if (!running || !maybeGPUDevice || !maybeGPUComputePipeline || !maybeCurrentChallenge) return;
 
     const batchSize = WORKGROUP_SIZE * NUM_WORKGROUPS;
     const sleepTime = Math.floor((100 - miningSpeed) * 15); // Increased sleep multiplier from 10 to 15
 
     try {
       // Create input buffer for all workgroups
-      const inputBuffer = device.createBuffer({
+      const inputBuffer = maybeGPUDevice.createBuffer({
         size: batchSize * 4,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         label: "Mining Input Buffer"
       });
 
       // Create output buffer for the structured output
-      const outputBuffer = device.createBuffer({
+      const outputBuffer = maybeGPUDevice.createBuffer({
         size: batchSize * 8 * 4,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
         label: "Mining Output Buffer"
@@ -309,12 +315,12 @@ async function mine(blockHeader: Partial<HashSolution>) {
         for (let i = 0; i < chunkSize; i++) {
           inputChunk[i] = nonce++;
         }
-        device.queue.writeBuffer(inputBuffer, offset * 4, inputChunk);
+        maybeGPUDevice.queue.writeBuffer(inputBuffer, offset * 4, inputChunk);
       }
 
       // Create bind group
-      const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
+      const bindGroup = maybeGPUDevice.createBindGroup({
+        layout: maybeGPUComputePipeline.getBindGroupLayout(0),
         entries: [
           { binding: 0, resource: { buffer: inputBuffer } },
           { binding: 1, resource: { buffer: outputBuffer } },
@@ -323,25 +329,25 @@ async function mine(blockHeader: Partial<HashSolution>) {
       });
 
       // Create command encoder and pass
-      const commandEncoder = device.createCommandEncoder({ label: "Mining Command Encoder" });
+      const commandEncoder = maybeGPUDevice.createCommandEncoder({ label: "Mining Command Encoder" });
       const computePass = commandEncoder.beginComputePass({ label: "Mining Compute Pass" });
-      computePass.setPipeline(pipeline);
+      computePass.setPipeline(maybeGPUComputePipeline);
       computePass.setBindGroup(0, bindGroup);
       computePass.dispatchWorkgroups(NUM_WORKGROUPS);
       computePass.end();
 
       // Execute GPU commands
-      device.queue.submit([commandEncoder.finish()]);
+      maybeGPUDevice.queue.submit([commandEncoder.finish()]);
 
       // Create read buffer for the structured output
-      const readBuffer = device.createBuffer({
+      const readBuffer = maybeGPUDevice.createBuffer({
         size: batchSize * 8 * 4,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
         label: "Mining Read Buffer"
       });
 
       // Copy the output to the read buffer
-      const copyEncoder = device.createCommandEncoder({ label: "Copy Command Encoder" });
+      const copyEncoder = maybeGPUDevice.createCommandEncoder({ label: "Copy Command Encoder" });
       copyEncoder.copyBufferToBuffer(
         outputBuffer,
         0,
@@ -349,7 +355,7 @@ async function mine(blockHeader: Partial<HashSolution>) {
         0,
         batchSize * 8 * 4
       );
-      device.queue.submit([copyEncoder.finish()]);
+      maybeGPUDevice.queue.submit([copyEncoder.finish()]);
 
       // Map and read the results in larger chunks for better performance
       await readBuffer.mapAsync(GPUMapMode.READ);
@@ -368,12 +374,22 @@ async function mine(blockHeader: Partial<HashSolution>) {
             .map(word => word.toString(16).padStart(8, '0'))
             .join('');
 
-          const { binary } = calculateLeadingZeroes(hashWords);
+          const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hashWords);
 
-          if (binary >= 10) {
+          if (binary >= (maybeCurrentChallenge.targetZeros ?? 10)) {
+            // Calculate the nonce for this solution
+            // TODO: audit
+            const solutionNonce = nonce[0] - batchSize + offset + i;
+
+            const solution: MiningSolution = {
+              hash: hashWords,
+              nonce: solutionNonce,
+              jobId: maybeCurrentChallenge.jobId,
+              blockHeader: maybeCurrentChallenge.blockHeader
+            };
             self.postMessage({
               type: "hash",
-              data: { ...blockHeader, hash: hashWords, nonce: nonce - batchSize + offset + i },
+              data: solution
             });
           }
         }
@@ -403,29 +419,23 @@ async function mine(blockHeader: Partial<HashSolution>) {
   miningLoop();
 }
 
-self.onmessage = async (e) => {
-  const { type, blockHeader, miningSpeed: newSpeed } = e.data;
+self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
+  const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed } = e.data;
 
-  if (type === "start") {
+  if (type === "start" && challenge) {
     try {
-      // Reset state
       running = false;
       hashCount = 0;
       startTime = performance.now();
 
-      // Initialize WebGPU if not already initialized
-      if (!device || !pipeline) {
+      if (!maybeGPUDevice || !maybeGPUComputePipeline) {
         await initWebGPU();
       }
 
-      // Set initial mining speed
       miningSpeed = newSpeed ?? 100;
-
-      // Start mining
       running = true;
-      mine(blockHeader);
-
-      // Confirm start to UI
+      maybeCurrentChallenge = challenge;
+      mine();
       self.postMessage({ type: "started" });
     } catch (error) {
       console.error('Failed to start mining:', error);
@@ -437,8 +447,12 @@ self.onmessage = async (e) => {
     }
   } else if (type === "stop") {
     running = false;
+    maybeCurrentChallenge = null;
     self.postMessage({ type: "stopped" });
   } else if (type === "updateSpeed") {
-    miningSpeed = newSpeed;
+    miningSpeed = newSpeed ?? 100;
+  } else if (type === "updateChallenge" && challenge) {
+    maybeCurrentChallenge = challenge;
+    // No need to restart mining, the loop will pick up the new challenge
   }
 };

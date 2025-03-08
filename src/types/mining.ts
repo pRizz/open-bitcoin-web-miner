@@ -1,3 +1,5 @@
+import { NoncelessBlockHeader } from "./websocket";
+
 export interface MiningStats {
   hashRate?: number;
   bestHashes?: HashSolution[];
@@ -8,6 +10,7 @@ export interface MiningStats {
   requiredBinaryZeroes?: number;
 }
 
+// TODO: take a nonceless block header instead of each individual field
 export interface HashSolution {
   id: string;
   hash: string;
@@ -20,6 +23,13 @@ export interface HashSolution {
   binaryZeroes: number;
   hexZeroes: number;
   timeToFind: number; // Time in milliseconds
+}
+
+export interface MiningSolution {
+  hash: string;
+  nonce: number;
+  jobId?: string;
+  blockHeader?: NoncelessBlockHeader;
 }
 
 export interface NetworkStats {
@@ -35,4 +45,11 @@ export interface MiningWorkerMessage {
   blockHeader?: Partial<HashSolution>;
   miningSpeed?: number;
   data?: any;
+}
+
+export interface MiningChallenge {
+  jobId?: string;
+  blockHeader: NoncelessBlockHeader;
+  targetZeros?: number;
+  keepExisting?: boolean;
 }

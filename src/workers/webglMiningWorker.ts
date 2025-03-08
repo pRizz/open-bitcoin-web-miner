@@ -1,10 +1,11 @@
-import { HashSolution } from "@/types/mining";
+import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes } from "@/utils/mining";
 
 let running = false;
 let hashCount = 0;
 let startTime = performance.now();
 let miningSpeed = 100;
+let maybeCurrentChallenge: MiningChallenge | null = null;
 const HASH_RATE_UPDATE_INTERVAL = 1000;
 
 let gl: WebGL2RenderingContext | null = null;
@@ -133,6 +134,12 @@ void main() {
     fragColor = sha256(u_blockHeader);
 }`;
 
+interface WorkerMessage {
+  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
+  maybeChallenge?: MiningChallenge;
+  maybeMiningSpeed?: number;
+}
+
 function initWebGL() {
   const canvas = new OffscreenCanvas(1, 1);
   gl = canvas.getContext('webgl2');
@@ -193,7 +200,9 @@ function updateHashRate(batchSize: number) {
   hashCount += batchSize;
 }
 
-function mine(blockHeader: Partial<HashSolution>) {
+function mine() {
+  if (!maybeCurrentChallenge) return;
+  
   if (!gl || !program) {
     try {
       initWebGL();
@@ -206,20 +215,30 @@ function mine(blockHeader: Partial<HashSolution>) {
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
 
   const miningLoop = async () => {
-    if (!running || !gl || !program) return;
+    if (!running || !gl || !program || !maybeCurrentChallenge) return;
 
     const batchSize = 10000;
     const sleepTime = Math.floor((100 - miningSpeed) * 10);
 
     for (let i = 0; i < batchSize; i++) {
-      const header = {
-        ...blockHeader,
-        nonce: nonce++,
-      };
+      nonce++;
 
-      const blockData = new Float32Array([header.version || 0, parseInt(header.bits || "0", 16), header.timestamp || 0, header.nonce]);
+      // Convert block header data to float array for WebGL
+      // FIXME
+      const blockData = new Float32Array([
+        0,
+        0,
+        0,
+        nonce
+      ]);
+      // const blockData = new Float32Array([
+      //   challenge.blockHeader.version,
+      //   challenge.blockHeader.compact_target,
+      //   challenge.blockHeader.timestamp,
+      //   nonce
+      // ]);
+
       const blockHeaderLoc = gl.getUniformLocation(program, "u_blockHeader");
-
       gl.uniform4fv(blockHeaderLoc, blockData);
 
       gl.drawArrays(gl.POINTS, 0, 1);
@@ -231,11 +250,17 @@ function mine(blockHeader: Partial<HashSolution>) {
         .map(x => x.toString(16).padStart(2, "0"))
         .join("");
 
-      const { binary } = calculateLeadingZeroes(hash);
-      if (binary >= 10) {
+      const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
+      if (binary >= (maybeCurrentChallenge.targetZeros ?? 10)) {
+        const solution: MiningSolution = {
+          hash,
+          nonce,
+          jobId: maybeCurrentChallenge.jobId,
+          blockHeader: maybeCurrentChallenge.blockHeader
+        };
         self.postMessage({
           type: "hash",
-          data: { ...header, hash },
+          data: solution
         });
       }
     }
@@ -252,16 +277,21 @@ function mine(blockHeader: Partial<HashSolution>) {
   miningLoop();
 }
 
-self.onmessage = (e) => {
-  const { type, blockHeader, miningSpeed: newSpeed } = e.data;
+self.onmessage = (e: MessageEvent<WorkerMessage>) => {
+  const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed } = e.data;
 
-  if (type === "start") {
+  if (type === "start" && challenge) {
     running = true;
-    miningSpeed = newSpeed;
-    mine(blockHeader);
+    miningSpeed = newSpeed ?? 100;
+    maybeCurrentChallenge = challenge;
+    mine();
   } else if (type === "stop") {
     running = false;
+    maybeCurrentChallenge = null;
   } else if (type === "updateSpeed") {
-    miningSpeed = newSpeed;
+    miningSpeed = newSpeed ?? 100;
+  } else if (type === "updateChallenge" && challenge) {
+    maybeCurrentChallenge = challenge;
+    // No need to restart mining, the loop will pick up the new challenge
   }
 };

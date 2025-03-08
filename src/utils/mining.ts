@@ -1,6 +1,6 @@
 import { HashSolution } from "@/types/mining";
 
-export function calculateLeadingZeroes(hash: string): { binary: number; hex: number } {
+export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
   // Calculate hex zeroes
   let hexZeroes = 0;
   for (let i = 0; i < hash.length; i++) {
@@ -22,7 +22,7 @@ export function calculateLeadingZeroes(hash: string): { binary: number; hex: num
     }
   }
 
-  return { binary: binaryZeroes, hex: hexZeroes };
+  return { leadingBinaryZeroes: binaryZeroes, leadingHexZeroes: hexZeroes };
 }
 
 export function hex2bin(hex: string): string {

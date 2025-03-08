@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { WorkerPool } from "@/workers/WorkerPool";
 import { useToast } from "@/hooks/use-toast";
-import { MiningMode } from "@/types/mining";
-import { generateMockBlockHeader } from "@/utils/mining";
+import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
 import { GPUCapabilities } from './types';
 
 export const useWorkerPool = (
@@ -10,38 +9,55 @@ export const useWorkerPool = (
   miningSpeed: number,
   miningMode: MiningMode,
   onHashRate: (rate: number) => void,
-  onSolution: (data: any) => void,
+  onSolution: (solution: MiningSolution) => void,
 ) => {
   const { toast } = useToast();
-  const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
+  const [maybeWorkerPool, setWorkerPool] = useState<WorkerPool | null>(null);
   const [gpuCapabilities, setGpuCapabilities] = useState<GPUCapabilities>();
+  const [maybeCurrentChallenge, setCurrentChallenge] = useState<MiningChallenge | null>(null);
 
   useEffect(() => {
     return () => {
-      if (workerPool) {
-        workerPool.stop();
+      if (maybeWorkerPool) {
+        maybeWorkerPool.stop();
         setWorkerPool(null);
       }
     };
-  }, [workerPool]);
+  }, [maybeWorkerPool]);
 
   useEffect(() => {
-    if (workerPool) {
-      workerPool.updateSpeed(miningSpeed);
+    if (maybeWorkerPool) {
+      maybeWorkerPool.updateSpeed(miningSpeed);
     }
-  }, [miningSpeed, workerPool]);
+  }, [miningSpeed, maybeWorkerPool]);
 
   useEffect(() => {
-    if (workerPool) {
+    if (maybeWorkerPool) {
       const timeoutId = setTimeout(() => {
-        workerPool.setMode(miningMode);
+        maybeWorkerPool.setMode(miningMode);
       }, 0);
       return () => clearTimeout(timeoutId);
     }
-  }, [miningMode, workerPool]);
+  }, [miningMode, maybeWorkerPool]);
 
-  const startMining = () => {
-    if (workerPool) return;
+  const updateMiningChallenge = useCallback((challenge: MiningChallenge) => {
+    setCurrentChallenge(prev => {
+      if (challenge.keepExisting && prev) {
+        return {
+          ...prev,
+          blockHeader: challenge.blockHeader
+        };
+      }
+      return challenge;
+    });
+
+    if (maybeWorkerPool) {
+      maybeWorkerPool.updateChallenge(challenge);
+    }
+  }, [maybeWorkerPool]);
+
+  const startMining = useCallback(() => {
+    if (maybeWorkerPool) return;
 
     try {
       const pool = new WorkerPool(
@@ -63,7 +79,13 @@ export const useWorkerPool = (
 
       setWorkerPool(pool);
       pool.setMode(miningMode);
-      pool.start(generateMockBlockHeader(), miningSpeed);
+      
+      // Only start if we have a challenge
+      if (maybeCurrentChallenge) {
+        pool.start(maybeCurrentChallenge, miningSpeed);
+      } else {
+        console.error("No challenge provided");
+      }
     } catch (error) {
       toast({
         title: "Failed to Start Mining",
@@ -72,7 +94,7 @@ export const useWorkerPool = (
       });
       stopMining();
     }
-  };
+  }, [threadCount, miningMode, miningSpeed, maybeCurrentChallenge, onHashRate, onSolution, toast]);
 
   const stopMining = useCallback(() => {
     setWorkerPool((currentPool) => {
@@ -83,16 +105,17 @@ export const useWorkerPool = (
     });
   }, []);
 
-  const updateThreadCount = (count: number) => {
-    if (workerPool) {
-      workerPool.updateThreadCount(count);
+  const updateThreadCount = useCallback((count: number) => {
+    if (maybeWorkerPool) {
+      maybeWorkerPool.updateThreadCount(count);
     }
-  };
+  }, [maybeWorkerPool]);
 
   return {
     gpuCapabilities,
     startMining,
     stopMining,
     updateThreadCount,
+    updateMiningChallenge,
   };
 };

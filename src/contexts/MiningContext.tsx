@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { MiningMode } from "@/types/mining";
+import { HashSolution, MiningMode, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes, calculateRequiredBinaryZeroes } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
 import { MiningContextType } from "./mining/types";
@@ -8,7 +8,7 @@ import { useThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useGRPC } from "./GRPCContext";
 import API_CONFIG from "@/config/api";
-import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage } from "@/types/websocket";
+import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader } from "@/types/websocket";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -66,20 +66,45 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
   const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useThreadCount();
 
-  const { gpuCapabilities, startMining: startWorkerPool, stopMining: stopWorkerPool, updateThreadCount } = useWorkerPool(
+  const { gpuCapabilities, startMining: startWorkerPool, stopMining: stopWorkerPool, updateThreadCount, updateMiningChallenge } = useWorkerPool(
     threadCount,
     miningSpeed,
     miningMode,
     updateHashRate,
-    (data) => {
-      const { binary, hex } = calculateLeadingZeroes(data.hash);
-      const solution = {
-        id: crypto.randomUUID(),
-        ...data,
-        binaryZeroes: binary,
-        hexZeroes: hex,
+    (solution: MiningSolution) => {
+      const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(solution.hash);
+      
+      if (!solution.jobId || !solution.blockHeader) {
+        console.error('Invalid solution received: missing jobId or blockHeader');
+        return;
+      }
+
+      const miningSubmission: MiningSubmission = {
+        job_id: solution.jobId,
+        nonce: [solution.nonce], // FIXME: need to convert this to a 32-bit integer
+        nonceless_block_header: solution.blockHeader
       };
-      updateMiningStats(solution, networkStats.requiredBinaryZeroes);
+      
+      // Submit the solution if it meets the target
+      if (leadingBinaryZeroes >= networkStats.requiredBinaryZeroes) {
+        submitSolution(miningSubmission);
+      }
+      
+      // Update stats for display
+      const solutionStats: HashSolution = {
+        id: crypto.randomUUID(),
+        hash: solution.hash,
+        nonce: solution.nonce, // Convert from array to number for stats
+        timestamp: Date.now(),
+        merkleRoot: Buffer.from(solution.blockHeader.merkle_root).toString('hex'),
+        previousBlock: Buffer.from(solution.blockHeader.previous_block_hash).toString('hex'),
+        version: Buffer.from(solution.blockHeader.version).readInt32BE(0),
+        bits: Buffer.from(solution.blockHeader.compact_target).toString('hex'),
+        binaryZeroes: leadingBinaryZeroes,
+        hexZeroes: leadingHexZeroes,
+        timeToFind: 0, // TODO: Track time to find
+      };
+      updateMiningStats(solutionStats, networkStats.requiredBinaryZeroes);
     }
   );
 
@@ -106,10 +131,21 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           case "ChallengeResponse": {
             const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
             addLog(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}`);
+            
+            // Update network stats with new target
+            // setNetworkStats(prev => ({
+            //   ...prev,
+            //   requiredBinaryZeroes: target_leading_zero_count
+            // }));
+            
             // Update worker pool with new challenge
-            if (isMining) {
-              // startWorkerPool(nonceless_block_header, job_id, target_leading_zero_count);
-            }
+            // if (isMining) {
+              updateMiningChallenge({
+                jobId: job_id,
+                blockHeader: nonceless_block_header,
+                targetZeros: target_leading_zero_count
+              });
+            // }
             break;
           }
           case "SubmissionResponse": {
@@ -121,9 +157,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
             const { nonceless_block_header } = message.data;
             addLog("New block template received");
             // Update worker pool with new block template
-            if (isMining) {
-              // startWorkerPool(nonceless_block_header);
-            }
+            // if (isMining) {
+              updateMiningChallenge({
+                blockHeader: nonceless_block_header,
+                // Keep existing jobId and targetZeros
+                keepExisting: true
+              });
+            // }
             break;
           }
         }

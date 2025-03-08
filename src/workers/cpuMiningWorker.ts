@@ -1,10 +1,11 @@
-import { HashSolution } from "@/types/mining";
+import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes } from "@/utils/mining";
 
 let running = false;
 let hashCount = 0;
 let lastHashRateUpdate = Date.now();
 let miningSpeed = 100;
+let maybeCurrentChallenge: MiningChallenge | null = null;
 const HASH_RATE_UPDATE_INTERVAL = 1000; // 1 second
 const BATCH_SIZE = 10000;
 
@@ -18,21 +19,35 @@ self.onerror = (error: ErrorEvent | string) => {
   running = false;
 };
 
-self.onmessage = (e) => {
-  const { type, blockHeader, miningSpeed: newSpeed } = e.data;
+interface WorkerMessage {
+  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
+  maybeChallenge?: MiningChallenge;
+  maybeMiningSpeed?: number;
+  maybeWorkerId?: number;
+}
 
-  if (type === 'start') {
+self.onmessage = (e: MessageEvent<WorkerMessage>) => {
+  const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed } = e.data;
+
+  if (type === 'start' && challenge) {
     running = true;
-    miningSpeed = newSpeed;
-    mine(blockHeader);
+    miningSpeed = newSpeed ?? 100;
+    maybeCurrentChallenge = challenge;
+    mine();
   } else if (type === 'stop') {
     running = false;
+    maybeCurrentChallenge = null;
   } else if (type === 'updateSpeed') {
-    miningSpeed = newSpeed;
+    miningSpeed = newSpeed ?? 100;
+  } else if (type === 'updateChallenge' && challenge) {
+    maybeCurrentChallenge = challenge;
+    // No need to restart mining, the loop will pick up the new challenge
   }
 };
 
-function mine(blockHeader: Partial<HashSolution>) {
+function mine() {
+  if (!maybeCurrentChallenge) return;
+  
   let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
 
   const updateHashRate = () => {
@@ -47,27 +62,30 @@ function mine(blockHeader: Partial<HashSolution>) {
   };
 
   const miningLoop = () => {
-    if (!running) return;
+    if (!running || !maybeCurrentChallenge) return;
 
     try {
       const startTime = Date.now();
       let batchCount = 0;
 
       while (running && batchCount < BATCH_SIZE) {
-        const header = {
-          ...blockHeader,
-          nonce: nonce++,
-        };
+        nonce++;
 
-        const hash = simulateHash(header);
+        const hash = simulateHash(maybeCurrentChallenge.blockHeader, nonce);
         hashCount++;
         batchCount++;
 
-        const { binary } = calculateLeadingZeroes(hash);
-        if (binary >= 10) {
+        const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
+        if (binary >= (maybeCurrentChallenge.targetZeros ?? 10)) {
+          const solution: MiningSolution = {
+            hash,
+            nonce,
+            jobId: maybeCurrentChallenge.jobId,
+            blockHeader: maybeCurrentChallenge.blockHeader
+          };
           self.postMessage({
             type: 'hash',
-            data: { ...header, hash },
+            data: solution
           });
         }
       }
@@ -92,8 +110,8 @@ function mine(blockHeader: Partial<HashSolution>) {
   miningLoop();
 }
 
-function simulateHash(header: Partial<HashSolution>): string {
-  const input = `${header.version}${header.previousBlock}${header.merkleRoot}${header.timestamp}${header.bits}${header.nonce}`;
+function simulateHash(blockHeader: any, nonce: number): string {
+  // TODO: Implement actual SHA-256 hashing
   let hash = '';
   const chars = '0123456789abcdef';
   for (let i = 0; i < 64; i++) {
