@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { formatHashRate, calculateSecondsToFindBlock, formatTime } from "@/utils/mining";
-import { useMining } from "@/contexts/MiningContext";
+import { useMining } from "@/contexts/MiningWebsocketContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 

@@ -41,6 +41,7 @@ export const useWorkerPool = (
   }, [miningMode, maybeWorkerPool]);
 
   const updateMiningChallenge = useCallback((challenge: MiningChallenge) => {
+    console.log("Updating mining challenge:", challenge);
     setCurrentChallenge(prev => {
       if (challenge.maybeKeepExisting && prev) {
         return {
@@ -53,6 +54,7 @@ export const useWorkerPool = (
 
     if (maybeWorkerPool) {
       maybeWorkerPool.updateChallenge(challenge);
+      maybeWorkerPool.start(challenge, miningSpeed);
     }
   }, [maybeWorkerPool]);
 
@@ -84,7 +86,7 @@ export const useWorkerPool = (
       if (maybeCurrentChallenge) {
         pool.start(maybeCurrentChallenge, miningSpeed);
       } else {
-        console.error("No challenge provided");
+        console.log("Started worker pool with no challenge, yet.");
       }
     } catch (error) {
       toast({

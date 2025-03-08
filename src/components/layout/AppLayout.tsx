@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Outlet, useLocation } from "react-router-dom";
 import { ShareControls } from "@/components/mining/ShareControls";
-import { useMining } from "@/contexts/MiningContext";
+import { useMining } from "@/contexts/MiningWebsocketContext";
 import { useShare } from "@/contexts/ShareContext";
 
 export function AppLayout() {

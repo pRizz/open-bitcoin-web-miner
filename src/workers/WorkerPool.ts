@@ -70,6 +70,11 @@ export class WorkerPool {
   }
 
   start(challenge: MiningChallenge, miningSpeed: number) {
+    if(this.active) {
+      console.log("Worker pool is already active, so we're not starting it again.");
+      return;
+    }
+    console.log("Starting worker pool with challenge:", challenge);
     this.active = true;
     this.hashRateSamples = [];
     this.maybeCurrentChallenge = challenge;

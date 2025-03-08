@@ -131,6 +131,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         case "ChallengeResponse": {
           const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
           addLog(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}`);
+          console.log(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}, Block header: ${JSON.stringify(nonceless_block_header)}`);
 
           // Update network stats with new target
           // setNetworkStats(prev => ({
@@ -145,6 +146,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
             blockHeader: nonceless_block_header,
             maybeTargetZeros: target_leading_zero_count
           });
+
           // }
           break;
         }

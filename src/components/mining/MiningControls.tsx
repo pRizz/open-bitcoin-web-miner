@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { useMining } from "@/contexts/MiningContext";
+import { useMining } from "@/contexts/MiningWebsocketContext";
 import { useShare } from "@/contexts/ShareContext";
 import { validateBitcoinAddress } from "@/utils/mining";
 import { useToast } from "@/hooks/use-toast";

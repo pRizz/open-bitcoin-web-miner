@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
-import { useMining } from "@/contexts/MiningContext";
+import { useMining } from "@/contexts/MiningWebsocketContext";
 
 const menuItems = [
   {
