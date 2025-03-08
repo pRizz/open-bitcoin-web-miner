@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 const STORAGE_KEY = "bitcoin-mining-simulator";
 
 export const useMiningState = () => {
+  console.log("useMiningState called");
   const { toast } = useToast();
   const [miningStats, setMiningStats] = useState<MiningStats>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);

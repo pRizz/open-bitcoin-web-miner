@@ -149,9 +149,9 @@ export class WorkerPool {
 
         worker.postMessage({
           type: "start",
-          challenge: this.maybeCurrentChallenge,
-          miningSpeed: this.currentMiningSpeed,
-          workerId: i,
+          maybeChallenge: this.maybeCurrentChallenge,
+          maybeMiningSpeed: this.currentMiningSpeed,
+          maybeWorkerId: i,
         });
 
         this.cpuWorkers.push(worker);
@@ -212,8 +212,8 @@ export class WorkerPool {
 
     worker.postMessage({
       type: "start",
-      challenge: this.maybeCurrentChallenge,
-      miningSpeed: this.currentMiningSpeed,
+      maybeChallenge: this.maybeCurrentChallenge,
+      maybeMiningSpeed: this.currentMiningSpeed,
     });
   }
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { HashSolution, MiningMode, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes, calculateRequiredBinaryZeroes } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
@@ -9,6 +9,7 @@ import { useDebug } from "./DebugContext";
 import { useGRPC } from "./GRPCContext";
 import API_CONFIG from "@/config/api";
 import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader } from "@/types/websocket";
+import { MiningWebSocketManager } from "./mining/useMiningWebSocket";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -39,10 +40,17 @@ const defaultContext: MiningContextType = {
 
 const MiningContext = createContext<MiningContextType>(defaultContext);
 
+function getNumberFromArrayOfBytes(array: number[]): number {
+  return array.reduce((acc, byte, index) => {
+    return acc + (byte << (index * 8));
+  }, 0);
+}
+
 export function MiningProvider({ children }: { children: React.ReactNode }) {
+  console.log("MiningProvider constructor called");
   const { addLog } = useDebug();
   const { getNetworkInfo } = useGRPC();
-  const maybeWebsocketRef = useRef<WebSocket | null>(null);
+  const webSocketManager = useRef<MiningWebSocketManager>(new MiningWebSocketManager());
 
   const {
     miningStats,
@@ -66,7 +74,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
   const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useThreadCount();
 
-  const { gpuCapabilities, startMining: startWorkerPool, stopMining: stopWorkerPool, updateThreadCount, updateMiningChallenge } = useWorkerPool(
+  const workerPool = useWorkerPool(
     threadCount,
     miningSpeed,
     miningMode,
@@ -81,136 +89,125 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
       const miningSubmission: MiningSubmission = {
         job_id: solution.maybeJobId,
-        nonce: [solution.nonce], // FIXME: need to convert this to a 32-bit integer
+        nonce: [solution.nonce],
         nonceless_block_header: solution.maybeBlockHeader
       };
 
-      // Submit the solution if it meets the target
       if (leadingBinaryZeroes >= networkStats.requiredBinaryZeroes) {
         submitSolution(miningSubmission);
       }
 
-      // Update stats for display
       const solutionStats: HashSolution = {
         id: crypto.randomUUID(),
         hash: solution.hash,
-        nonce: solution.nonce, // Convert from array to number for stats
+        nonce: solution.nonce,
         timestamp: Date.now(),
-        merkleRoot: Buffer.from(solution.maybeBlockHeader.merkle_root).toString('hex'),
-        previousBlock: Buffer.from(solution.maybeBlockHeader.previous_block_hash).toString('hex'),
-        version: Buffer.from(solution.maybeBlockHeader.version).readInt32BE(0),
-        bits: Buffer.from(solution.maybeBlockHeader.compact_target).toString('hex'),
+        merkleRoot: Array.from(new Uint8Array(solution.maybeBlockHeader.merkle_root))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join(''),
+        previousBlock: Array.from(new Uint8Array(solution.maybeBlockHeader.previous_block_hash))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join(''),
+        version: getNumberFromArrayOfBytes(solution.maybeBlockHeader.version),
+        bits: Array.from(new Uint8Array(solution.maybeBlockHeader.compact_target))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join(''),
         binaryZeroes: leadingBinaryZeroes,
         hexZeroes: leadingHexZeroes,
-        timeToFind: 0, // TODO: Track time to find
+        timeToFind: 0,
       };
       updateMiningStats(solutionStats, networkStats.requiredBinaryZeroes);
     }
   );
 
-  const connectWebSocket = () => {
-    const wsProtocol = API_CONFIG.baseUrl.startsWith('https') ? 'wss' : 'ws';
-    const wsUrl = `${wsProtocol}://${API_CONFIG.baseUrl.split('://')[1]}/mining-work`;
+  const { gpuCapabilities, startMining: startWorkerPool, stopMining: stopWorkerPool, updateThreadCount, updateMiningChallenge } = workerPool;
 
-    console.log(`Connecting to WebSocket: ${wsUrl}`);
+  const handleNewChallenge = useCallback((jobId: string, blockHeader: NoncelessBlockHeader, targetZeros: number) => {
+    addLog(`New mining challenge received. Job ID: ${jobId}, Target zeros: ${targetZeros}`);
+    console.log(`New mining challenge received. Job ID: ${jobId}, Target zeros: ${targetZeros}, Block header: ${JSON.stringify(blockHeader)}`);
 
-    const ws = new WebSocket(wsUrl);
+    updateMiningChallenge({
+      maybeJobId: jobId,
+      blockHeader: blockHeader,
+      maybeTargetZeros: targetZeros
+    });
+  }, [addLog, updateMiningChallenge]);
 
-    ws.onopen = () => {
-      console.log('WebSocket connection established');
-      addLog('WebSocket connection established');
-    };
+  const handleBlockTemplateUpdate = useCallback((blockHeader: NoncelessBlockHeader) => {
+    addLog("New block template received");
+    updateMiningChallenge({
+      blockHeader: blockHeader,
+      maybeKeepExisting: true
+    });
+  }, [addLog, updateMiningChallenge]);
 
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data) as WebSocketServerMessage;
-        console.log('WebSocket message received:', message);
-        addLog(`WebSocket message type: ${message.type}`);
+  const disconnectWebSocket = useCallback(() => {
+    webSocketManager.current.disconnect();
+  }, []);
 
-        switch (message.type) {
-        case "ChallengeResponse": {
-          const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
-          addLog(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}`);
-          console.log(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}, Block header: ${JSON.stringify(nonceless_block_header)}`);
-
-          // Update network stats with new target
-          // setNetworkStats(prev => ({
-          //   ...prev,
-          //   requiredBinaryZeroes: target_leading_zero_count
-          // }));
-
-          // Update worker pool with new challenge
-          // if (isMining) {
-          updateMiningChallenge({
-            maybeJobId: job_id,
-            blockHeader: nonceless_block_header,
-            maybeTargetZeros: target_leading_zero_count
-          });
-
-          // }
-          break;
-        }
-        case "SubmissionResponse": {
-          const { status, message: responseMessage } = message.data;
-          addLog(`Mining submission response: ${responseMessage} (status: ${status})`);
-          break;
-        }
-        case "BlockTemplateUpdate": {
-          const { nonceless_block_header } = message.data;
-          addLog("New block template received");
-          // Update worker pool with new block template
-          // if (isMining) {
-          updateMiningChallenge({
-            blockHeader: nonceless_block_header,
-            // Keep existing jobId and targetZeros
-            maybeKeepExisting: true
-          });
-          // }
-          break;
-        }
-        }
-      } catch (error) {
-        console.error('Error processing WebSocket message:', error);
-        addLog(`Error processing WebSocket message: ${error}`);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      addLog(`WebSocket error occurred`);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
-      addLog('WebSocket connection closed');
-    };
-
-    maybeWebsocketRef.current = ws;
-  };
-
-  const disconnectWebSocket = () => {
-    addLog('Disconnecting WebSocket');
-    console.log('Disconnecting WebSocket');
-    if (maybeWebsocketRef.current) {
-      maybeWebsocketRef.current.close();
-      maybeWebsocketRef.current = null;
-    }
-  };
-
-  const submitSolution = (submission: MiningSubmission) => {
-    if (!maybeWebsocketRef.current || maybeWebsocketRef.current.readyState !== WebSocket.OPEN) {
-      addLog('Cannot submit solution: WebSocket not connected');
-      return;
-    }
-
-    const message: WebSocketClientMessage = {
-      type: "Submission",
-      data: submission
-    };
-
-    maybeWebsocketRef.current.send(JSON.stringify(message));
+  const submitSolution = useCallback((submission: MiningSubmission) => {
+    webSocketManager.current.submitSolution(submission);
     addLog(`Submitted mining solution for job ${submission.job_id}`);
-  };
+  }, [addLog]);
+
+  const stopMining = useCallback(() => {
+    const modeString = miningMode.toUpperCase();
+    addLog(`Stopping ${modeString} mining`);
+
+    disconnectWebSocket();
+    stopWorkerPool();
+    setIsMining(false);
+    stopMiningStats();
+  }, [miningMode, addLog, disconnectWebSocket, stopWorkerPool, stopMiningStats]);
+
+  const miningWebSocketManagerCallbacks = useMemo(() => ({
+    onNewChallenge: handleNewChallenge,
+    onBlockTemplateUpdate: handleBlockTemplateUpdate,
+    onSubmissionResponse: (status, message) => {
+      addLog(`Mining submission response: ${message} (status: ${status})`);
+    },
+    onConnectionStateChange: (connected) => {
+      addLog(connected ? 'WebSocket connection established' : 'WebSocket connection closed');
+      if (!connected) {
+        stopMining();
+      }
+    },
+    onError: (error) => {
+      addLog(`WebSocket error: ${error}`);
+    }
+  }), [handleNewChallenge, handleBlockTemplateUpdate, stopMining]);
+
+  webSocketManager.current.setCallbacks(miningWebSocketManagerCallbacks);
+
+  const connectWebSocket = useCallback(() => {
+    webSocketManager.current.connect();
+  }, [addLog, handleNewChallenge, handleBlockTemplateUpdate, stopMining, miningWebSocketManagerCallbacks]);
+
+  const startMining = useCallback(() => {
+    console.log("Starting mining");
+    const modeString = miningMode.toUpperCase();
+    const threadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
+    addLog(`Starting ${modeString} mining${threadInfo} at ${miningSpeed}% speed`);
+
+    connectWebSocket();
+    startWorkerPool();
+    setIsMining(true);
+    startMiningStats();
+  }, [miningMode, threadCount, miningSpeed, addLog, connectWebSocket, startWorkerPool, startMiningStats]);
+
+  const setThreadCount = useCallback((count: number) => {
+    updateThreadCount(count);
+    setThreadCountState(count);
+    if (isMining) {
+      addLog(`Updating CPU mining thread count to ${count}`);
+    }
+  }, [updateThreadCount, setThreadCountState, isMining, addLog]);
+
+  const handleSetMiningSpeed = useCallback((speed: number) => {
+    const statusText = isMining ? "Mining speed updated to" : "Mining speed set to";
+    addLog(`${statusText} ${speed}%`);
+    setMiningSpeed(speed);
+  }, [isMining, addLog]);
 
   useEffect(() => {
     const updateNetworkInfo = async () => {
@@ -240,41 +237,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
     return () => clearInterval(interval);
   }, [getNetworkInfo, addLog]);
-
-  const startMining = () => {
-    const modeString = miningMode.toUpperCase();
-    const threadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
-    addLog(`Starting ${modeString} mining${threadInfo} at ${miningSpeed}% speed`);
-
-    connectWebSocket();
-    startWorkerPool();
-    setIsMining(true);
-    startMiningStats();
-  };
-
-  const stopMining = () => {
-    const modeString = miningMode.toUpperCase();
-    addLog(`Stopping ${modeString} mining`);
-
-    disconnectWebSocket();
-    stopWorkerPool();
-    setIsMining(false);
-    stopMiningStats();
-  };
-
-  const setThreadCount = (count: number) => {
-    updateThreadCount(count);
-    setThreadCountState(count);
-    if (isMining) {
-      addLog(`Updating CPU mining thread count to ${count}`);
-    }
-  };
-
-  const handleSetMiningSpeed = (speed: number) => {
-    const statusText = isMining ? "Mining speed updated to" : "Mining speed set to";
-    addLog(`${statusText} ${speed}%`);
-    setMiningSpeed(speed);
-  };
 
   useEffect(() => {
     return () => {

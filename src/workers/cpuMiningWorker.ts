@@ -27,20 +27,20 @@ interface WorkerMessage {
 }
 
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
-  const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed } = e.data;
+  const { type, maybeChallenge: maybeNewChallenge, maybeMiningSpeed: maybeNewSpeed } = e.data;
 
-  if (type === 'start' && challenge) {
+  if (type === 'start' && maybeNewChallenge) {
     running = true;
-    miningSpeed = newSpeed ?? 100;
-    maybeCurrentChallenge = challenge;
+    miningSpeed = maybeNewSpeed ?? 100;
+    maybeCurrentChallenge = maybeNewChallenge;
     mine();
   } else if (type === 'stop') {
     running = false;
     maybeCurrentChallenge = null;
   } else if (type === 'updateSpeed') {
-    miningSpeed = newSpeed ?? 100;
-  } else if (type === 'updateChallenge' && challenge) {
-    maybeCurrentChallenge = challenge;
+    miningSpeed = maybeNewSpeed ?? 100;
+  } else if (type === 'updateChallenge' && maybeNewChallenge) {
+    maybeCurrentChallenge = maybeNewChallenge;
     // No need to restart mining, the loop will pick up the new challenge
   }
 };

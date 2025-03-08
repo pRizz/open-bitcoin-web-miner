@@ -11,6 +11,7 @@ export const useWorkerPool = (
   onHashRate: (rate: number) => void,
   onSolution: (solution: MiningSolution) => void,
 ) => {
+  console.log("useWorkerPool called");
   const { toast } = useToast();
   const [maybeWorkerPool, setWorkerPool] = useState<WorkerPool | null>(null);
   const [gpuCapabilities, setGpuCapabilities] = useState<GPUCapabilities>();
@@ -42,6 +43,7 @@ export const useWorkerPool = (
 
   const updateMiningChallenge = useCallback((challenge: MiningChallenge) => {
     console.log("Updating mining challenge:", challenge);
+    console.log("Current worker pool state:", maybeWorkerPool ? "exists" : "null");
     setCurrentChallenge(prev => {
       if (challenge.maybeKeepExisting && prev) {
         return {
@@ -56,7 +58,7 @@ export const useWorkerPool = (
       maybeWorkerPool.updateChallenge(challenge);
       maybeWorkerPool.start(challenge, miningSpeed);
     }
-  }, [maybeWorkerPool]);
+  }, [maybeWorkerPool, miningSpeed]);
 
   const startMining = useCallback(() => {
     if (maybeWorkerPool) return;
@@ -96,9 +98,11 @@ export const useWorkerPool = (
       });
       stopMining();
     }
-  }, [threadCount, miningMode, miningSpeed, maybeCurrentChallenge, onHashRate, onSolution, toast]);
+  }, [threadCount, miningMode, miningSpeed, maybeCurrentChallenge, maybeWorkerPool, onHashRate, onSolution, toast]);
 
   const stopMining = useCallback(() => {
+    console.log("Stopping mining");
+    setCurrentChallenge(null);
     setWorkerPool((currentPool) => {
       if (currentPool) {
         currentPool.stop();
