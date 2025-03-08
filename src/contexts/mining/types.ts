@@ -1,4 +1,5 @@
 import { MiningStats, NetworkStats, MiningMode } from "@/types/mining";
+import { MiningSubmission } from "@/types/websocket";
 
 export interface GPUCapabilities {
   maxStorageBufferSize: string;
@@ -30,4 +31,5 @@ export interface MiningContextType {
   startMining: () => void;
   stopMining: () => void;
   resetData: () => void;
+  submitSolution: (submission: MiningSubmission) => void;
 }

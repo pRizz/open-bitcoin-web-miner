@@ -8,6 +8,7 @@ import { useThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useGRPC } from "./GRPCContext";
 import API_CONFIG from "@/config/api";
+import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage } from "@/types/websocket";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -33,6 +34,7 @@ const defaultContext: MiningContextType = {
   startMining: () => {},
   stopMining: () => {},
   resetData: () => {},
+  submitSolution: (submission: MiningSubmission) => {},
 };
 
 const MiningContext = createContext<MiningContextType>(defaultContext);
@@ -95,8 +97,40 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     };
 
     ws.onmessage = (event) => {
-      console.log('WebSocket message received:', event.data);
-      addLog(`WebSocket message: ${event.data}`);
+      try {
+        const message = JSON.parse(event.data) as WebSocketServerMessage;
+        console.log('WebSocket message received:', message);
+        addLog(`WebSocket message type: ${message.type}`);
+
+        switch (message.type) {
+          case "ChallengeResponse": {
+            const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
+            addLog(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}`);
+            // Update worker pool with new challenge
+            if (isMining) {
+              // startWorkerPool(nonceless_block_header, job_id, target_leading_zero_count);
+            }
+            break;
+          }
+          case "SubmissionResponse": {
+            const { status, message: responseMessage } = message.data;
+            addLog(`Mining submission response: ${responseMessage} (status: ${status})`);
+            break;
+          }
+          case "BlockTemplateUpdate": {
+            const { nonceless_block_header } = message.data;
+            addLog("New block template received");
+            // Update worker pool with new block template
+            if (isMining) {
+              // startWorkerPool(nonceless_block_header);
+            }
+            break;
+          }
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+        addLog(`Error processing WebSocket message: ${error}`);
+      }
     };
 
     ws.onerror = (error) => {
@@ -113,10 +147,27 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   };
 
   const disconnectWebSocket = () => {
+    addLog('Disconnecting WebSocket');
+    console.log('Disconnecting WebSocket');
     if (websocketRef.current) {
       websocketRef.current.close();
       websocketRef.current = null;
     }
+  };
+
+  const submitSolution = (submission: MiningSubmission) => {
+    if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
+      addLog('Cannot submit solution: WebSocket not connected');
+      return;
+    }
+
+    const message: WebSocketClientMessage = {
+      type: "Submission",
+      data: submission
+    };
+
+    websocketRef.current.send(JSON.stringify(message));
+    addLog(`Submitted mining solution for job ${submission.job_id}`);
   };
 
   useEffect(() => {
@@ -208,6 +259,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         startMining,
         stopMining,
         resetData: resetStats,
+        submitSolution,
       }}
     >
       {children}
