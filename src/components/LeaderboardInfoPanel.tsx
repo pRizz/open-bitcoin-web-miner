@@ -19,7 +19,7 @@ export function LeaderboardInfoPanel() {
   useEffect(() => {
     const autoSubmit = async () => {
       if (
-        miningStats.bestHashes.length > 0 &&
+        miningStats.maybeBestHashes.length > 0 &&
         username &&
         Date.now() - lastSubmissionTime >= 60000 // 1 minute cooldown
       ) {
@@ -42,7 +42,7 @@ export function LeaderboardInfoPanel() {
           username,
           leaderboardMessage,
           blockchainMessage,
-          miningStats.bestHashes[0]
+          miningStats.maybeBestHashes[0]
         );
 
         if (success) {
@@ -52,7 +52,7 @@ export function LeaderboardInfoPanel() {
     };
 
     autoSubmit();
-  }, [miningStats.bestHashes]);
+  }, [miningStats.maybeBestHashes]);
 
   return (
     <Card className="p-6 glass-card">

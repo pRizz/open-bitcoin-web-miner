@@ -251,12 +251,12 @@ function mine() {
         .join("");
 
       const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
-      if (binary >= (maybeCurrentChallenge.targetZeros ?? 10)) {
+      if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
         const solution: MiningSolution = {
           hash,
           nonce,
-          jobId: maybeCurrentChallenge.jobId,
-          blockHeader: maybeCurrentChallenge.blockHeader
+          maybeJobId: maybeCurrentChallenge.maybeJobId,
+          maybeBlockHeader: maybeCurrentChallenge.blockHeader
         };
         self.postMessage({
           type: "hash",

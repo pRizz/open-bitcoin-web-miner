@@ -42,7 +42,7 @@ export const useWorkerPool = (
 
   const updateMiningChallenge = useCallback((challenge: MiningChallenge) => {
     setCurrentChallenge(prev => {
-      if (challenge.keepExisting && prev) {
+      if (challenge.maybeKeepExisting && prev) {
         return {
           ...prev,
           blockHeader: challenge.blockHeader

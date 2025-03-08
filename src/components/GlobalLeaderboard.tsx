@@ -12,18 +12,18 @@ import { Card } from "@/components/ui/card";
 import { formatDuration } from "@/utils/formatters";
 
 interface LeaderboardEntry {
-  username: string | null;
-  leaderboard_message: string | null;
+  maybeUsername: string | null;
+  maybeLeaderboardMessage: string | null;
   hash: string;
-  binary_zeroes: number;
-  hex_zeroes: number;
-  time_to_find: number;
+  binaryZeroes: number;
+  hexZeroes: number;
+  timeToFind: number;
 }
 
 export function GlobalLeaderboard() {
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ["leaderboard"],
-    queryFn: async () => {
+    queryFn: async (): Promise<LeaderboardEntry[]> => {
       const { data, error } = await supabase
         .from("leaderboard")
         .select("username, leaderboard_message, hash, binary_zeroes, hex_zeroes, time_to_find")
@@ -31,7 +31,14 @@ export function GlobalLeaderboard() {
         .limit(100);
 
       if (error) throw error;
-      return data as LeaderboardEntry[];
+      return data.map((entry) => ({
+        maybeUsername: entry.username,
+        maybeLeaderboardMessage: entry.leaderboard_message,
+        hash: entry.hash,
+        binaryZeroes: entry.binary_zeroes,
+        hexZeroes: entry.hex_zeroes,
+        timeToFind: entry.time_to_find,
+      }));
     },
   });
 
@@ -70,16 +77,16 @@ export function GlobalLeaderboard() {
             {leaderboard?.map((entry, index) => (
               <TableRow key={entry.hash}>
                 <TableCell>{index + 1}</TableCell>
-                <TableCell>{entry.username || "Anonymous"}</TableCell>
+                <TableCell>{entry.maybeUsername || "Anonymous"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">
-                  {entry.leaderboard_message || "-"}
+                  {entry.maybeLeaderboardMessage || "-"}
                 </TableCell>
-                <TableCell>{entry.binary_zeroes}</TableCell>
-                <TableCell>{entry.hex_zeroes}</TableCell>
+                <TableCell>{entry.binaryZeroes}</TableCell>
+                <TableCell>{entry.hexZeroes}</TableCell>
                 <TableCell className="font-mono text-xs truncate max-w-[200px]">
                   0x{entry.hash}
                 </TableCell>
-                <TableCell>{formatDuration(entry.time_to_find)}</TableCell>
+                <TableCell>{formatDuration(entry.timeToFind)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

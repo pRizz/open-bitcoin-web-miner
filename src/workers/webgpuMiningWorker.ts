@@ -376,7 +376,7 @@ async function mine() {
 
           const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hashWords);
 
-          if (binary >= (maybeCurrentChallenge.targetZeros ?? 10)) {
+          if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
             // Calculate the nonce for this solution
             // TODO: audit
             const solutionNonce = nonce[0] - batchSize + offset + i;
@@ -384,8 +384,8 @@ async function mine() {
             const solution: MiningSolution = {
               hash: hashWords,
               nonce: solutionNonce,
-              jobId: maybeCurrentChallenge.jobId,
-              blockHeader: maybeCurrentChallenge.blockHeader
+              maybeJobId: maybeCurrentChallenge.maybeJobId,
+              maybeBlockHeader: maybeCurrentChallenge.blockHeader
             };
             self.postMessage({
               type: "hash",

@@ -12,9 +12,9 @@ import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, Nonce
 
 const defaultContext: MiningContextType = {
   miningStats: {
-    blockHeight: 0,
-    difficulty: 0,
-    requiredBinaryZeroes: 0,
+    maybeBlockHeight: 0,
+    maybeDifficulty: 0,
+    maybeRequiredBinaryZeroes: 0,
   },
   networkStats: {
     blockHeight: 0,
@@ -42,7 +42,7 @@ const MiningContext = createContext<MiningContextType>(defaultContext);
 export function MiningProvider({ children }: { children: React.ReactNode }) {
   const { addLog } = useDebug();
   const { getNetworkInfo } = useGRPC();
-  const websocketRef = useRef<WebSocket | null>(null);
+  const maybeWebsocketRef = useRef<WebSocket | null>(null);
 
   const {
     miningStats,
@@ -74,15 +74,15 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     (solution: MiningSolution) => {
       const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(solution.hash);
 
-      if (!solution.jobId || !solution.blockHeader) {
+      if (!solution.maybeJobId || !solution.maybeBlockHeader) {
         console.error('Invalid solution received: missing jobId or blockHeader');
         return;
       }
 
       const miningSubmission: MiningSubmission = {
-        job_id: solution.jobId,
+        job_id: solution.maybeJobId,
         nonce: [solution.nonce], // FIXME: need to convert this to a 32-bit integer
-        nonceless_block_header: solution.blockHeader
+        nonceless_block_header: solution.maybeBlockHeader
       };
 
       // Submit the solution if it meets the target
@@ -96,10 +96,10 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         hash: solution.hash,
         nonce: solution.nonce, // Convert from array to number for stats
         timestamp: Date.now(),
-        merkleRoot: Buffer.from(solution.blockHeader.merkle_root).toString('hex'),
-        previousBlock: Buffer.from(solution.blockHeader.previous_block_hash).toString('hex'),
-        version: Buffer.from(solution.blockHeader.version).readInt32BE(0),
-        bits: Buffer.from(solution.blockHeader.compact_target).toString('hex'),
+        merkleRoot: Buffer.from(solution.maybeBlockHeader.merkle_root).toString('hex'),
+        previousBlock: Buffer.from(solution.maybeBlockHeader.previous_block_hash).toString('hex'),
+        version: Buffer.from(solution.maybeBlockHeader.version).readInt32BE(0),
+        bits: Buffer.from(solution.maybeBlockHeader.compact_target).toString('hex'),
         binaryZeroes: leadingBinaryZeroes,
         hexZeroes: leadingHexZeroes,
         timeToFind: 0, // TODO: Track time to find
@@ -141,9 +141,9 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           // Update worker pool with new challenge
           // if (isMining) {
           updateMiningChallenge({
-            jobId: job_id,
+            maybeJobId: job_id,
             blockHeader: nonceless_block_header,
-            targetZeros: target_leading_zero_count
+            maybeTargetZeros: target_leading_zero_count
           });
           // }
           break;
@@ -161,7 +161,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           updateMiningChallenge({
             blockHeader: nonceless_block_header,
             // Keep existing jobId and targetZeros
-            keepExisting: true
+            maybeKeepExisting: true
           });
           // }
           break;
@@ -183,20 +183,20 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       addLog('WebSocket connection closed');
     };
 
-    websocketRef.current = ws;
+    maybeWebsocketRef.current = ws;
   };
 
   const disconnectWebSocket = () => {
     addLog('Disconnecting WebSocket');
     console.log('Disconnecting WebSocket');
-    if (websocketRef.current) {
-      websocketRef.current.close();
-      websocketRef.current = null;
+    if (maybeWebsocketRef.current) {
+      maybeWebsocketRef.current.close();
+      maybeWebsocketRef.current = null;
     }
   };
 
   const submitSolution = (submission: MiningSubmission) => {
-    if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
+    if (!maybeWebsocketRef.current || maybeWebsocketRef.current.readyState !== WebSocket.OPEN) {
       addLog('Cannot submit solution: WebSocket not connected');
       return;
     }
@@ -206,7 +206,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       data: submission
     };
 
-    websocketRef.current.send(JSON.stringify(message));
+    maybeWebsocketRef.current.send(JSON.stringify(message));
     addLog(`Submitted mining solution for job ${submission.job_id}`);
   };
 

@@ -132,8 +132,8 @@ export class WorkerPool {
             const solution: MiningSolution = {
               hash: data.hash,
               nonce: data.nonce,
-              jobId: this.maybeCurrentChallenge?.jobId,
-              blockHeader: this.maybeCurrentChallenge?.blockHeader
+              maybeJobId: this.maybeCurrentChallenge?.maybeJobId,
+              maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader
             };
             this.onHash(solution);
           } else if (type === "hashRate") {
@@ -191,8 +191,8 @@ export class WorkerPool {
         const solution: MiningSolution = {
           hash: data.hash,
           nonce: data.nonce,
-          jobId: this.maybeCurrentChallenge?.jobId,
-          blockHeader: this.maybeCurrentChallenge?.blockHeader
+          maybeJobId: this.maybeCurrentChallenge?.maybeJobId,
+          maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader
         };
         this.onHash(solution);
       } else if (type === "hashRate") {
@@ -255,9 +255,9 @@ export class WorkerPool {
       });
     });
 
-    const updateWorker = (worker: Worker | null) => {
-      if (worker) {
-        worker.postMessage({
+    const updateWorker = (maybeWorker: Worker | null) => {
+      if (maybeWorker) {
+        maybeWorker.postMessage({
           type: "updateSpeed",
           miningSpeed,
         });

@@ -9,23 +9,23 @@ export const useMiningState = () => {
   const [miningStats, setMiningStats] = useState<MiningStats>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {
-      hashRate: 0,
-      bestHashes: [],
-      totalHashes: 0,
-      startTime: null,
+      maybeHashRate: 0,
+      maybeBestHashes: [],
+      maybeTotalHashes: 0,
+      maybeStartTime: null,
     };
   });
 
   const updateMiningStats = (solution: HashSolution, networkRequiredZeroes: number) => {
     setMiningStats(prev => {
-      const currentBest = prev.bestHashes[0];
+      const currentBest = prev.maybeBestHashes[0];
 
       if (!currentBest || solution.binaryZeroes > currentBest.binaryZeroes) {
         // Calculate time to find if mining has started
-        const timeToFind = prev.startTime ? Date.now() - prev.startTime : 0;
+        const timeToFind = prev.maybeStartTime ? Date.now() - prev.maybeStartTime : 0;
         const solutionWithTime = { ...solution, timeToFind };
 
-        const updatedHashes = [solutionWithTime, ...prev.bestHashes]
+        const updatedHashes = [solutionWithTime, ...prev.maybeBestHashes]
           .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
           .slice(0, 100);
 
@@ -39,14 +39,14 @@ export const useMiningState = () => {
 
         return {
           ...prev,
-          bestHashes: updatedHashes,
-          totalHashes: prev.totalHashes + 1,
+          maybeBestHashes: updatedHashes,
+          maybeTotalHashes: prev.maybeTotalHashes + 1,
         };
       }
 
       return {
         ...prev,
-        totalHashes: prev.totalHashes + 1,
+        maybeTotalHashes: prev.maybeTotalHashes + 1,
       };
     });
   };
@@ -54,16 +54,16 @@ export const useMiningState = () => {
   const updateHashRate = (hashRate: number) => {
     setMiningStats(prev => ({
       ...prev,
-      hashRate,
+      maybeHashRate: hashRate,
     }));
   };
 
   const resetStats = () => {
     setMiningStats({
-      hashRate: 0,
-      bestHashes: [],
-      totalHashes: 0,
-      startTime: null,
+      maybeHashRate: 0,
+      maybeBestHashes: [],
+      maybeTotalHashes: 0,
+      maybeStartTime: null,
     });
     localStorage.removeItem(STORAGE_KEY);
     toast({
@@ -76,15 +76,15 @@ export const useMiningState = () => {
   const startMining = () => {
     setMiningStats(prev => ({
       ...prev,
-      startTime: Date.now(),
+      maybeStartTime: Date.now(),
     }));
   };
 
   const stopMining = () => {
     setMiningStats(prev => ({
       ...prev,
-      hashRate: 0,
-      startTime: null,
+      maybeHashRate: 0,
+      maybeStartTime: null,
     }));
   };
 

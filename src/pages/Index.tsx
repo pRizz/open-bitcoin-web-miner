@@ -46,10 +46,10 @@ const Index = () => {
           <NetworkStats stats={networkStats} />
         </div>
 
-        <HashRateGauge hashRate={miningStats.hashRate} />
+        <HashRateGauge hashRate={miningStats.maybeHashRate} />
         <DebugLogPanel />
         <LeaderboardInfoPanel />
-        <HashList hashes={miningStats.bestHashes} />
+        <HashList hashes={miningStats.maybeBestHashes} />
       </div>
     </div>
   );
