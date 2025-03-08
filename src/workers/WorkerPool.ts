@@ -7,19 +7,19 @@ export class WorkerPool {
   private maybeWebGPUWorker: Worker | null = null;
   private active = false;
   private hashRateSamples: number[] = [];
-  private sampleWindowSize: number;
+  private sampleWindowSize: number = 1; // FIXME
   private maybeCurrentChallenge: MiningChallenge | null = null;
   private currentMiningSpeed: number;
   private currentMode: MiningMode = "cpu";
+  private threadCount: number = 1; // FIXME
+  onHashRate: (hashRate: number) => void = () => {};
+  onHash: (solution: MiningSolution) => void = () => {};
+  onError: (error: string) => void = () => {};
+  onGPUCapabilities: (capabilities: any) => void = () => {};
 
   constructor(
-    private threadCount: number,
-    private onHashRate: (hashRate: number) => void,
-    private onHash: (solution: MiningSolution) => void,
-    private onError?: (error: string) => void,
-    private onGPUCapabilities?: (capabilities: any) => void
   ) {
-    this.sampleWindowSize = threadCount;
+    console.log("WorkerPool constructor called");
   }
 
   private calculateMovingAverage(newSample: number): number {
@@ -98,11 +98,9 @@ export class WorkerPool {
       const worker = new Worker(url, { type: 'module' });
 
       worker.onerror = (error: ErrorEvent) => {
-        if (this.onError) {
-          // Ensure we pass a meaningful error message
-          const errorMessage = error.message || 'Unknown worker initialization error';
-          this.onError(errorMessage);
-        }
+        // Ensure we pass a meaningful error message
+        const errorMessage = error.message || 'Unknown worker initialization error';
+        this.onError(errorMessage);
         if (this.cpuWorkers.includes(worker)) {
           worker.terminate();
           this.cpuWorkers = this.cpuWorkers.filter(w => w !== worker);
@@ -239,6 +237,10 @@ export class WorkerPool {
       return;
     }
 
+    if (newThreadCount === this.threadCount) {
+      return;
+    }
+
     this.cpuWorkers.forEach(worker => worker.terminate());
     this.cpuWorkers = [];
     this.hashRateSamples = [];
@@ -252,6 +254,10 @@ export class WorkerPool {
   }
 
   updateSpeed(miningSpeed: number) {
+    if (miningSpeed === this.currentMiningSpeed) {
+      return;
+    }
+
     this.currentMiningSpeed = miningSpeed;
     this.cpuWorkers.forEach(worker => {
       worker.postMessage({

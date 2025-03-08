@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { WorkerPool } from "@/workers/WorkerPool";
 import { useToast } from "@/hooks/use-toast";
 import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
@@ -13,37 +13,53 @@ export const useWorkerPool = (
 ) => {
   console.log("useWorkerPool called");
   const { toast } = useToast();
-  const [maybeWorkerPool, setWorkerPool] = useState<WorkerPool | null>(null);
   const [gpuCapabilities, setGpuCapabilities] = useState<GPUCapabilities>();
   const [maybeCurrentChallenge, setCurrentChallenge] = useState<MiningChallenge | null>(null);
+  
+  const workerPool = useRef<WorkerPool>(new WorkerPool());
+  workerPool.current.updateThreadCount(threadCount);
+  workerPool.current.updateSpeed(miningSpeed);
+  workerPool.current.setMode(miningMode);
+  workerPool.current.onHashRate = onHashRate;
+  workerPool.current.onHash = onSolution;
+  workerPool.current.onError = (error) => {
+    toast({
+      title: "Mining Error",
+      description: error,
+      variant: "destructive",
+    });
+    stopMining();
+  };
+  workerPool.current.onGPUCapabilities = (capabilities) => {
+    setGpuCapabilities(capabilities);
+  };
 
   useEffect(() => {
     return () => {
-      if (maybeWorkerPool) {
-        maybeWorkerPool.stop();
-        setWorkerPool(null);
+      if (workerPool.current) {
+        workerPool.current.stop();
       }
     };
-  }, [maybeWorkerPool]);
+  }, [workerPool]);
 
   useEffect(() => {
-    if (maybeWorkerPool) {
-      maybeWorkerPool.updateSpeed(miningSpeed);
+    if (workerPool.current) {
+      workerPool.current.updateSpeed(miningSpeed);
     }
-  }, [miningSpeed, maybeWorkerPool]);
+  }, [miningSpeed, workerPool]);
 
   useEffect(() => {
-    if (maybeWorkerPool) {
+    if (workerPool.current) {
       const timeoutId = setTimeout(() => {
-        maybeWorkerPool.setMode(miningMode);
+        workerPool.current.setMode(miningMode);
       }, 0);
       return () => clearTimeout(timeoutId);
     }
-  }, [miningMode, maybeWorkerPool]);
+  }, [miningMode, workerPool]);
 
   const updateMiningChallenge = useCallback((challenge: MiningChallenge) => {
     console.log("Updating mining challenge:", challenge);
-    console.log("Current worker pool state:", maybeWorkerPool ? "exists" : "null");
+    console.log("Current worker pool state:", workerPool ? "exists" : "null");
     setCurrentChallenge(prev => {
       if (challenge.maybeKeepExisting && prev) {
         return {
@@ -54,39 +70,19 @@ export const useWorkerPool = (
       return challenge;
     });
 
-    if (maybeWorkerPool) {
-      maybeWorkerPool.updateChallenge(challenge);
-      maybeWorkerPool.start(challenge, miningSpeed);
+    if (workerPool.current) {
+      workerPool.current.updateChallenge(challenge);
+      workerPool.current.start(challenge, miningSpeed);
     }
-  }, [maybeWorkerPool, miningSpeed]);
+  }, [workerPool, miningSpeed]);
 
   const startMining = useCallback(() => {
-    if (maybeWorkerPool) return;
-
     try {
-      const pool = new WorkerPool(
-        threadCount,
-        onHashRate,
-        onSolution,
-        (error) => {
-          toast({
-            title: "Mining Error",
-            description: error,
-            variant: "destructive",
-          });
-          stopMining();
-        },
-        (capabilities) => {
-          setGpuCapabilities(capabilities);
-        }
-      );
-
-      setWorkerPool(pool);
-      pool.setMode(miningMode);
+      workerPool.current.setMode(miningMode);
 
       // Only start if we have a challenge
       if (maybeCurrentChallenge) {
-        pool.start(maybeCurrentChallenge, miningSpeed);
+        workerPool.current.start(maybeCurrentChallenge, miningSpeed);
       } else {
         console.log("Started worker pool with no challenge, yet.");
       }
@@ -98,24 +94,19 @@ export const useWorkerPool = (
       });
       stopMining();
     }
-  }, [threadCount, miningMode, miningSpeed, maybeCurrentChallenge, maybeWorkerPool, onHashRate, onSolution, toast]);
+  }, [threadCount, miningMode, miningSpeed, maybeCurrentChallenge, workerPool, onHashRate, onSolution, toast]);
 
   const stopMining = useCallback(() => {
     console.log("Stopping mining");
     setCurrentChallenge(null);
-    setWorkerPool((currentPool) => {
-      if (currentPool) {
-        currentPool.stop();
-      }
-      return null;
-    });
+    workerPool.current.stop();
   }, []);
 
   const updateThreadCount = useCallback((count: number) => {
-    if (maybeWorkerPool) {
-      maybeWorkerPool.updateThreadCount(count);
+    if (workerPool.current) {
+      workerPool.current.updateThreadCount(count);
     }
-  }, [maybeWorkerPool]);
+  }, [workerPool]);
 
   return {
     gpuCapabilities,

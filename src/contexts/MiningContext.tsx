@@ -92,10 +92,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         nonce: [solution.nonce],
         nonceless_block_header: solution.maybeBlockHeader
       };
+      console.log(`Submitting mining solution for job ${solution.maybeJobId}`);
+      addLog(`Submitting mining solution for job ${solution.maybeJobId}`);
+      console.log(`Mining submission: ${JSON.stringify(miningSubmission)}`);
+      addLog(`Mining submission: ${JSON.stringify(miningSubmission)}`);
 
-      if (leadingBinaryZeroes >= networkStats.requiredBinaryZeroes) {
-        submitSolution(miningSubmission);
-      }
+      submitSolution(miningSubmission);
 
       const solutionStats: HashSolution = {
         id: crypto.randomUUID(),
