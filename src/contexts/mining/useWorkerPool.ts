@@ -79,7 +79,7 @@ export const useWorkerPool = (
 
       setWorkerPool(pool);
       pool.setMode(miningMode);
-      
+
       // Only start if we have a challenge
       if (maybeCurrentChallenge) {
         pool.start(maybeCurrentChallenge, miningSpeed);

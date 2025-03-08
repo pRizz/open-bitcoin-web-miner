@@ -202,7 +202,7 @@ function updateHashRate(batchSize: number) {
 
 function mine() {
   if (!maybeCurrentChallenge) return;
-  
+
   if (!gl || !program) {
     try {
       initWebGL();

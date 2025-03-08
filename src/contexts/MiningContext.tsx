@@ -73,7 +73,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     updateHashRate,
     (solution: MiningSolution) => {
       const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(solution.hash);
-      
+
       if (!solution.jobId || !solution.blockHeader) {
         console.error('Invalid solution received: missing jobId or blockHeader');
         return;
@@ -84,12 +84,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         nonce: [solution.nonce], // FIXME: need to convert this to a 32-bit integer
         nonceless_block_header: solution.blockHeader
       };
-      
+
       // Submit the solution if it meets the target
       if (leadingBinaryZeroes >= networkStats.requiredBinaryZeroes) {
         submitSolution(miningSubmission);
       }
-      
+
       // Update stats for display
       const solutionStats: HashSolution = {
         id: crypto.randomUUID(),
@@ -128,44 +128,44 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         addLog(`WebSocket message type: ${message.type}`);
 
         switch (message.type) {
-          case "ChallengeResponse": {
-            const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
-            addLog(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}`);
-            
-            // Update network stats with new target
-            // setNetworkStats(prev => ({
-            //   ...prev,
-            //   requiredBinaryZeroes: target_leading_zero_count
-            // }));
-            
-            // Update worker pool with new challenge
-            // if (isMining) {
-              updateMiningChallenge({
-                jobId: job_id,
-                blockHeader: nonceless_block_header,
-                targetZeros: target_leading_zero_count
-              });
-            // }
-            break;
-          }
-          case "SubmissionResponse": {
-            const { status, message: responseMessage } = message.data;
-            addLog(`Mining submission response: ${responseMessage} (status: ${status})`);
-            break;
-          }
-          case "BlockTemplateUpdate": {
-            const { nonceless_block_header } = message.data;
-            addLog("New block template received");
-            // Update worker pool with new block template
-            // if (isMining) {
-              updateMiningChallenge({
-                blockHeader: nonceless_block_header,
-                // Keep existing jobId and targetZeros
-                keepExisting: true
-              });
-            // }
-            break;
-          }
+        case "ChallengeResponse": {
+          const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
+          addLog(`New mining challenge received. Job ID: ${job_id}, Target zeros: ${target_leading_zero_count}`);
+
+          // Update network stats with new target
+          // setNetworkStats(prev => ({
+          //   ...prev,
+          //   requiredBinaryZeroes: target_leading_zero_count
+          // }));
+
+          // Update worker pool with new challenge
+          // if (isMining) {
+          updateMiningChallenge({
+            jobId: job_id,
+            blockHeader: nonceless_block_header,
+            targetZeros: target_leading_zero_count
+          });
+          // }
+          break;
+        }
+        case "SubmissionResponse": {
+          const { status, message: responseMessage } = message.data;
+          addLog(`Mining submission response: ${responseMessage} (status: ${status})`);
+          break;
+        }
+        case "BlockTemplateUpdate": {
+          const { nonceless_block_header } = message.data;
+          addLog("New block template received");
+          // Update worker pool with new block template
+          // if (isMining) {
+          updateMiningChallenge({
+            blockHeader: nonceless_block_header,
+            // Keep existing jobId and targetZeros
+            keepExisting: true
+          });
+          // }
+          break;
+        }
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
