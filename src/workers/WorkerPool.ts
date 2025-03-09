@@ -129,28 +129,8 @@ export class WorkerPool {
           new URL('./cpuMiningWorker.ts', import.meta.url)
         );
 
-        worker.onmessage = (e) => {
-          const { type, data } = e.data;
-          if (type === "hash") {
-            const solution: MiningSolution = {
-              hash: data.hash,
-              nonce: data.nonce,
-              maybeJobId: this.maybeCurrentChallenge?.maybeJobId,
-              maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader
-            };
-            this.onHash(solution);
-          } else if (type === "hashRate") {
-            const movingAverage = this.calculateMovingAverage(data);
-            this.onHashRate(movingAverage * this.threadCount);
-          }
-        };
-
-        worker.postMessage({
-          type: "start",
-          maybeChallenge: this.maybeCurrentChallenge,
-          maybeMiningSpeed: this.currentMiningSpeed,
-          maybeWorkerId: i,
-        });
+        this.setupWorkerOnMessageHandler(worker);
+        this.startWorker(worker, i);
 
         this.cpuWorkers.push(worker);
       }
@@ -166,7 +146,8 @@ export class WorkerPool {
       this.maybeWebGLWorker = this.createWorker(
         new URL('./webglMiningWorker.ts', import.meta.url)
       );
-      this.setupWorkerHandlers(this.maybeWebGLWorker);
+      this.setupWorkerOnMessageHandler(this.maybeWebGLWorker);
+      this.startWorker(this.maybeWebGLWorker);
     } catch (error) {
       if (this.onError) {
         this.onError(`Failed to initialize WebGL worker: ${error instanceof Error ? error.message : String(error)}`);
@@ -179,7 +160,8 @@ export class WorkerPool {
       this.maybeWebGPUWorker = this.createWorker(
         new URL('./webgpuMiningWorker.ts', import.meta.url)
       );
-      this.setupWorkerHandlers(this.maybeWebGPUWorker);
+      this.setupWorkerOnMessageHandler(this.maybeWebGPUWorker);
+      this.startWorker(this.maybeWebGPUWorker);
     } catch (error) {
       if (this.onError) {
         this.onError(`Failed to initialize WebGPU worker: ${error instanceof Error ? error.message : String(error)}`);
@@ -187,13 +169,14 @@ export class WorkerPool {
     }
   }
 
-  private setupWorkerHandlers(worker: Worker) {
+  private setupWorkerOnMessageHandler(worker: Worker) {
     worker.onmessage = (e) => {
       const { type, data } = e.data;
       if (type === "hash") {
+        const miningSolution = data as MiningSolution;
         const solution: MiningSolution = {
-          hash: data.hash,
-          nonce: data.nonce,
+          hash: miningSolution.hash,
+          nonceVecU8: miningSolution.nonceVecU8,
           maybeJobId: this.maybeCurrentChallenge?.maybeJobId,
           maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader
         };
@@ -207,11 +190,14 @@ export class WorkerPool {
         this.onGPUCapabilities(data);
       }
     };
+  }
 
+  private startWorker(worker: Worker, workerId?: number) {
     worker.postMessage({
       type: "start",
       maybeChallenge: this.maybeCurrentChallenge,
       maybeMiningSpeed: this.currentMiningSpeed,
+      maybeWorkerId: workerId,
     });
   }
 

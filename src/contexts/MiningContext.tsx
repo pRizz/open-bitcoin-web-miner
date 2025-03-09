@@ -10,6 +10,7 @@ import { useGRPC } from "./GRPCContext";
 import API_CONFIG from "@/config/api";
 import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader } from "@/types/websocket";
 import { MiningWebSocketManager } from "./mining/useMiningWebSocket";
+import { u8ArrayToNonce } from "@/utils/nonceUtils";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -89,7 +90,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
       const miningSubmission: MiningSubmission = {
         job_id: solution.maybeJobId,
-        nonce: [solution.nonce],
+        nonceVecU8: Array.from(solution.nonceVecU8),
         nonceless_block_header: solution.maybeBlockHeader
       };
       console.log(`Submitting mining solution for job ${solution.maybeJobId}`);
@@ -102,7 +103,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       const solutionStats: HashSolution = {
         id: crypto.randomUUID(),
         hash: solution.hash,
-        nonce: solution.nonce,
+        nonce: u8ArrayToNonce(solution.nonceVecU8),
         timestamp: Date.now(),
         merkleRoot: Array.from(new Uint8Array(solution.maybeBlockHeader.merkle_root))
           .map(b => b.toString(16).padStart(2, '0'))

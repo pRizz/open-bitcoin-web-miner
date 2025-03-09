@@ -1,6 +1,7 @@
 /// <reference types="@webgpu/types" />
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes } from "@/utils/mining";
+import { nonceToU8Array } from "@/utils/nonceUtils";
 
 let running = false;
 let hashCount = 0;
@@ -383,7 +384,7 @@ async function mine() {
 
             const solution: MiningSolution = {
               hash: hashWords,
-              nonce: solutionNonce,
+              nonceVecU8: nonceToU8Array(solutionNonce),
               maybeJobId: maybeCurrentChallenge.maybeJobId,
               maybeBlockHeader: maybeCurrentChallenge.blockHeader
             };

@@ -27,7 +27,7 @@ export interface HashSolution {
 
 export interface MiningSolution {
   hash: string;
-  nonce: number;
+  nonceVecU8: Uint8Array;
   maybeJobId?: string;
   maybeBlockHeader?: NoncelessBlockHeader;
 }

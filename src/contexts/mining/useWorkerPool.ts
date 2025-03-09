@@ -15,7 +15,7 @@ export const useWorkerPool = (
   const { toast } = useToast();
   const [gpuCapabilities, setGpuCapabilities] = useState<GPUCapabilities>();
   const [maybeCurrentChallenge, setCurrentChallenge] = useState<MiningChallenge | null>(null);
-  
+
   const workerPool = useRef<WorkerPool>(new WorkerPool());
   workerPool.current.updateThreadCount(threadCount);
   workerPool.current.updateSpeed(miningSpeed);

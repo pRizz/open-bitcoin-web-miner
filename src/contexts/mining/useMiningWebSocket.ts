@@ -11,8 +11,8 @@ interface WebSocketCallbacks {
 }
 
 export function MiningWebSocketManager() {
-  let maybeWebSocket = useRef<WebSocket | null>(null);
-  let maybeCallbacks = useRef<WebSocketCallbacks | null>(null);
+  const maybeWebSocket = useRef<WebSocket | null>(null);
+  const maybeCallbacks = useRef<WebSocketCallbacks | null>(null);
 
   console.log("MiningWebSocketManager constructor called");
 

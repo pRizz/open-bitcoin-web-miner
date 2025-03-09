@@ -1,5 +1,6 @@
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes } from "@/utils/mining";
+import { nonceToU8Array } from "@/utils/nonceUtils";
 
 let running = false;
 let hashCount = 0;
@@ -69,6 +70,7 @@ function mine() {
       let batchCount = 0;
 
       while (running && batchCount < BATCH_SIZE) {
+        // TODO: clamp nonce to 0xFFFFFFFF, and change header if needed
         nonce++;
 
         const hash = simulateHash(maybeCurrentChallenge.blockHeader, nonce);
@@ -79,7 +81,7 @@ function mine() {
         if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
           const solution: MiningSolution = {
             hash,
-            nonce,
+            nonceVecU8: nonceToU8Array(nonce),
             maybeJobId: maybeCurrentChallenge.maybeJobId,
             maybeBlockHeader: maybeCurrentChallenge.blockHeader
           };

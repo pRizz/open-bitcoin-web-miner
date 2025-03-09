@@ -16,7 +16,7 @@ export interface MiningChallengeResponse {
 
 export interface MiningSubmission {
     job_id: string;
-    nonce: number[];
+    nonceVecU8: number[];
     nonceless_block_header: NoncelessBlockHeader;
   }
 
