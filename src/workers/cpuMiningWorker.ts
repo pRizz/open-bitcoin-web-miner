@@ -1,6 +1,8 @@
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
+import { NoncelessBlockHeader, serializeBlockHeader } from "@/types/websocket";
 import { calculateLeadingZeroes } from "@/utils/mining";
 import { nonceToU8Array } from "@/utils/nonceUtils";
+import { performHash } from "./cpuMiningUtils";
 
 let running = false;
 let hashCount = 0;
@@ -73,7 +75,7 @@ function mine() {
         // TODO: clamp nonce to 0xFFFFFFFF, and change header if needed
         nonce++;
 
-        const hash = simulateHash(maybeCurrentChallenge.blockHeader, nonce);
+        const hash = performHash(maybeCurrentChallenge.blockHeader, nonce);
         hashCount++;
         batchCount++;
 
@@ -110,14 +112,4 @@ function mine() {
   };
 
   miningLoop();
-}
-
-function simulateHash(blockHeader: any, nonce: number): string {
-  // TODO: Implement actual SHA-256 hashing
-  let hash = '';
-  const chars = '0123456789abcdef';
-  for (let i = 0; i < 64; i++) {
-    hash += chars[Math.floor(Math.random() * 16)];
-  }
-  return hash;
 }

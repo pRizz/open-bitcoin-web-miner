@@ -1,11 +1,12 @@
 
-// Types that mirror the Rust WebSocket protocol
+/// Types that mirror the Rust WebSocket protocol
+/// Bitcoin block headers use little-endian encoding for the version, timestamp, target, and nonce. <- Verify this.
 export interface NoncelessBlockHeader {
-    version: number[];
-    previous_block_hash: number[];
-    timestamp: number[];
-    compact_target: number[];
-    merkle_root: number[];
+    version: number[]; // 4 bytes
+    previous_block_hash: number[]; // 32 bytes
+    merkle_root: number[]; // 32 bytes
+    timestamp: number[]; // 4 bytes
+    compact_target: number[]; // 4 bytes
   }
 
 export interface MiningChallengeResponse {
@@ -38,3 +39,47 @@ export type WebSocketClientMessage = {
     type: "Submission";
     data: MiningSubmission;
   };
+
+export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number): Uint8Array {
+  if (
+    header.version.length !== 4 ||
+        header.previous_block_hash.length !== 32 ||
+        header.merkle_root.length !== 32 ||
+        header.timestamp.length !== 4 ||
+        header.compact_target.length !== 4
+  ) {
+    throw new Error("Invalid block header field lengths");
+  }
+
+  // Create an 80-byte buffer
+  const buffer = new Uint8Array(80);
+  let offset = 0;
+
+  // Helper function to copy arrays into the buffer
+  function copyToBuffer(source: number[], length: number) {
+    if (source.length !== length) throw new Error("Invalid field length");
+    buffer.set(source, offset);
+    offset += length;
+  }
+
+  // Copy fields in order
+  copyToBuffer(header.version, 4);
+  copyToBuffer(header.previous_block_hash, 32);
+  copyToBuffer(header.merkle_root, 32);
+  copyToBuffer(header.timestamp, 4);
+  copyToBuffer(header.compact_target, 4);
+
+  // Convert nonce (number) to 4-byte little-endian array
+  buffer.set(serializeNonceLE(nonce), offset);
+
+  return buffer;
+}
+
+export function serializeNonceLE(nonce: number): Uint8Array {
+  return new Uint8Array([
+    nonce & 0xff,
+    (nonce >> 8) & 0xff,
+    (nonce >> 16) & 0xff,
+    (nonce >> 24) & 0xff
+  ]);
+}
