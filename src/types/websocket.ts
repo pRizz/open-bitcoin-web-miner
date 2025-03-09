@@ -83,3 +83,15 @@ export function serializeNonceLE(nonce: number): Uint8Array {
     (nonce >> 24) & 0xff
   ]);
 }
+
+/**
+ * Deserializes a nonce from a Uint8Array in little-endian order
+ * @param nonceArray - The Uint8Array to deserialize
+ * @returns The deserialized nonce as a number
+ */
+export function deserializeNonceLE(nonceArray: Uint8Array): number {
+  return (nonceArray[0] << 0) |
+        (nonceArray[1] << 8) |
+        (nonceArray[2] << 16) |
+        (nonceArray[3] << 24);
+}

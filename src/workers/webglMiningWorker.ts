@@ -1,6 +1,7 @@
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
+import { serializeNonceLE } from "@/types/websocket";
 import { calculateLeadingZeroes } from "@/utils/mining";
-import { nonceToU8Array } from "@/utils/nonceUtils";
+import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 
 let running = false;
 let hashCount = 0;
@@ -255,7 +256,7 @@ function mine() {
       if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
         const solution: MiningSolution = {
           hash,
-          nonceVecU8: nonceToU8Array(nonce),
+          nonceVecU8: serializeNonceLE(nonce),
           maybeJobId: maybeCurrentChallenge.maybeJobId,
           maybeBlockHeader: maybeCurrentChallenge.blockHeader
         };

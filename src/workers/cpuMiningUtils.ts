@@ -24,13 +24,6 @@ export async function doubleSha256BlockHeader(blockHeader: NoncelessBlockHeader,
   return hashHex;
 }
 
-export function performHash(blockHeader: NoncelessBlockHeader, nonce: number): string {
-  // TODO: Implement actual SHA-256 hashing
-  let hash = '';
-  const chars = '0123456789abcdef';
-  // FIXME lol
-  for (let i = 0; i < 64; i++) {
-    hash += chars[Math.floor(Math.random() * 16)];
-  }
-  return hash;
+export async function performHash(blockHeader: NoncelessBlockHeader, nonce: number): Promise<string> {
+  return doubleSha256BlockHeader(blockHeader, nonce);
 }

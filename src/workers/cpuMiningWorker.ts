@@ -1,7 +1,7 @@
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
-import { NoncelessBlockHeader, serializeBlockHeader } from "@/types/websocket";
+import { deserializeNonceLE, NoncelessBlockHeader, serializeBlockHeader, serializeNonceLE } from "@/types/websocket";
 import { calculateLeadingZeroes } from "@/utils/mining";
-import { nonceToU8Array } from "@/utils/nonceUtils";
+import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 import { performHash } from "./cpuMiningUtils";
 
 let running = false;
@@ -64,7 +64,7 @@ function mine() {
     }
   };
 
-  const miningLoop = () => {
+  const miningLoop = async () => {
     if (!running || !maybeCurrentChallenge) return;
 
     try {
@@ -75,15 +75,20 @@ function mine() {
         // TODO: clamp nonce to 0xFFFFFFFF, and change header if needed
         nonce++;
 
-        const hash = performHash(maybeCurrentChallenge.blockHeader, nonce);
+        const hash = await performHash(maybeCurrentChallenge.blockHeader, nonce);
         hashCount++;
         batchCount++;
 
         const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
         if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
+          const nonceLE = serializeNonceLE(nonce);
+          console.log(`nonceLE: ${nonceLE}`)
+          const nonceBE = nonceToU8ArrayBE(nonce);
+          console.log(`nonceBE: ${nonceBE}`)
+
           const solution: MiningSolution = {
             hash,
-            nonceVecU8: nonceToU8Array(nonce),
+            nonceVecU8: serializeNonceLE(nonce),
             maybeJobId: maybeCurrentChallenge.maybeJobId,
             maybeBlockHeader: maybeCurrentChallenge.blockHeader
           };
@@ -101,7 +106,7 @@ function mine() {
       const targetTime = (BATCH_SIZE / 10000) * (100 / miningSpeed) * 100; // Adjust time based on mining speed
       const sleepTime = Math.max(0, targetTime - elapsedTime);
 
-      setTimeout(() => miningLoop(), sleepTime);
+      setTimeout(async () => await miningLoop(), sleepTime);
     } catch (error) {
       self.postMessage({
         type: 'error',

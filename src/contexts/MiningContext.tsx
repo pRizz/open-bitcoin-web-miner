@@ -8,9 +8,9 @@ import { useThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useGRPC } from "./GRPCContext";
 import API_CONFIG from "@/config/api";
-import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader } from "@/types/websocket";
+import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE } from "@/types/websocket";
 import { MiningWebSocketManager } from "./mining/useMiningWebSocket";
-import { u8ArrayToNonce } from "@/utils/nonceUtils";
+import { u8ArrayBEToNonce } from "@/utils/nonceUtils";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -87,6 +87,8 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         console.error('Invalid solution received: missing jobId or blockHeader');
         return;
       }
+      console.log("Found solution", solution);
+      console.log("leadingBinaryZeroes", leadingBinaryZeroes);
 
       const miningSubmission: MiningSubmission = {
         job_id: solution.maybeJobId,
@@ -98,12 +100,15 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       console.log(`Mining submission: ${JSON.stringify(miningSubmission)}`);
       addLog(`Mining submission: ${JSON.stringify(miningSubmission)}`);
 
+      const serializedBlockHeader = serializeBlockHeader(solution.maybeBlockHeader, deserializeNonceLE(solution.nonceVecU8));
+      console.log("serializedBlockHeader", serializedBlockHeader);
+
       submitSolution(miningSubmission);
 
       const solutionStats: HashSolution = {
         id: crypto.randomUUID(),
         hash: solution.hash,
-        nonce: u8ArrayToNonce(solution.nonceVecU8),
+        nonce: deserializeNonceLE(solution.nonceVecU8),
         timestamp: Date.now(),
         merkleRoot: Array.from(new Uint8Array(solution.maybeBlockHeader.merkle_root))
           .map(b => b.toString(16).padStart(2, '0'))

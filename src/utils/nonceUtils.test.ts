@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { nonceToU8Array, u8ArrayToNonce } from './nonceUtils';
+import { nonceToU8ArrayBE, u8ArrayBEToNonce } from './nonceUtils';
 
 describe('nonceToU8Array', () => {
   it('should convert 0 to four zero bytes', () => {
@@ -7,7 +7,7 @@ describe('nonceToU8Array', () => {
     const nonce = 0;
 
     // Act
-    const result = nonceToU8Array(nonce);
+    const result = nonceToU8ArrayBE(nonce);
 
     // Assert
     expect(Array.from(result)).toEqual([0, 0, 0, 0]);
@@ -18,7 +18,7 @@ describe('nonceToU8Array', () => {
     const nonce = 0xFFFFFFFF;
 
     // Act
-    const result = nonceToU8Array(nonce);
+    const result = nonceToU8ArrayBE(nonce);
 
     // Assert
     expect(Array.from(result)).toEqual([255, 255, 255, 255]);
@@ -29,7 +29,7 @@ describe('nonceToU8Array', () => {
     const nonce = 0x12345678;
 
     // Act
-    const result = nonceToU8Array(nonce);
+    const result = nonceToU8ArrayBE(nonce);
 
     // Assert
     expect(Array.from(result)).toEqual([0x12, 0x34, 0x56, 0x78]);
@@ -40,7 +40,7 @@ describe('nonceToU8Array', () => {
     const nonce = -1;
 
     // Act & Assert
-    expect(() => nonceToU8Array(nonce)).toThrow('Nonce must be a positive integer between 0 and 2^32-1');
+    expect(() => nonceToU8ArrayBE(nonce)).toThrow('Nonce must be a positive integer between 0 and 2^32-1');
   });
 
   it('should throw error for numbers above u32 max', () => {
@@ -48,7 +48,7 @@ describe('nonceToU8Array', () => {
     const nonce = 0xFFFFFFFF + 1;
 
     // Act & Assert
-    expect(() => nonceToU8Array(nonce)).toThrow('Nonce must be a positive integer between 0 and 2^32-1');
+    expect(() => nonceToU8ArrayBE(nonce)).toThrow('Nonce must be a positive integer between 0 and 2^32-1');
   });
 });
 
@@ -58,7 +58,7 @@ describe('u8ArrayToNonce', () => {
     const bytes = new Uint8Array([0, 0, 0, 0]);
 
     // Act
-    const result = u8ArrayToNonce(bytes);
+    const result = u8ArrayBEToNonce(bytes);
 
     // Assert
     expect(result).toBe(0);
@@ -69,7 +69,7 @@ describe('u8ArrayToNonce', () => {
     const bytes = new Uint8Array([255, 255, 255, 255]);
 
     // Act
-    const result = u8ArrayToNonce(bytes);
+    const result = u8ArrayBEToNonce(bytes);
 
     // Assert
     expect(result).toBe(0xFFFFFFFF);
@@ -80,7 +80,7 @@ describe('u8ArrayToNonce', () => {
     const bytes = new Uint8Array([0x12, 0x34, 0x56, 0x78]);
 
     // Act
-    const result = u8ArrayToNonce(bytes);
+    const result = u8ArrayBEToNonce(bytes);
 
     // Assert
     expect(result).toBe(0x12345678);
@@ -91,7 +91,7 @@ describe('u8ArrayToNonce', () => {
     const bytes = new Uint8Array([1, 2, 3]);
 
     // Act & Assert
-    expect(() => u8ArrayToNonce(bytes)).toThrow('Input must be exactly 4 bytes');
+    expect(() => u8ArrayBEToNonce(bytes)).toThrow('Input must be exactly 4 bytes');
   });
 });
 
@@ -101,8 +101,8 @@ describe('roundtrip conversion', () => {
     const originalNonce = 0x12345678;
 
     // Act
-    const bytes = nonceToU8Array(originalNonce);
-    const resultNonce = u8ArrayToNonce(bytes);
+    const bytes = nonceToU8ArrayBE(originalNonce);
+    const resultNonce = u8ArrayBEToNonce(bytes);
 
     // Assert
     expect(resultNonce).toBe(originalNonce);
