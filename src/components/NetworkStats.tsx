@@ -47,7 +47,6 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
       : 'http://localhost:3007';
 
     // Update the environment variable
-    // @ts-ignore - we know this exists in Vite
     import.meta.env.VITE_API_URL = newUrl;
     API_CONFIG.baseUrl = newUrl;
 
