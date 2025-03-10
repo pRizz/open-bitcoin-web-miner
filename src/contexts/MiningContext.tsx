@@ -46,7 +46,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   console.log("MiningProvider constructor called");
   const { addLog } = useDebug();
   const [webSocketManager] = useState(MiningWebSocketManager());
-
+  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
   const {
     miningStats,
     updateMiningStats,
@@ -55,12 +55,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     startMining: startMiningStats,
     stopMining: stopMiningStats,
   } = useMiningState();
-
-  const [networkStats, setNetworkStats] = useState({
-    blockHeight: 0,
-    difficulty: 0,
-    requiredBinaryZeroes: 0,
-  });
 
   const [isMining, setIsMining] = useState(false);
   const [btcAddress, setBtcAddress] = useState("");
@@ -118,7 +112,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         hexZeroes: leadingHexZeroes,
         timeToFind: 0,
       };
-      updateMiningStats(solutionStats, networkStats.requiredBinaryZeroes);
+      updateMiningStats(solutionStats);
     }
   );
 

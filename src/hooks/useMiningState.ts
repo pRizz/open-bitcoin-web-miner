@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { MiningStats, HashSolution } from "@/types/mining";
 import { useToast } from "@/hooks/use-toast";
-
+import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 const STORAGE_KEY = "bitcoin-mining-simulator";
 
 export const useMiningState = () => {
   console.log("useMiningState called");
   const { toast } = useToast();
+  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
   const [miningStats, setMiningStats] = useState<MiningStats>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {
@@ -17,7 +18,7 @@ export const useMiningState = () => {
     };
   });
 
-  const updateMiningStats = (solution: HashSolution, networkRequiredZeroes: number) => {
+  const updateMiningStats = (solution: HashSolution) => {
     setMiningStats(prev => {
       const currentBest = prev.maybeBestHashes[0];
 
@@ -30,7 +31,7 @@ export const useMiningState = () => {
           .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
           .slice(0, 100);
 
-        if (solution.binaryZeroes >= networkRequiredZeroes) {
+        if (solution.binaryZeroes >= maybeRequiredBinaryZeroes) {
           toast({
             title: "Block Found!",
             description: `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`,
