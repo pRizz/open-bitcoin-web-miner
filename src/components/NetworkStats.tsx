@@ -1,7 +1,6 @@
-
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Loader2 } from "lucide-react";
 import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
 import { formatLargeNumber } from "@/utils/formatters";
 import { Switch } from "@/components/ui/switch";
@@ -28,6 +27,20 @@ const RANDOM_SELECTION_PROBABILITIES = [
   { odds: "1 in 1 quindecillion", value: 1e48, description: "picking the correct electron in the observable universe (~1 quindecillion electrons)" },
   { odds: "1 in 1 sexdecillion", value: 1e51, description: "picking the correct hydrogen atom in the entire Milky Way (~1 sexdecillion atoms)" }
 ];
+
+function Spinner() {
+  return <Loader2 className="h-4 w-4 animate-spin" />;
+}
+
+function StatValue({ children, isLoading }: { children: React.ReactNode, isLoading: boolean }) {
+  if (isLoading) {
+    return <div className="flex items-center gap-2 h-[28px]">
+      <Spinner />
+      <span className="text-gray-400">Loading...</span>
+    </div>;
+  }
+  return <p className="text-xl font-mono">{children}</p>;
+}
 
 export function NetworkStats() {
   const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes } = useNetworkInfo();
@@ -66,8 +79,8 @@ export function NetworkStats() {
     });
   };
 
-  const probability = calculateProbability(maybeRequiredBinaryZeroes);
-  const comparison = findClosestComparison(probability);
+  const probability = maybeRequiredBinaryZeroes ? calculateProbability(maybeRequiredBinaryZeroes) : undefined;
+  const comparison = probability ? findClosestComparison(probability) : undefined;
 
   return (
     <Card className="p-6 glass-card">
@@ -85,11 +98,15 @@ export function NetworkStats() {
       <div className="space-y-4">
         <div>
           <label className="text-sm text-gray-400">Block Height</label>
-          <p className="text-xl font-mono">{maybeBlockHeight?.toLocaleString()}</p>
+          <StatValue isLoading={maybeBlockHeight === undefined}>
+            {maybeBlockHeight?.toLocaleString()}
+          </StatValue>
         </div>
         <div>
           <label className="text-sm text-gray-400">Network Difficulty</label>
-          <p className="text-xl font-mono">{(maybeNetworkDifficulty / 1e12).toFixed(2)} T</p>
+          <StatValue isLoading={maybeNetworkDifficulty === undefined}>
+            {maybeNetworkDifficulty !== undefined && `${(maybeNetworkDifficulty / 1e12).toFixed(2)} T`}
+          </StatValue>
         </div>
         <div>
           <label className="text-sm text-gray-400 flex items-center gap-2">
@@ -101,15 +118,21 @@ export function NetworkStats() {
               <BinaryZeroesHelp />
             </Dialog>
           </label>
-          <p className="text-xl font-mono">{maybeRequiredBinaryZeroes}</p>
+          <StatValue isLoading={maybeRequiredBinaryZeroes === undefined}>
+            {maybeRequiredBinaryZeroes}
+          </StatValue>
         </div>
         <div>
           <label className="text-sm text-gray-400">The Odds Any Random Hash Will Mine a Block</label>
-          <p className="text-xl font-mono">1 in {formatLargeNumber(Math.pow(2, maybeRequiredBinaryZeroes))}</p>
+          <StatValue isLoading={maybeRequiredBinaryZeroes === undefined}>
+            {maybeRequiredBinaryZeroes !== undefined && `1 in ${formatLargeNumber(Math.pow(2, maybeRequiredBinaryZeroes))}`}
+          </StatValue>
         </div>
         <div>
           <label className="text-sm text-gray-400">To Put That In Perspective...</label>
-          <p className="text-xl font-mono">That's similar to {comparison.description}</p>
+          <StatValue isLoading={!comparison}>
+            {comparison && `That's similar to ${comparison.description}`}
+          </StatValue>
         </div>
       </div>
     </Card>

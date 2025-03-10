@@ -15,15 +15,19 @@ interface NetworkInfoResponse {
 }
 
 export interface NetworkInfoContextType {
-  maybeBlockHeight?: number;
-  maybeNetworkDifficulty?: number;
-  maybeRequiredBinaryZeroes?: number;
+  maybeBlockHeight: number | undefined;
+  maybeNetworkDifficulty: number | undefined;
+  maybeRequiredBinaryZeroes: number | undefined;
 }
 
 const NetworkInfoContext = createContext<NetworkInfoContextType | undefined>(undefined);
 
 export function NetworkInfoProvider({ children }: { children: React.ReactNode }) {
-  const [networkInfo, setNetworkInfo] = useState<NetworkInfoContextType>({});
+  const [networkInfo, setNetworkInfo] = useState<NetworkInfoContextType>({
+    maybeBlockHeight: undefined,
+    maybeNetworkDifficulty: undefined,
+    maybeRequiredBinaryZeroes: undefined
+  });
 
   useEffect(() => {
     const fetchAndSetNetworkInfo = async () => {
