@@ -6,7 +6,7 @@ import { MiningContextType } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
-import { useGRPC } from "./GRPCContext";
+import { useNetworkInfo } from "./NetworkInfoContext";
 import API_CONFIG from "@/config/api";
 import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE } from "@/types/websocket";
 import { MiningWebSocketManager } from "./mining/useMiningWebSocket";
@@ -17,11 +17,6 @@ const defaultContext: MiningContextType = {
     maybeBlockHeight: 0,
     maybeDifficulty: 0,
     maybeRequiredBinaryZeroes: 0,
-  },
-  networkStats: {
-    blockHeight: 0,
-    difficulty: 0,
-    requiredBinaryZeroes: 0,
   },
   isMining: false,
   btcAddress: "",
@@ -50,7 +45,6 @@ function getNumberFromArrayOfBytes(array: number[]): number {
 export function MiningProvider({ children }: { children: React.ReactNode }) {
   console.log("MiningProvider constructor called");
   const { addLog } = useDebug();
-  const { getNetworkInfo } = useGRPC();
   const [webSocketManager] = useState(MiningWebSocketManager());
 
   const {
@@ -218,35 +212,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   }, [isMining, addLog]);
 
   useEffect(() => {
-    const updateNetworkInfo = async () => {
-      try {
-        const info = await getNetworkInfo();
-        if (info?.blockHeight && info?.networkDifficulty) {
-          const requiredZeroes = calculateRequiredBinaryZeroes(info.networkDifficulty);
-          setNetworkStats({
-            blockHeight: info.blockHeight,
-            difficulty: info.networkDifficulty,
-            requiredBinaryZeroes: requiredZeroes,
-          });
-          addLog(`Network difficulty updated: ${info.networkDifficulty}, required zeros: ${requiredZeroes}`);
-        } else {
-          addLog(`Failed to parse values from network info: ${JSON.stringify(info)}`);
-          console.log(`Failed to parse values from network info: ${JSON.stringify(info)}`);
-        }
-
-      } catch (error) {
-        addLog(`Failed to fetch network info: ${error}`);
-      }
-
-    };
-
-    updateNetworkInfo();
-    const interval = setInterval(updateNetworkInfo, 30000); // Update every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [getNetworkInfo, addLog]);
-
-  useEffect(() => {
     return () => {
       disconnectWebSocket();
     };
@@ -256,7 +221,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     <MiningContext.Provider
       value={{
         miningStats,
-        networkStats,
         isMining,
         btcAddress,
         miningSpeed,

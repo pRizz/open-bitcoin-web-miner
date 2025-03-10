@@ -1,11 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { calculateSecondsToFindBlock, formatTime } from "@/utils/mining";
-import { NetworkStats } from "@/types/mining";
+import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 
 interface ProbabilityInfoProps {
   hashRate: number;
-  networkStats: NetworkStats;
 }
 
 const CONFIDENCE_LEVELS = [
@@ -14,7 +13,8 @@ const CONFIDENCE_LEVELS = [
   { confidence: 0.95, label: "95%" },
 ];
 
-export function ProbabilityInfo({ hashRate, networkStats }: ProbabilityInfoProps) {
+export function ProbabilityInfo({ hashRate }: ProbabilityInfoProps) {
+  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
   return (
     <div className="text-right text-sm text-gray-400">
       <div className="font-semibold mb-1 flex items-center justify-end gap-2">
@@ -61,7 +61,7 @@ export function ProbabilityInfo({ hashRate, networkStats }: ProbabilityInfoProps
         <div key={label} className="flex justify-end gap-2">
           <span>{label} chance of finding a block solution in</span>
           <span>
-            {formatTime(calculateSecondsToFindBlock(hashRate, networkStats.requiredBinaryZeroes, confidence))}
+            {formatTime(calculateSecondsToFindBlock(hashRate, maybeRequiredBinaryZeroes, confidence))}
           </span>
         </div>
       ))}

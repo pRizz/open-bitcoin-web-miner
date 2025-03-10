@@ -32,12 +32,6 @@ export interface MiningSolution {
   maybeBlockHeader?: NoncelessBlockHeader;
 }
 
-export interface NetworkStats {
-  blockHeight: number;
-  difficulty: number;
-  requiredBinaryZeroes: number;
-}
-
 export type MiningMode = "cpu" | "webgl" | "webgpu";
 
 export interface MiningChallenge {

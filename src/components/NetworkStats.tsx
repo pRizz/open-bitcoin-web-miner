@@ -1,6 +1,5 @@
 
 import { Card } from "@/components/ui/card";
-import { NetworkStats as NetworkStatsType } from "@/types/mining";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
@@ -9,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import API_CONFIG from "@/config/api";
 import { toast } from "sonner";
+import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 
 const RANDOM_SELECTION_PROBABILITIES = [
   { odds: "1 in 1 million", value: 1e6, description: "picking the correct resident of San Francisco (~1M people)" },
@@ -29,11 +29,8 @@ const RANDOM_SELECTION_PROBABILITIES = [
   { odds: "1 in 1 sexdecillion", value: 1e51, description: "picking the correct hydrogen atom in the entire Milky Way (~1 sexdecillion atoms)" }
 ];
 
-interface NetworkStatsProps {
-  stats: NetworkStatsType;
-}
-
-export function NetworkStats({ stats }: NetworkStatsProps) {
+export function NetworkStats() {
+  const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes } = useNetworkInfo();
   const [isLocalhost, setIsLocalhost] = useState(true);
 
   useEffect(() => {
@@ -69,7 +66,7 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
     });
   };
 
-  const probability = calculateProbability(stats.requiredBinaryZeroes);
+  const probability = calculateProbability(maybeRequiredBinaryZeroes);
   const comparison = findClosestComparison(probability);
 
   return (
@@ -88,11 +85,11 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
       <div className="space-y-4">
         <div>
           <label className="text-sm text-gray-400">Block Height</label>
-          <p className="text-xl font-mono">{stats.blockHeight.toLocaleString()}</p>
+          <p className="text-xl font-mono">{maybeBlockHeight?.toLocaleString()}</p>
         </div>
         <div>
           <label className="text-sm text-gray-400">Network Difficulty</label>
-          <p className="text-xl font-mono">{(stats.difficulty / 1e12).toFixed(2)} T</p>
+          <p className="text-xl font-mono">{(maybeNetworkDifficulty / 1e12).toFixed(2)} T</p>
         </div>
         <div>
           <label className="text-sm text-gray-400 flex items-center gap-2">
@@ -104,11 +101,11 @@ export function NetworkStats({ stats }: NetworkStatsProps) {
               <BinaryZeroesHelp />
             </Dialog>
           </label>
-          <p className="text-xl font-mono">{stats.requiredBinaryZeroes}</p>
+          <p className="text-xl font-mono">{maybeRequiredBinaryZeroes}</p>
         </div>
         <div>
           <label className="text-sm text-gray-400">The Odds Any Random Hash Will Mine a Block</label>
-          <p className="text-xl font-mono">1 in {formatLargeNumber(Math.pow(2, stats.requiredBinaryZeroes))}</p>
+          <p className="text-xl font-mono">1 in {formatLargeNumber(Math.pow(2, maybeRequiredBinaryZeroes))}</p>
         </div>
         <div>
           <label className="text-sm text-gray-400">To Put That In Perspective...</label>

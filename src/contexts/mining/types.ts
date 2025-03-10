@@ -1,4 +1,4 @@
-import { MiningStats, NetworkStats, MiningMode } from "@/types/mining";
+import { MiningStats, MiningMode } from "@/types/mining";
 import { MiningSubmission } from "@/types/websocket";
 
 export interface GPUCapabilities {
@@ -16,7 +16,6 @@ export interface GPUCapabilities {
 
 export interface MiningContextType {
   miningStats: MiningStats;
-  networkStats: NetworkStats;
   isMining: boolean;
   btcAddress: string;
   miningSpeed: number;

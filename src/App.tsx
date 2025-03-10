@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { MiningProvider } from "@/contexts/MiningContext";
 import { ShareProvider } from "@/contexts/ShareContext";
 import { DebugProvider } from "@/contexts/DebugContext";
-import { GRPCProvider } from "@/contexts/GRPCContext";
+import { NetworkInfoProvider } from "@/contexts/NetworkInfoContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
@@ -32,14 +32,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DebugProvider>
-        <GRPCProvider>
+        <NetworkInfoProvider>
           <MiningProvider>
             <ShareProvider>
               <RouterProvider router={router} />
               <Toaster />
             </ShareProvider>
           </MiningProvider>
-        </GRPCProvider>
+        </NetworkInfoProvider>
       </DebugProvider>
     </QueryClientProvider>
   );

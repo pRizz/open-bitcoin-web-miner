@@ -14,7 +14,6 @@ interface HashRateGaugeProps {
 }
 
 export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
-  const { networkStats } = useMining();
   const maxHashRate = 100e12; // 100 TH/s (Antminer S21)
 
   // Use logarithmic scale for better visualization of small hash rates
@@ -37,7 +36,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
       </div>
 
       <div className="mt-8">
-        <ProbabilityInfo hashRate={hashRate} networkStats={networkStats} />
+        <ProbabilityInfo hashRate={hashRate} />
       </div>
     </Card>
   );

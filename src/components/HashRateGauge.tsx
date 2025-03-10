@@ -1,8 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { formatHashRate, calculateSecondsToFindBlock, formatTime } from "@/utils/mining";
-import { useMining } from "@/contexts/MiningContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
+import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 
 interface MinerReference {
   hashRate: number;
@@ -28,7 +28,7 @@ interface HashRateGaugeProps {
 }
 
 export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
-  const { networkStats } = useMining();
+  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
   const maxHashRate = 100e12; // 100 TH/s (Antminer S21)
 
   // Use logarithmic scale for better visualization of small hash rates
@@ -112,7 +112,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
           </div>
           {CONFIDENCE_LEVELS.map(({ confidence, label }) => (
             <div key={label} className="flex justify-end gap-2">
-              <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(hashRate, networkStats.requiredBinaryZeroes, confidence))}</span>
+              <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(hashRate, maybeRequiredBinaryZeroes, confidence))}</span>
             </div>
           ))}
         </div>

@@ -14,7 +14,6 @@ const Index = () => {
   const [searchParams] = useSearchParams();
   const {
     miningStats,
-    networkStats,
     isMining,
     startMining,
     setBtcAddress,
@@ -43,7 +42,7 @@ const Index = () => {
             <MiningControls />
           </Card>
 
-          <NetworkStats stats={networkStats} />
+          <NetworkStats />
         </div>
 
         <HashRateGauge hashRate={miningStats.maybeHashRate} />
