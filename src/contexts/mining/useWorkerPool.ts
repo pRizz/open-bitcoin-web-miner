@@ -62,6 +62,7 @@ export const useWorkerPool = (
     console.log("Current worker pool state:", workerPool ? "exists" : "null");
     setCurrentChallenge(prev => {
       if (challenge.maybeKeepExisting && prev) {
+        console.log("Keeping existing challenge; updating block header");
         return {
           ...prev,
           blockHeader: challenge.blockHeader
@@ -71,6 +72,7 @@ export const useWorkerPool = (
     });
 
     if (workerPool.current) {
+      console.log("Updating challenge in worker pool");
       workerPool.current.updateChallenge(challenge);
       workerPool.current.start(challenge, miningSpeed);
     }

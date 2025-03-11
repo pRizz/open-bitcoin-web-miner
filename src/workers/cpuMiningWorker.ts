@@ -3,12 +3,24 @@ import { deserializeNonceLE, NoncelessBlockHeader, serializeBlockHeader, seriali
 import { calculateLeadingZeroes } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 import { performHash } from "./cpuMiningUtils";
+import { WorkerMessage } from "./WorkerPool";
 
-let running = false;
-let hashCount = 0;
-let lastHashRateUpdate = Date.now();
-let miningSpeed = 100;
-let maybeCurrentChallenge: MiningChallenge | null = null;
+interface MiningState {
+  running: boolean;
+  hashCount: number;
+  lastHashRateUpdate: number;
+  miningSpeed: number;
+  maybeCurrentChallenge: MiningChallenge | null;
+}
+
+const state: MiningState = {
+  running: false,
+  hashCount: 0,
+  lastHashRateUpdate: Date.now(),
+  miningSpeed: 100,
+  maybeCurrentChallenge: null,
+};
+
 const HASH_RATE_UPDATE_INTERVAL = 1000; // 1 second
 const BATCH_SIZE = 10000;
 
@@ -19,68 +31,68 @@ self.onerror = (error: ErrorEvent | string) => {
     type: 'error',
     data: `Mining worker error: ${errorMessage}`,
   });
-  running = false;
+  state.running = false;
 };
 
-interface WorkerMessage {
-  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
-  maybeChallenge?: MiningChallenge;
-  maybeMiningSpeed?: number;
-  maybeWorkerId?: number;
-}
-
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
+  console.log("Received message in worker:", e.data);
   const { type, maybeChallenge: maybeNewChallenge, maybeMiningSpeed: maybeNewSpeed } = e.data;
 
   if (type === 'start' && maybeNewChallenge) {
-    running = true;
-    miningSpeed = maybeNewSpeed ?? 100;
-    maybeCurrentChallenge = maybeNewChallenge;
+    state.running = true;
+    state.miningSpeed = maybeNewSpeed ?? 100;
+    state.maybeCurrentChallenge = maybeNewChallenge;
     mine();
   } else if (type === 'stop') {
-    running = false;
-    maybeCurrentChallenge = null;
+    state.running = false;
+    state.maybeCurrentChallenge = null;
   } else if (type === 'updateSpeed') {
-    miningSpeed = maybeNewSpeed ?? 100;
+    state.miningSpeed = maybeNewSpeed ?? 100;
   } else if (type === 'updateChallenge' && maybeNewChallenge) {
-    maybeCurrentChallenge = maybeNewChallenge;
+    console.log("Updating challenge in worker");
+    state.maybeCurrentChallenge = maybeNewChallenge;
     // No need to restart mining, the loop will pick up the new challenge
   }
 };
 
 function mine() {
-  if (!maybeCurrentChallenge) return;
+  if (!state.maybeCurrentChallenge) return;
 
-  let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
+  let nonce = 0;
 
   const updateHashRate = () => {
     const now = Date.now();
-    const elapsed = now - lastHashRateUpdate;
+    const elapsed = now - state.lastHashRateUpdate;
     if (elapsed >= HASH_RATE_UPDATE_INTERVAL) {
-      const hashRate = (hashCount * 1000) / elapsed;
+      const hashRate = (state.hashCount * 1000) / elapsed;
       self.postMessage({ type: 'hashRate', data: hashRate });
-      hashCount = 0;
-      lastHashRateUpdate = now;
+      state.hashCount = 0;
+      state.lastHashRateUpdate = now;
     }
   };
 
   const miningLoop = async () => {
-    if (!running || !maybeCurrentChallenge) return;
+    if (!state.running || !state.maybeCurrentChallenge) return;
 
     try {
       const startTime = Date.now();
       let batchCount = 0;
 
-      while (running && batchCount < BATCH_SIZE) {
+      while (state.running && batchCount < BATCH_SIZE) {
         // TODO: clamp nonce to 0xFFFFFFFF, and change header if needed
         nonce++;
-
-        const hash = await performHash(maybeCurrentChallenge.blockHeader, nonce);
-        hashCount++;
+        if (nonce > 0xFFFFFFFF) {
+          console.error("Nonce overflowed, resetting to 0");
+          nonce = 0;
+        }
+        
+        const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
+        state.hashCount++;
         batchCount++;
 
         const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
-        if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
+        if (binary >= (state.maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
+          console.log("Nonce:", nonce);
           const nonceLE = serializeNonceLE(nonce);
           console.log(`nonceLE: ${nonceLE}`)
           const nonceBE = nonceToU8ArrayBE(nonce);
@@ -89,8 +101,8 @@ function mine() {
           const solution: MiningSolution = {
             hash,
             nonceVecU8: serializeNonceLE(nonce),
-            maybeJobId: maybeCurrentChallenge.maybeJobId,
-            maybeBlockHeader: maybeCurrentChallenge.blockHeader
+            maybeJobId: state.maybeCurrentChallenge.maybeJobId,
+            maybeBlockHeader: state.maybeCurrentChallenge.blockHeader
           };
           self.postMessage({
             type: 'hash',
@@ -103,7 +115,7 @@ function mine() {
 
       // Calculate sleep time based on mining speed
       const elapsedTime = Date.now() - startTime;
-      const targetTime = (BATCH_SIZE / 10000) * (100 / miningSpeed) * 100; // Adjust time based on mining speed
+      const targetTime = (BATCH_SIZE / 10000) * (100 / state.miningSpeed) * 100; // Adjust time based on mining speed
       const sleepTime = Math.max(0, targetTime - elapsedTime);
 
       setTimeout(async () => await miningLoop(), sleepTime);
@@ -112,7 +124,7 @@ function mine() {
         type: 'error',
         data: `Mining error: ${error instanceof Error ? error.message : String(error)}`,
       });
-      running = false;
+      state.running = false;
     }
   };
 

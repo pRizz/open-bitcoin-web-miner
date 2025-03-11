@@ -1,6 +1,13 @@
 import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
 import { NoncelessBlockHeader } from "@/types/websocket";
 
+export interface WorkerMessage {
+  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
+  maybeChallenge?: MiningChallenge;
+  maybeMiningSpeed?: number;
+  maybeWorkerId?: number;
+}
+
 export class WorkerPool {
   private cpuWorkers: Worker[] = [];
   private maybeWebGLWorker: Worker | null = null;
@@ -193,12 +200,13 @@ export class WorkerPool {
   }
 
   private startWorker(worker: Worker, workerId?: number) {
-    worker.postMessage({
+    const message: WorkerMessage = {
       type: "start",
       maybeChallenge: this.maybeCurrentChallenge,
       maybeMiningSpeed: this.currentMiningSpeed,
       maybeWorkerId: workerId,
-    });
+    };
+    worker.postMessage(message);
   }
 
   stop() {
@@ -246,18 +254,20 @@ export class WorkerPool {
 
     this.currentMiningSpeed = miningSpeed;
     this.cpuWorkers.forEach(worker => {
-      worker.postMessage({
+      const message: WorkerMessage = {
         type: "updateSpeed",
-        miningSpeed,
-      });
+        maybeMiningSpeed: miningSpeed,
+      };
+      worker.postMessage(message);
     });
 
     const updateWorker = (maybeWorker: Worker | null) => {
       if (maybeWorker) {
-        maybeWorker.postMessage({
+        const message: WorkerMessage = {
           type: "updateSpeed",
-          miningSpeed,
-        });
+          maybeMiningSpeed: miningSpeed,
+        };
+        maybeWorker.postMessage(message);
       }
     };
 
@@ -266,6 +276,7 @@ export class WorkerPool {
   }
 
   updateChallenge(challenge: MiningChallenge & { maybeKeepExisting?: boolean }) {
+    console.log("Updating challenge in worker pool:", challenge);
     if (challenge.maybeKeepExisting && this.maybeCurrentChallenge) {
       // Only update the block header, keep existing jobId and targetZeros
       this.maybeCurrentChallenge = {
@@ -277,9 +288,9 @@ export class WorkerPool {
     }
 
     // Update all active workers with new challenge
-    const message = {
+    const message: WorkerMessage = {
       type: "updateChallenge",
-      challenge: this.maybeCurrentChallenge
+      maybeChallenge: this.maybeCurrentChallenge
     };
 
     this.cpuWorkers.forEach(worker => worker.postMessage(message));
