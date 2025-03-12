@@ -85,7 +85,7 @@ function mine() {
           console.error("Nonce overflowed, resetting to 0");
           nonce = 0;
         }
-        
+
         const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
         state.hashCount++;
         batchCount++;

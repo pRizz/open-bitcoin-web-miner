@@ -4,6 +4,30 @@ import { Outlet, useLocation } from "react-router-dom";
 import { ShareControls } from "@/components/mining/ShareControls";
 import { useMining } from "@/contexts/MiningContext";
 import { useShare } from "@/contexts/ShareContext";
+import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
+import { cn } from "@/lib/utils";
+
+function MinerCountIndicator() {
+  const { maybeConnectedMinerCount } = useNetworkInfo();
+  const isConnected = maybeConnectedMinerCount !== undefined;
+
+  return (
+    <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          "w-2 h-2 rounded-full",
+          isConnected ? "bg-green-500" : "bg-gray-400"
+        )}
+      />
+      <span className="text-sm text-gray-300">
+        {isConnected
+          ? `${maybeConnectedMinerCount} ${maybeConnectedMinerCount === 1 ? 'miner' : 'miners'} connected`
+          : 'Connecting...'
+        }
+      </span>
+    </div>
+  );
+}
 
 export function AppLayout() {
   const location = useLocation();
@@ -24,13 +48,16 @@ export function AppLayout() {
               <SidebarTrigger className="h-8 w-8" />
               <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
             </div>
-            {location.pathname === "/" && (
-              <ShareControls
-                includeAutoStart={includeAutoStart}
-                includeAddress={includeAddress}
-                btcAddress={btcAddress}
-              />
-            )}
+            <div className="flex items-center gap-4">
+              <MinerCountIndicator />
+              {location.pathname === "/" && (
+                <ShareControls
+                  includeAutoStart={includeAutoStart}
+                  includeAddress={includeAddress}
+                  btcAddress={btcAddress}
+                />
+              )}
+            </div>
           </div>
           <Outlet />
         </main>

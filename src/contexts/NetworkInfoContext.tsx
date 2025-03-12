@@ -14,10 +14,20 @@ interface NetworkInfoResponse {
   status: string;
 }
 
+interface WebsocketCountResponse {
+  status: string;
+  data: {
+    connected_websocket_count: number;
+    connected_miner_count: number;
+  };
+}
+
 export interface NetworkInfoContextType {
   maybeBlockHeight: number | undefined;
   maybeNetworkDifficulty: number | undefined;
   maybeRequiredBinaryZeroes: number | undefined;
+  maybeConnectedWebsocketCount: number | undefined;
+  maybeConnectedMinerCount: number | undefined;
 }
 
 const NetworkInfoContext = createContext<NetworkInfoContextType | undefined>(undefined);
@@ -26,35 +36,51 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
   const [networkInfo, setNetworkInfo] = useState<NetworkInfoContextType>({
     maybeBlockHeight: undefined,
     maybeNetworkDifficulty: undefined,
-    maybeRequiredBinaryZeroes: undefined
+    maybeRequiredBinaryZeroes: undefined,
+    maybeConnectedWebsocketCount: undefined,
+    maybeConnectedMinerCount: undefined
   });
 
   useEffect(() => {
     const fetchAndSetNetworkInfo = async () => {
       try {
-        const response = await fetch(`${API_CONFIG.baseUrl}/network-info`);
-        const data: NetworkInfoResponse = await response.json();
+        const [networkResponse, websocketResponse] = await Promise.all([
+          fetch(`${API_CONFIG.baseUrl}/network-info`),
+          fetch(`${API_CONFIG.baseUrl}/websocket-count`)
+        ]);
 
-        if (data.status !== 'success') {
-          console.error('Network info response is not success:', data);
+        const networkData: NetworkInfoResponse = await networkResponse.json();
+        const websocketData: WebsocketCountResponse = await websocketResponse.json();
+
+        if (networkData.status !== 'success' || websocketData.status !== 'success') {
+          console.error('One or more responses not successful:', { networkData, websocketData });
           return;
         }
 
-        if (!data.data.result.Ok) {
-          console.error('Network info response is not Ok:', data);
+        if (!networkData.data.result.Ok) {
+          console.error('Network info response is not Ok:', networkData);
           return;
         }
 
-        const { block_height, network_difficulty } = data.data.result.Ok;
+        const { block_height, network_difficulty } = networkData.data.result.Ok;
+        const { connected_websocket_count, connected_miner_count } = websocketData.data;
+        console.log('Connected websocket count:', connected_websocket_count);
+        console.log('Connected miners count:', connected_miner_count);
+        console.log('Network difficulty:', network_difficulty);
+        console.log('Block height:', block_height);
 
         // Only update if values are different
         if (block_height !== networkInfo.maybeBlockHeight ||
-              network_difficulty !== networkInfo.maybeNetworkDifficulty) {
+            network_difficulty !== networkInfo.maybeNetworkDifficulty ||
+            connected_websocket_count !== networkInfo.maybeConnectedWebsocketCount ||
+            connected_miner_count !== networkInfo.maybeConnectedMinerCount) {
           const requiredZeroes = calculateRequiredBinaryZeroes(network_difficulty);
           setNetworkInfo({
             maybeBlockHeight: block_height,
             maybeNetworkDifficulty: network_difficulty,
-            maybeRequiredBinaryZeroes: requiredZeroes
+            maybeRequiredBinaryZeroes: requiredZeroes,
+            maybeConnectedWebsocketCount: connected_websocket_count,
+            maybeConnectedMinerCount: connected_miner_count
           });
         }
 
