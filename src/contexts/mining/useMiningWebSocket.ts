@@ -1,11 +1,11 @@
-import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader } from "@/types/websocket";
+import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, DifficultyUpdate } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
 import { useRef } from "react";
 
 interface WebSocketCallbacks {
   onNewChallenge: (jobId: string, blockHeader: NoncelessBlockHeader, targetZeros: number) => void;
   onBlockTemplateUpdate: (blockHeader: NoncelessBlockHeader) => void;
-  onSubmissionResponse: (status: string, message: string) => void;
+  onSubmissionResponse: (status: string, message: string, maybeDifficultyUpdate: DifficultyUpdate | null) => void;
   onConnectionStateChange: (connected: boolean) => void;
   onError: (error: string) => void;
 }
@@ -55,8 +55,8 @@ export function MiningWebSocketManager() {
           break;
         }
         case "SubmissionResponse": {
-          const { status, message: responseMessage } = message.data;
-          maybeCallbacks.current?.onSubmissionResponse(status.toString(), responseMessage);
+          const { status, message: responseMessage, maybe_difficulty_update } = message.data;
+          maybeCallbacks.current?.onSubmissionResponse(status.toString(), responseMessage, maybe_difficulty_update);
           break;
         }
         case "BlockTemplateUpdate": {

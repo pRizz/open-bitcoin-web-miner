@@ -159,8 +159,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const miningWebSocketManagerCallbacks = {
     onNewChallenge: handleNewChallenge,
     onBlockTemplateUpdate: handleBlockTemplateUpdate,
-    onSubmissionResponse: (status, message) => {
+    onSubmissionResponse: (status, message, maybeDifficultyUpdate) => {
       addLog(`Mining submission response: ${message} (status: ${status})`);
+      if (maybeDifficultyUpdate) {
+        const newDifficulty = maybeDifficultyUpdate.new_min_leading_zero_count;
+        addLog(`Updating mining difficulty to ${newDifficulty} leading zeros`);
+        workerPool.updateDifficulty(newDifficulty);
+      }
     },
     onConnectionStateChange: (connected) => {
       addLog(connected ? 'WebSocket connection established' : 'WebSocket connection closed');

@@ -36,7 +36,7 @@ self.onerror = (error: ErrorEvent | string) => {
 
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
   console.log("Received message in worker:", e.data);
-  const { type, maybeChallenge: maybeNewChallenge, maybeMiningSpeed: maybeNewSpeed } = e.data;
+  const { type, maybeChallenge: maybeNewChallenge, maybeMiningSpeed: maybeNewSpeed, maybeNewDifficulty } = e.data;
 
   if (type === 'start' && maybeNewChallenge) {
     state.running = true;
@@ -52,6 +52,14 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     console.log("Updating challenge in worker");
     state.maybeCurrentChallenge = maybeNewChallenge;
     // No need to restart mining, the loop will pick up the new challenge
+  } else if (type === 'updateDifficulty' && maybeNewDifficulty !== undefined && state.maybeCurrentChallenge) {
+    console.log("Updating difficulty in worker to:", maybeNewDifficulty);
+    state.maybeCurrentChallenge = {
+      ...state.maybeCurrentChallenge,
+      maybeTargetZeros: maybeNewDifficulty
+    };
+  } else {
+    console.error("Unhandled message type: ", type, " with data: ", e.data);
   }
 };
 

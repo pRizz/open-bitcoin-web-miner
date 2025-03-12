@@ -110,11 +110,19 @@ export const useWorkerPool = (
     }
   }, [workerPool]);
 
+  const updateDifficulty = useCallback((newDifficulty: number) => {
+    console.log("Updating difficulty:", newDifficulty);
+    if (workerPool.current) {
+      workerPool.current.updateDifficulty(newDifficulty);
+    }
+  }, [workerPool]);
+
   return {
     gpuCapabilities,
     startMining,
     stopMining,
     updateThreadCount,
     updateMiningChallenge,
+    updateDifficulty,
   };
 };

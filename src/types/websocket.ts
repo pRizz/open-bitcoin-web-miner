@@ -1,4 +1,3 @@
-
 /// Types that mirror the Rust WebSocket protocol
 /// Bitcoin block headers use little-endian encoding for the version, timestamp, target, and nonce. <- Verify this.
 export interface NoncelessBlockHeader {
@@ -24,6 +23,11 @@ export interface MiningSubmission {
 export interface MiningSubmissionResponse {
     status: number;
     message: string;
+    maybe_difficulty_update: DifficultyUpdate | null;
+  }
+
+export interface DifficultyUpdate {
+    new_min_leading_zero_count: number;
   }
 
 export interface BlockTemplateUpdate {

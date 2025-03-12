@@ -2,10 +2,11 @@ import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
 import { NoncelessBlockHeader } from "@/types/websocket";
 
 export interface WorkerMessage {
-  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
+  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge' | 'updateDifficulty';
   maybeChallenge?: MiningChallenge;
   maybeMiningSpeed?: number;
   maybeWorkerId?: number;
+  maybeNewDifficulty?: number;
 }
 
 export class WorkerPool {
@@ -291,6 +292,25 @@ export class WorkerPool {
     const message: WorkerMessage = {
       type: "updateChallenge",
       maybeChallenge: this.maybeCurrentChallenge
+    };
+
+    this.cpuWorkers.forEach(worker => worker.postMessage(message));
+    if (this.maybeWebGLWorker) this.maybeWebGLWorker.postMessage(message);
+    if (this.maybeWebGPUWorker) this.maybeWebGPUWorker.postMessage(message);
+  }
+
+  updateDifficulty(newDifficulty: number) {
+    console.log("Updating difficulty in worker pool:", newDifficulty);
+    if (this.maybeCurrentChallenge) {
+      this.maybeCurrentChallenge = {
+        ...this.maybeCurrentChallenge,
+        maybeTargetZeros: newDifficulty
+      };
+    }
+
+    const message: WorkerMessage = {
+      type: "updateDifficulty",
+      maybeNewDifficulty: newDifficulty
     };
 
     this.cpuWorkers.forEach(worker => worker.postMessage(message));
