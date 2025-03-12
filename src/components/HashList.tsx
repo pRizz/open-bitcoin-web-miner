@@ -43,25 +43,25 @@ export function HashList({ hashes }: HashListProps) {
           <TableHeader>
             <TableRow>
               <TableHead
-                className="cursor-pointer"
+                className="cursor-pointer text-center"
                 onClick={() => toggleSort("binaryZeroes")}
               >
                 Leading Binary Zeroes
               </TableHead>
               <TableHead
-                className="cursor-pointer"
+                className="cursor-pointer text-center"
                 onClick={() => toggleSort("hexZeroes")}
               >
                 Leading Hex Zeroes
               </TableHead>
-              <TableHead>Hash</TableHead>
+              <TableHead className="text-center">Hash</TableHead>
               <TableHead
-                className="cursor-pointer"
+                className="cursor-pointer text-center"
                 onClick={() => toggleSort("timeToFind")}
               >
                 Time to Find
               </TableHead>
-              <TableHead>Details</TableHead>
+              <TableHead className="text-center">Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
