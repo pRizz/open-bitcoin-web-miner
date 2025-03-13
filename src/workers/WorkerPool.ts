@@ -30,15 +30,19 @@ export class WorkerPool {
     console.log("WorkerPool constructor called");
   }
 
-  private calculateMovingAverage(newSample: number): number {
-    console.log("Calculating moving average", newSample);
-    this.hashRateSamples.push(newSample);
+  private calculateMovingAverage(newSampleHashRatePerSecond: number): number {
+    console.log("Calculating moving average", newSampleHashRatePerSecond);
+    this.hashRateSamples.push(newSampleHashRatePerSecond);
 
     if (this.hashRateSamples.length > this.sampleWindowSize) {
       this.hashRateSamples.shift();
     }
 
     const sum = this.hashRateSamples.reduce((acc, val) => acc + val, 0);
+    // If mining mode is cpu, we need to multiply by the number of threads
+    if (this.currentMode === "cpu") {
+      return sum / this.hashRateSamples.length * this.threadCount;
+    }
     return sum / this.hashRateSamples.length;
   }
 

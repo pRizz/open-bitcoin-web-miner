@@ -8,7 +8,7 @@ import { WorkerMessage } from "./WorkerPool";
 interface MiningState {
   running: boolean;
   hashCount: number;
-  lastHashRateUpdate: number;
+  lastHashRateUpdateMs: number;
   miningSpeed: number;
   maybeCurrentChallenge: MiningChallenge | null;
 }
@@ -16,7 +16,7 @@ interface MiningState {
 const state: MiningState = {
   running: false,
   hashCount: 0,
-  lastHashRateUpdate: Date.now(),
+  lastHashRateUpdateMs: Date.now(),
   miningSpeed: 100,
   maybeCurrentChallenge: null,
 };
@@ -70,12 +70,13 @@ function mine() {
 
   const maybeUpdateHashRate = () => {
     const now = Date.now();
-    const elapsed = now - state.lastHashRateUpdate;
-    if (elapsed >= HASH_RATE_UPDATE_INTERVAL) {
-      const hashRate = (state.hashCount * 1000) / elapsed;
-      self.postMessage({ type: 'hashRate', data: hashRate });
+    const elapsedMs = now - state.lastHashRateUpdateMs;
+    if (elapsedMs >= HASH_RATE_UPDATE_INTERVAL) {
+      const msPerSecond = 1000;
+      const hashRatePerSecond = state.hashCount / elapsedMs * msPerSecond;
+      self.postMessage({ type: 'hashRate', data: hashRatePerSecond });
       state.hashCount = 0;
-      state.lastHashRateUpdate = now;
+      state.lastHashRateUpdateMs = now;
     }
   };
 
@@ -123,6 +124,7 @@ function mine() {
 
       // Calculate sleep time based on mining speed
       const elapsedBatchTimeMs = Date.now() - startTime;
+      console.log("Elapsed batch time:", elapsedBatchTimeMs);
       // Whatever elapsedBatchTimeMs is, if speed is 100, we sleep 0ms
       // If speed is 50, we sleep for elapsedBatchTimeMs
       // If speed is 10, we sleep for 9 * elapsedBatchTimeMs
