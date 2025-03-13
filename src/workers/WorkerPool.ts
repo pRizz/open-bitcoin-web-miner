@@ -31,6 +31,7 @@ export class WorkerPool {
   }
 
   private calculateMovingAverage(newSample: number): number {
+    console.log("Calculating moving average", newSample);
     this.hashRateSamples.push(newSample);
 
     if (this.hashRateSamples.length > this.sampleWindowSize) {
@@ -132,6 +133,7 @@ export class WorkerPool {
 
   private createCPUWorkers() {
     try {
+      console.log("Creating CPU workers", this.threadCount);
       for (let i = 0; i < this.threadCount; i++) {
         const worker = this.createWorker(
           new URL('./cpuMiningWorker.ts', import.meta.url)
@@ -249,18 +251,14 @@ export class WorkerPool {
   }
 
   updateSpeed(miningSpeed: number) {
+    console.log("Updating speed in worker pool:", miningSpeed);
     if (miningSpeed === this.currentMiningSpeed) {
+      console.log("Speed is the same, so we're not updating it");
       return;
     }
 
     this.currentMiningSpeed = miningSpeed;
-    this.cpuWorkers.forEach(worker => {
-      const message: WorkerMessage = {
-        type: "updateSpeed",
-        maybeMiningSpeed: miningSpeed,
-      };
-      worker.postMessage(message);
-    });
+
 
     const updateWorker = (maybeWorker: Worker | null) => {
       if (maybeWorker) {
@@ -272,6 +270,7 @@ export class WorkerPool {
       }
     };
 
+    this.cpuWorkers.forEach(updateWorker);
     updateWorker(this.maybeWebGLWorker);
     updateWorker(this.maybeWebGPUWorker);
   }

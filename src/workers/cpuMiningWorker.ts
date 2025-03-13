@@ -68,7 +68,7 @@ function mine() {
 
   let nonce = Math.floor(Math.random() * 0xFFFFFF);
 
-  const updateHashRate = () => {
+  const maybeUpdateHashRate = () => {
     const now = Date.now();
     const elapsed = now - state.lastHashRateUpdate;
     if (elapsed >= HASH_RATE_UPDATE_INTERVAL) {
@@ -84,9 +84,9 @@ function mine() {
 
     try {
       const startTime = Date.now();
-      let batchCount = 0;
+      let hashesInBatchCount = 0;
 
-      while (state.running && batchCount < BATCH_SIZE) {
+      while (state.running && hashesInBatchCount < BATCH_SIZE) {
         // TODO: clamp nonce to 0xFFFFFFFF, and change header if needed
         nonce++;
         if (nonce > 0xFFFFFFFF) {
@@ -96,7 +96,7 @@ function mine() {
 
         const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
         state.hashCount++;
-        batchCount++;
+        hashesInBatchCount++;
 
         const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
         if (binary >= (state.maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
@@ -119,15 +119,18 @@ function mine() {
         }
       }
 
-      updateHashRate();
+      maybeUpdateHashRate();
 
       // Calculate sleep time based on mining speed
-      const elapsedTime = Date.now() - startTime;
-      const targetTime = (BATCH_SIZE / 10000) * (100 / state.miningSpeed) * 100; // Adjust time based on mining speed
-      const sleepTime = Math.max(0, targetTime - elapsedTime);
-
-      setTimeout(async () => await miningLoop(), sleepTime);
+      const elapsedBatchTimeMs = Date.now() - startTime;
+      // Whatever elapsedBatchTimeMs is, if speed is 100, we sleep 0ms
+      // If speed is 50, we sleep for elapsedBatchTimeMs
+      // If speed is 10, we sleep for 9 * elapsedBatchTimeMs
+      const sleepTimeMs = Math.max(0, (100 / state.miningSpeed) * elapsedBatchTimeMs - elapsedBatchTimeMs);
+      console.log("Sleeping for", sleepTimeMs, "ms");
+      setTimeout(async () => await miningLoop(), sleepTimeMs);
     } catch (error) {
+      console.error("Mining error:", error);
       self.postMessage({
         type: 'error',
         data: `Mining error: ${error instanceof Error ? error.message : String(error)}`,

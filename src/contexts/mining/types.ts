@@ -18,7 +18,9 @@ export interface MiningContextType {
   miningStats: MiningStats;
   isMining: boolean;
   btcAddress: string;
+  /// In [0, 100]
   miningSpeed: number;
+  /// In [1, maxThreads]
   threadCount: number;
   maxThreads: number;
   miningMode: MiningMode;

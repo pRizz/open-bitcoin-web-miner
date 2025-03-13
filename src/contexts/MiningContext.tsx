@@ -4,7 +4,7 @@ import { calculateLeadingZeroes, calculateRequiredBinaryZeroes } from "@/utils/m
 import { useMiningState } from "@/hooks/useMiningState";
 import { MiningContextType } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
-import { useThreadCount } from "./mining/useThreadCount";
+import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useNetworkInfo } from "./NetworkInfoContext";
 import API_CONFIG from "@/config/api";
@@ -61,7 +61,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [miningSpeed, setMiningSpeed] = useState(100);
   const [miningMode, setMiningMode] = useState<MiningMode>("cpu");
 
-  const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useThreadCount();
+  const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useInitialThreadCount();
 
   const workerPool = useWorkerPool(
     threadCount,
@@ -207,6 +207,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const handleSetMiningSpeed = useCallback((speed: number) => {
     const statusText = isMining ? "Mining speed updated to" : "Mining speed set to";
     addLog(`${statusText} ${speed}%`);
+    console.log(`${statusText} ${speed}%`);
     setMiningSpeed(speed);
   }, [isMining, addLog]);
 

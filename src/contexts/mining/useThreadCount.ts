@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export const useThreadCount = () => {
+export const useInitialThreadCount = () => {
   const [maxThreads, setMaxThreads] = useState(1);
   const [threadCount, setThreadCount] = useState(1);
 
