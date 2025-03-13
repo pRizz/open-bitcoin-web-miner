@@ -1,5 +1,6 @@
 import { NoncelessBlockHeader, serializeBlockHeader } from "@/types/websocket";
 
+// Deprecated; use doubleSha256BlockHeaderU8Array instead
 async function sha256(message: string): Promise<string> {
   const encoder = new TextEncoder();
   const dataUint8Array = encoder.encode(message);
@@ -12,6 +13,7 @@ async function sha256(message: string): Promise<string> {
   return hashHex;
 }
 
+// Deprecated; use doubleSha256BlockHeaderU8Array instead
 export async function doubleSha256BlockHeader(blockHeader: NoncelessBlockHeader, nonce: number): Promise<string> {
   const dataUint8Array = serializeBlockHeader(blockHeader, nonce);
   const hashArrayBuffer = await crypto.subtle.digest('SHA-256', dataUint8Array);
@@ -26,4 +28,12 @@ export async function doubleSha256BlockHeader(blockHeader: NoncelessBlockHeader,
 
 export async function performHash(blockHeader: NoncelessBlockHeader, nonce: number): Promise<string> {
   return doubleSha256BlockHeader(blockHeader, nonce);
+}
+
+export async function doubleSha256BlockHeaderU8Array(blockHeader: NoncelessBlockHeader, nonce: number): Promise<Uint8Array> {
+  const dataUint8Array = serializeBlockHeader(blockHeader, nonce);
+  const hashArrayBuffer = await crypto.subtle.digest('SHA-256', dataUint8Array);
+  const hashArrayBuffer2 = await crypto.subtle.digest('SHA-256', hashArrayBuffer);
+
+  return new Uint8Array(hashArrayBuffer2).reverse();
 }

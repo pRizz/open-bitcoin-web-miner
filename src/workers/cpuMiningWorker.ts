@@ -1,8 +1,8 @@
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { deserializeNonceLE, NoncelessBlockHeader, serializeBlockHeader, serializeNonceLE } from "@/types/websocket";
-import { calculateLeadingZeroes } from "@/utils/mining";
+import { calculateLeadingZeroes, calculateLeadingZeroesU8Array, hexStringFromU8Array } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
-import { performHash } from "./cpuMiningUtils";
+import { doubleSha256BlockHeaderU8Array, performHash } from "./cpuMiningUtils";
 import { WorkerMessage } from "./WorkerPool";
 
 interface MiningState {
@@ -95,20 +95,23 @@ function mine() {
           nonce = 0;
         }
 
-        const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
+        // const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
+        const hashAsU8Array = await doubleSha256BlockHeaderU8Array(state.maybeCurrentChallenge.blockHeader, nonce);
         state.hashCount++;
         hashesInBatchCount++;
 
-        const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
+        const { leadingBinaryZeroes: binary } = calculateLeadingZeroesU8Array(hashAsU8Array);
         if (binary >= (state.maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
           console.log("Nonce:", nonce);
           const nonceLE = serializeNonceLE(nonce);
           console.log(`nonceLE: ${nonceLE}`)
           const nonceBE = nonceToU8ArrayBE(nonce);
           console.log(`nonceBE: ${nonceBE}`)
+          const hashHex = hexStringFromU8Array(hashAsU8Array);
+          console.log(`hashHex: ${hashHex}`);
 
           const solution: MiningSolution = {
-            hash,
+            hash: hashHex,
             nonceVecU8: serializeNonceLE(nonce),
             maybeJobId: state.maybeCurrentChallenge.maybeJobId,
             maybeBlockHeader: state.maybeCurrentChallenge.blockHeader

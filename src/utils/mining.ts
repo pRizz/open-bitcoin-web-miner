@@ -1,5 +1,6 @@
 import { HashSolution } from "@/types/mining";
 
+// Deprecated; use calculateLeadingZeroesU8Array instead
 export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
   // Calculate hex zeroes
   let hexZeroes = 0;
@@ -23,6 +24,33 @@ export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: num
   }
 
   return { leadingBinaryZeroes: binaryZeroes, leadingHexZeroes: hexZeroes };
+}
+
+export function calculateLeadingZeroesU8Array(hash: Uint8Array): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
+  let leadingBinaryZeroes = 0;
+
+  for (const byte of hash) {
+    if (byte === 0) {
+      leadingBinaryZeroes += 8;
+    } else {
+      // Count leading binary zeroes in this byte
+      let mask = 0b10000000;
+      while ((byte & mask) === 0) {
+        leadingBinaryZeroes++;
+        mask >>= 1;
+      }
+      break;
+    }
+  }
+
+  // Leading hex zeroes are counted per full byte (2 hex digits per byte)
+  const leadingHexZeroes = Math.floor(leadingBinaryZeroes / 4);
+
+  return { leadingBinaryZeroes, leadingHexZeroes };
+}
+
+export function hexStringFromU8Array(u8Array: Uint8Array): string {
+  return Array.from(u8Array).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function hex2bin(hex: string): string {

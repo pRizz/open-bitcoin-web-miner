@@ -263,7 +263,6 @@ export class WorkerPool {
 
     this.currentMiningSpeed = miningSpeed;
 
-
     const updateWorker = (maybeWorker: Worker | null) => {
       if (maybeWorker) {
         const message: WorkerMessage = {
