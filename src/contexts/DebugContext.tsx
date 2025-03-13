@@ -13,7 +13,9 @@ export function DebugProvider({ children }: { children: React.ReactNode }) {
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toISOString();
-    setLogs((prev) => [...prev, `${timestamp} - ${message}`]);
+    const logMessage = `${timestamp} - ${message}`;
+    console.log(`[DEBUG] ${logMessage}`);
+    setLogs((prev) => [...prev, logMessage]);
   }, []);
 
   const clearLogs = useCallback(() => {
