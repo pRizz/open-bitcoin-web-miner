@@ -42,24 +42,28 @@ export function AppLayout() {
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <main className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="h-8 w-8" />
-              <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <MinerCountIndicator />
-              {location.pathname === "/" && (
-                <ShareControls
-                  includeAutoStart={includeAutoStart}
-                  includeAddress={includeAddress}
-                  btcAddress={btcAddress}
-                />
-              )}
+        <main className="flex-1">
+          <div className="sticky top-0 z-[150] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="h-8 w-8" />
+                <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
+              </div>
+              <div className="flex items-center gap-4">
+                <MinerCountIndicator />
+                {location.pathname === "/" && (
+                  <ShareControls
+                    includeAutoStart={includeAutoStart}
+                    includeAddress={includeAddress}
+                    btcAddress={btcAddress}
+                  />
+                )}
+              </div>
             </div>
           </div>
-          <Outlet />
+          <div className="p-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </SidebarProvider>

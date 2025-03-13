@@ -66,7 +66,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
 function mine() {
   if (!state.maybeCurrentChallenge) return;
 
-  let nonce = 0;
+  let nonce = Math.floor(Math.random() * 0xFFFFFF);
 
   const updateHashRate = () => {
     const now = Date.now();
