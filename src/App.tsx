@@ -9,7 +9,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
-import { MinerAddressProvider } from "./contexts/mining/MinerAddressContext";
+import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
+import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
 
 const queryClient = new QueryClient();
 
@@ -35,16 +36,18 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <DebugProvider>
         <NetworkInfoProvider>
-          <MinerAddressProvider>
+          <MinerInfoProvider>
             <MiningWebSocketProvider>
               <MiningProvider>
                 <ShareProvider>
-                  <RouterProvider router={router} />
-                  <Toaster />
+                  <LeaderboardProvider>
+                    <RouterProvider router={router} />
+                    <Toaster />
+                  </LeaderboardProvider>
                 </ShareProvider>
               </MiningProvider>
             </MiningWebSocketProvider>
-          </MinerAddressProvider>
+          </MinerInfoProvider>
         </NetworkInfoProvider>
       </DebugProvider>
     </QueryClientProvider>

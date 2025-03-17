@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMinerAddress } from "@/contexts/mining/MinerAddressContext";
+import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
+import { validateBlockchainMessage, getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
 
 export function MiningControls() {
   const { toast } = useToast();
@@ -33,7 +34,12 @@ export function MiningControls() {
     startMining,
     stopMining,
   } = useMining();
-  const { minerAddress, setMinerAddress } = useMinerAddress();
+  const {
+    maybeMinerAddress,
+    setMinerAddress,
+    maybeBlockchainMessage,
+    setBlockchainMessage
+  } = useMinerInfo();
 
   const {
     includeAutoStart,
@@ -55,6 +61,19 @@ export function MiningControls() {
     }
   };
 
+  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const message = e.target.value || null;
+    setBlockchainMessage(message);
+    const error = validateBlockchainMessage(message);
+    if (error) {
+      toast({
+        title: "Invalid Message",
+        description: error,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSpeedChange = (value: number[]) => {
     setMiningSpeed(value[0]);
   };
@@ -63,20 +82,57 @@ export function MiningControls() {
     setThreadCount(value[0]);
   };
 
-  const isValidAddress = minerAddress ? validateBitcoinAddress(minerAddress) : false;
+  const isValidAddress = maybeMinerAddress ? validateBitcoinAddress(maybeMinerAddress) : false;
+  const isMessageValid = !validateBlockchainMessage(maybeBlockchainMessage);
 
   return (
     <div className="space-y-4">
       {/* BTC Address Input */}
       <div className="space-y-2">
-        <Label htmlFor="btc-address">Bitcoin Address</Label>
-        <Input
-          id="btc-address"
-          placeholder="Enter your BTC address"
-          value={minerAddress ?? ""}
-          onChange={handleAddressChange}
-          className="font-mono"
-        />
+        <Label htmlFor="btc-address">Bitcoin Mining Reward Address (optional)</Label>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Input
+                id="btc-address"
+                placeholder="Enter your BTC address"
+                value={maybeMinerAddress ?? ""}
+                onChange={handleAddressChange}
+                className="font-mono"
+              />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[300px]">
+              <p>If you successfully mine a block, you will receive 1 BTC as a reward at this address.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      {/* Blockchain Message Input */}
+      <div className="space-y-2">
+        <Label htmlFor="blockchain-message">Add a message to the blockchain (optional)</Label>
+        <div className="space-y-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Input
+                  id="blockchain-message"
+                  placeholder="Enter your message"
+                  value={maybeBlockchainMessage ?? ""}
+                  onChange={handleMessageChange}
+                  maxLength={MAX_MESSAGE_BYTES}
+                  className={!isMessageValid ? "border-red-500" : ""}
+                />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[300px]">
+                <p>This message will be added to the coinbase script signature field, if you successfully find a block. Maximum length is {MAX_MESSAGE_BYTES} bytes when UTF-8 encoded. No control characters allowed.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <div className="text-xs text-muted-foreground text-right">
+            {getMessageByteLength(maybeBlockchainMessage)} / {MAX_MESSAGE_BYTES} bytes
+          </div>
+        </div>
       </div>
 
       {/* Mining Mode Selection */}
@@ -169,7 +225,7 @@ export function MiningControls() {
         className="w-full"
         onClick={isMining ? stopMining : startMining}
         variant={isMining ? "destructive" : "default"}
-        disabled={minerAddress ? !isValidAddress : false}
+        disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
       >
         {isMining ? "Stop Mining" : "Start Mining"}
       </Button>

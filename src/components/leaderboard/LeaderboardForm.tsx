@@ -1,23 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
+import { getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
+import { useLeaderboard } from "@/contexts/leaderboard/LeaderboardContext";
 
-interface LeaderboardFormProps {
-  username: string;
-  setUsername: (value: string) => void;
-  leaderboardMessage: string;
-  setLeaderboardMessage: (value: string) => void;
-  blockchainMessage: string;
-  setBlockchainMessage: (value: string) => void;
-}
+export function LeaderboardForm() {
+  const { username, setUsername, leaderboardMessage, setLeaderboardMessage } = useLeaderboard();
+  const { maybeBlockchainMessage, setBlockchainMessage } = useMinerInfo();
 
-export function LeaderboardForm({
-  username,
-  setUsername,
-  leaderboardMessage,
-  setLeaderboardMessage,
-  blockchainMessage,
-  setBlockchainMessage,
-}: LeaderboardFormProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -42,15 +32,20 @@ export function LeaderboardForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="blockchainMessage">
-          Blockchain Message (up to 30 alphanumeric characters)
+          Blockchain Message (up to {MAX_MESSAGE_BYTES} bytes)
         </Label>
-        <Input
-          id="blockchainMessage"
-          value={blockchainMessage}
-          onChange={(e) => setBlockchainMessage(e.target.value)}
-          placeholder="Optional message for the blockchain"
-          maxLength={30}
-        />
+        <div className="space-y-1">
+          <Input
+            id="blockchainMessage"
+            value={maybeBlockchainMessage ?? ""}
+            onChange={(e) => setBlockchainMessage(e.target.value || null)}
+            placeholder="Optional message for the blockchain"
+            maxLength={MAX_MESSAGE_BYTES}
+          />
+          <div className="text-xs text-muted-foreground text-right">
+            {getMessageByteLength(maybeBlockchainMessage)} / {MAX_MESSAGE_BYTES} bytes
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, DifficultyUpdate } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback } from "react";
-import { useMinerAddress } from "./MinerAddressContext";
+import { useMinerInfo } from "./MinerInfoContext";
 
 interface MiningWebSocketContextType {
   connect: () => void;
@@ -23,7 +23,7 @@ interface MiningWebSocketCallbacks {
 export function MiningWebSocketProvider({ children }: { children: React.ReactNode }) {
   const maybeWebSocket = useRef<WebSocket | null>(null);
   const maybeCallbacks = useRef<MiningWebSocketCallbacks | null>(null);
-  const { minerAddress } = useMinerAddress();
+  const { maybeMinerAddress, maybeBlockchainMessage } = useMinerInfo();
 
   console.log("MiningWebSocketProvider constructor called");
 
@@ -35,19 +35,22 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
   const onOpen = useCallback(() => {
     console.log('in useMiningWebSocket onOpen, WebSocket connection established');
 
-    let data: { maybeBtcRewardAddress?: string | null } = {};
-    if (minerAddress) {
-      data = { maybeBtcRewardAddress: minerAddress };
+    const data: { maybeBtcRewardAddress?: string | null; maybeBlockchainMessage?: string | null } = {};
+    if (maybeMinerAddress) {
+      data.maybeBtcRewardAddress = maybeMinerAddress;
+    }
+    if (maybeBlockchainMessage) {
+      data.maybeBlockchainMessage = maybeBlockchainMessage;
     }
     const startMiningMessage: WebSocketClientMessage = {
       type: "StartMining",
       data
     };
-    console.log("in useMiningWebSocket onOpen, sending StartMining message, minerAddress:", minerAddress);
+    console.log("in useMiningWebSocket onOpen, sending StartMining message, minerAddress:", maybeMinerAddress);
     maybeWebSocket.current?.send(JSON.stringify(startMiningMessage));
 
     maybeCallbacks.current?.onConnectionStateChange(true);
-  }, [minerAddress, maybeCallbacks, maybeWebSocket]);
+  }, [maybeMinerAddress, maybeBlockchainMessage, maybeCallbacks, maybeWebSocket]);
 
   const onMessage = useCallback((event: MessageEvent) => {
     try {

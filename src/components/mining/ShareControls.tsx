@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Share } from "lucide-react";
 import { URL_PARAMS } from "@/constants/mining";
 import { useToast } from "@/hooks/use-toast";
-import { useMinerAddress } from "@/contexts/mining/MinerAddressContext";
+import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 
 interface ShareControlsProps {
   includeAutoStart: boolean;
@@ -14,38 +14,41 @@ export function ShareControls({
   includeAddress,
 }: ShareControlsProps) {
   const { toast } = useToast();
-  const { minerAddress } = useMinerAddress();
+  const { maybeMinerAddress } = useMinerInfo();
 
   const handleShare = async () => {
     const url = new URL(window.location.href);
     if (includeAutoStart) {
       url.searchParams.set(URL_PARAMS.AUTO_START, "true");
     }
-    if (includeAddress && minerAddress) {
-      url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, minerAddress);
+    if (includeAddress && maybeMinerAddress) {
+      url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, maybeMinerAddress);
     }
 
     try {
       await navigator.clipboard.writeText(url.toString());
       toast({
-        title: "Link copied!",
-        description: "The URL has been copied to your clipboard.",
+        title: "Link Copied!",
+        description: "Share link has been copied to your clipboard",
       });
     } catch (err) {
+      console.error('Failed to copy:', err);
       toast({
-        title: "Failed to copy",
-        description: "Please try copying the URL manually.",
+        title: "Copy Failed",
+        description: "Failed to copy link to clipboard",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="flex items-center justify-end">
-      <Button onClick={handleShare} variant="outline">
-        <Share className="h-4 w-4 mr-2" />
-        Share
-      </Button>
-    </div>
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={handleShare}
+      title="Share mining configuration"
+    >
+      <Share className="h-4 w-4" />
+    </Button>
   );
 }
