@@ -38,7 +38,7 @@ export function MiningControls() {
     maybeMinerAddress,
     setMinerAddress,
     maybeBlockchainMessage,
-    setBlockchainMessage
+    setBlockchainMessage,
   } = useMinerInfo();
 
   const {
@@ -99,6 +99,7 @@ export function MiningControls() {
                 value={maybeMinerAddress ?? ""}
                 onChange={handleAddressChange}
                 className="font-mono"
+                disabled={isMining}
               />
             </TooltipTrigger>
             <TooltipContent className="max-w-[300px]">
@@ -122,6 +123,7 @@ export function MiningControls() {
                   onChange={handleMessageChange}
                   maxLength={MAX_MESSAGE_BYTES}
                   className={!isMessageValid ? "border-red-500" : ""}
+                  disabled={isMining}
                 />
               </TooltipTrigger>
               <TooltipContent className="max-w-[300px]">
