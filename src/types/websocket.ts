@@ -39,10 +39,9 @@ export type WebSocketServerMessage =
     | { type: "SubmissionResponse"; data: MiningSubmissionResponse }
     | { type: "BlockTemplateUpdate"; data: BlockTemplateUpdate };
 
-export type WebSocketClientMessage = {
-    type: "Submission";
-    data: MiningSubmission;
-  };
+export type WebSocketClientMessage =
+    | { type: "Submission"; data: MiningSubmission }
+    | { type: "StartMining"; data: { maybeBtcRewardAddress?: string | null } };
 
 export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number): Uint8Array {
   if (

@@ -1,6 +1,7 @@
 import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, DifficultyUpdate } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
 import { useRef } from "react";
+import { useMining } from "../MiningContext";
 
 interface WebSocketCallbacks {
   onNewChallenge: (jobId: string, blockHeader: NoncelessBlockHeader, targetZeros: number) => void;
@@ -13,6 +14,7 @@ interface WebSocketCallbacks {
 export function MiningWebSocketManager() {
   const maybeWebSocket = useRef<WebSocket | null>(null);
   const maybeCallbacks = useRef<WebSocketCallbacks | null>(null);
+  const { btcAddress } = useMining();
 
   console.log("MiningWebSocketManager constructor called");
 
@@ -21,6 +23,7 @@ export function MiningWebSocketManager() {
     maybeCallbacks.current = callbacks;
   }
 
+  // TODO: depend on btcAddress, maybe use useCallback
   const connect = () => {
     if (maybeWebSocket.current) {
       console.log("WebSocket already connected");
@@ -36,6 +39,20 @@ export function MiningWebSocketManager() {
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
+      
+      // Send StartMining message
+      let data: { maybeBtcRewardAddress?: string | null } = {
+        maybeBtcRewardAddress: "bcrt1qxkjdntyd6h3cwk8wuczys6q8ppjphr99tcekz3"
+      };
+      // if (btcAddress) {
+      //   data = { maybeBtcRewardAddress: btcAddress };
+      // }
+      const startMiningMessage: WebSocketClientMessage = {
+        type: "StartMining",
+        data
+      };
+      ws.send(JSON.stringify(startMiningMessage));
+      
       maybeCallbacks.current?.onConnectionStateChange(true);
     };
 

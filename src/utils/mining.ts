@@ -1,4 +1,5 @@
 import { HashSolution } from "@/types/mining";
+import API_CONFIG from "@/config/api";
 
 // Deprecated; use calculateLeadingZeroesU8Array instead
 export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
@@ -82,8 +83,14 @@ export function formatHashRate(hashRate: number): string {
 }
 
 export function validateBitcoinAddress(address: string): boolean {
-  // Basic validation for legacy (1), script hash (3), and bech32 (bc1) addresses
-  // This is a basic check - for production use, consider using a dedicated Bitcoin address validation library
+  // In debug mode, allow regtest addresses (bcrt1...)
+  if (API_CONFIG.baseUrl.includes('localhost') || API_CONFIG.baseUrl.includes('127.0.0.1')) {
+    return /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{11,71}|bcrt1[a-zA-HJ-NP-Z0-9]{11,71})$/.test(address);
+    // main coinbase address: bcrt1q248p60qnmqkn69j4kv4yshrxx628e3j06yegwx
+    // other miner address: bcrt1qxkjdntyd6h3cwk8wuczys6q8ppjphr99tcekz3
+  }
+  
+  // Production validation for legacy (1), script hash (3), and bech32 (bc1) addresses
   return /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{11,71})$/.test(address);
 }
 
