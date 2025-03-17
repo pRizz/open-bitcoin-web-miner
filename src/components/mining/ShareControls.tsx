@@ -2,27 +2,27 @@ import { Button } from "@/components/ui/button";
 import { Share } from "lucide-react";
 import { URL_PARAMS } from "@/constants/mining";
 import { useToast } from "@/hooks/use-toast";
+import { useMinerAddress } from "@/contexts/mining/MinerAddressContext";
 
 interface ShareControlsProps {
   includeAutoStart: boolean;
   includeAddress: boolean;
-  btcAddress?: string;
 }
 
 export function ShareControls({
   includeAutoStart,
   includeAddress,
-  btcAddress,
 }: ShareControlsProps) {
   const { toast } = useToast();
+  const { minerAddress } = useMinerAddress();
 
   const handleShare = async () => {
     const url = new URL(window.location.href);
     if (includeAutoStart) {
       url.searchParams.set(URL_PARAMS.AUTO_START, "true");
     }
-    if (includeAddress && btcAddress) {
-      url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, btcAddress);
+    if (includeAddress && minerAddress) {
+      url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, minerAddress);
     }
 
     try {

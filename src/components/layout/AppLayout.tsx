@@ -2,7 +2,6 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Outlet, useLocation } from "react-router-dom";
 import { ShareControls } from "@/components/mining/ShareControls";
-import { useMining } from "@/contexts/MiningContext";
 import { useShare } from "@/contexts/ShareContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { cn } from "@/lib/utils";
@@ -31,7 +30,6 @@ function MinerCountIndicator() {
 
 export function AppLayout() {
   const location = useLocation();
-  const { btcAddress } = useMining();
   const { includeAutoStart, includeAddress } = useShare();
 
   const getPageTitle = () => {
@@ -55,7 +53,6 @@ export function AppLayout() {
                   <ShareControls
                     includeAutoStart={includeAutoStart}
                     includeAddress={includeAddress}
-                    btcAddress={btcAddress}
                   />
                 )}
               </div>

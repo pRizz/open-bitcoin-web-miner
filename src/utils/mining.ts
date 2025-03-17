@@ -89,7 +89,7 @@ export function validateBitcoinAddress(address: string): boolean {
     // main coinbase address: bcrt1q248p60qnmqkn69j4kv4yshrxx628e3j06yegwx
     // other miner address: bcrt1qxkjdntyd6h3cwk8wuczys6q8ppjphr99tcekz3
   }
-  
+
   // Production validation for legacy (1), script hash (3), and bech32 (bc1) addresses
   return /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{11,71})$/.test(address);
 }

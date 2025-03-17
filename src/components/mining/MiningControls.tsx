@@ -16,24 +16,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMinerAddress } from "@/contexts/mining/MinerAddressContext";
 
 export function MiningControls() {
   const { toast } = useToast();
   const {
     isMining,
-    btcAddress,
     miningSpeed,
     threadCount,
     maxThreads,
     miningMode,
     gpuCapabilities,
-    setBtcAddress,
     setMiningSpeed,
     setThreadCount,
     setMiningMode,
     startMining,
     stopMining,
   } = useMining();
+  const { minerAddress, setMinerAddress } = useMinerAddress();
 
   const {
     includeAutoStart,
@@ -44,7 +44,7 @@ export function MiningControls() {
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
-    setBtcAddress(address);
+    setMinerAddress(address);
 
     if (address && !validateBitcoinAddress(address)) {
       toast({
@@ -63,7 +63,7 @@ export function MiningControls() {
     setThreadCount(value[0]);
   };
 
-  const isValidAddress = btcAddress ? validateBitcoinAddress(btcAddress) : false;
+  const isValidAddress = minerAddress ? validateBitcoinAddress(minerAddress) : false;
 
   return (
     <div className="space-y-4">
@@ -73,7 +73,7 @@ export function MiningControls() {
         <Input
           id="btc-address"
           placeholder="Enter your BTC address"
-          value={btcAddress}
+          value={minerAddress ?? ""}
           onChange={handleAddressChange}
           className="font-mono"
         />
@@ -169,7 +169,7 @@ export function MiningControls() {
         className="w-full"
         onClick={isMining ? stopMining : startMining}
         variant={isMining ? "destructive" : "default"}
-        disabled={btcAddress ? !isValidAddress : false}
+        disabled={minerAddress ? !isValidAddress : false}
       >
         {isMining ? "Stop Mining" : "Start Mining"}
       </Button>

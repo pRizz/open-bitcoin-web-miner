@@ -9,6 +9,7 @@ import { URL_PARAMS } from "@/constants/mining";
 import { MiningControls } from "@/components/mining/MiningControls";
 import { LeaderboardInfoPanel } from "@/components/LeaderboardInfoPanel";
 import { DebugLogPanel } from "@/components/debug/DebugLogPanel";
+import { useMinerAddress } from "@/contexts/mining/MinerAddressContext";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -16,21 +17,21 @@ const Index = () => {
     miningStats,
     isMining,
     startMining,
-    setBtcAddress,
   } = useMining();
+  const { setMinerAddress } = useMinerAddress();
 
   useEffect(() => {
     const shouldAutoStart = searchParams.get(URL_PARAMS.AUTO_START) === "true";
     const prefilledAddress = searchParams.get(URL_PARAMS.BITCOIN_ADDRESS);
 
     if (prefilledAddress) {
-      setBtcAddress(prefilledAddress);
+      setMinerAddress(prefilledAddress);
     }
 
     if (shouldAutoStart && !isMining) {
       startMining();
     }
-  }, [searchParams, startMining, isMining, setBtcAddress]);
+  }, [searchParams, startMining, isMining, setMinerAddress]);
 
   return (
     <div className="max-w-7xl mx-auto">

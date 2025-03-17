@@ -9,7 +9,7 @@ import { useDebug } from "./DebugContext";
 import { useNetworkInfo } from "./NetworkInfoContext";
 import API_CONFIG from "@/config/api";
 import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE } from "@/types/websocket";
-import { MiningWebSocketManager } from "./mining/useMiningWebSocket";
+import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { u8ArrayBEToNonce } from "@/utils/nonceUtils";
 
 const defaultContext: MiningContextType = {
@@ -19,12 +19,10 @@ const defaultContext: MiningContextType = {
     maybeRequiredBinaryZeroes: 0,
   },
   isMining: false,
-  btcAddress: "",
   miningSpeed: 100,
   threadCount: 1,
   maxThreads: 1,
   miningMode: "cpu",
-  setBtcAddress: () => {},
   setMiningSpeed: () => {},
   setThreadCount: () => {},
   setMiningMode: () => {},
@@ -45,7 +43,7 @@ function getNumberFromArrayOfBytes(array: number[]): number {
 export function MiningProvider({ children }: { children: React.ReactNode }) {
   console.log("MiningProvider constructor called");
   const { addLog } = useDebug();
-  const [webSocketManager] = useState(MiningWebSocketManager());
+  const miningWebSocket = useMiningWebSocket();
   const { maybeRequiredBinaryZeroes } = useNetworkInfo();
   const {
     miningStats,
@@ -57,7 +55,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   } = useMiningState();
 
   const [isMining, setIsMining] = useState(false);
-  const [btcAddress, setBtcAddress] = useState("");
   const [miningSpeed, setMiningSpeed] = useState(100);
   const [miningMode, setMiningMode] = useState<MiningMode>("cpu");
 
@@ -138,13 +135,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   }, [addLog, updateMiningChallenge]);
 
   const disconnectWebSocket = useCallback(() => {
-    webSocketManager.disconnect();
+    miningWebSocket.disconnect();
   }, []);
 
   const submitSolution = useCallback((submission: MiningSubmission) => {
-    webSocketManager.submitSolution(submission);
+    miningWebSocket.submitSolution(submission);
     addLog(`Submitted mining solution for job ${submission.job_id}`);
-  }, [addLog, webSocketManager]);
+  }, [addLog, miningWebSocket]);
 
   const stopMining = useCallback(() => {
     const modeString = miningMode.toUpperCase();
@@ -178,11 +175,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  webSocketManager.setCallbacks(miningWebSocketManagerCallbacks);
+  miningWebSocket.setCallbacks(miningWebSocketManagerCallbacks);
 
   const connectWebSocket = useCallback(() => {
-    webSocketManager.connect();
-  }, [addLog, handleNewChallenge, handleBlockTemplateUpdate, stopMining, miningWebSocketManagerCallbacks]);
+    console.log("in MiningProvider, connecting to WebSocket");
+    miningWebSocket.connect();
+  }, [miningWebSocket]);
 
   const startMining = useCallback(() => {
     console.log("Starting mining");
@@ -222,13 +220,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       value={{
         miningStats,
         isMining,
-        btcAddress,
         miningSpeed,
         threadCount,
         maxThreads,
         miningMode,
         gpuCapabilities,
-        setBtcAddress,
         setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
         setMiningMode,

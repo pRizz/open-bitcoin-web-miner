@@ -17,7 +17,6 @@ export interface GPUCapabilities {
 export interface MiningContextType {
   miningStats: MiningStats;
   isMining: boolean;
-  btcAddress: string;
   /// In [0, 100]
   miningSpeed: number;
   /// In [1, maxThreads]
@@ -25,7 +24,6 @@ export interface MiningContextType {
   maxThreads: number;
   miningMode: MiningMode;
   gpuCapabilities?: GPUCapabilities;
-  setBtcAddress: (address: string) => void;
   setMiningSpeed: (speed: number) => void;
   setThreadCount: (count: number) => void;
   setMiningMode: (mode: MiningMode) => void;
