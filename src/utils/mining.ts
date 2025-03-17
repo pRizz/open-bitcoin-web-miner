@@ -70,7 +70,11 @@ export function hex2bin(hex: string): string {
 }
 
 export function formatHashRate(hashRate: number): string {
-  if (hashRate >= 1e12) {
+  if (hashRate >= 1e18) {
+    return `${(hashRate / 1e18).toFixed(2)} EH/s`;
+  } else if (hashRate >= 1e15) {
+    return `${(hashRate / 1e15).toFixed(2)} PH/s`;
+  } else if (hashRate >= 1e12) {
     return `${(hashRate / 1e12).toFixed(2)} TH/s`;
   } else if (hashRate >= 1e9) {
     return `${(hashRate / 1e9).toFixed(2)} GH/s`;

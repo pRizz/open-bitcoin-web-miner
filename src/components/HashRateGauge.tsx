@@ -14,8 +14,19 @@ const MINER_REFERENCES: MinerReference[] = [
   { hashRate: 100e12, name: "Antminer S21" }, // 100 TH/s
 ];
 
-// Generate magnitude ticks from 1 H/s to 100 TH/s
-const MAGNITUDE_TICKS = Array.from({ length: 15 }, (_, i) => Math.pow(10, i));
+// Calculate number of orders of magnitude from 1 H/s (10^0) to 1 PH/s (10^15)
+const MAGNITUDE_RANGE = {
+  MIN_EXPONENT: 0,  // 1 H/s
+  MAX_EXPONENT: 15, // 1 PH/s
+  // Maximum value is 1 PH/s (10^15)
+  MAX_HASH_RATE: Math.pow(10, 15)
+};
+
+// Generate magnitude ticks from 1 H/s to 1 PH/s
+const MAGNITUDE_TICKS = Array.from(
+  { length: MAGNITUDE_RANGE.MAX_EXPONENT - MAGNITUDE_RANGE.MIN_EXPONENT + 1 }, 
+  (_, i) => Math.pow(10, i + MAGNITUDE_RANGE.MIN_EXPONENT)
+);
 
 const CONFIDENCE_LEVELS = [
   { confidence: 0.05, label: "5%" },
@@ -29,13 +40,12 @@ interface HashRateGaugeProps {
 
 export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
   const { maybeRequiredBinaryZeroes } = useNetworkInfo();
-  const maxHashRate = 100e12; // 100 TH/s (Antminer S21)
 
   // Use logarithmic scale for better visualization of small hash rates
   const getLogScale = (value: number) => {
     // Add 1 to handle 0 hash rate
     const logValue = Math.log10(value + 1);
-    const logMax = Math.log10(maxHashRate + 1);
+    const logMax = Math.log10(MAGNITUDE_RANGE.MAX_HASH_RATE + 1);
     return (logValue / logMax) * 100;
   };
 
@@ -49,10 +59,10 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
 
   return (
     <Card className="p-6 glass-card">
-      <div className="flex justify-between items-start mb-4">
-        <h2 className="text-2xl font-bold">Hash Rate</h2>
-        <div className="text-right text-sm text-gray-400">
-          <div className="font-semibold mb-1 flex items-center justify-end gap-2">
+      <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
+      <div className="flex gap-6">
+        <div className="text-sm text-gray-400 min-w-[300px]">
+          <div className="font-semibold mb-1 flex items-center gap-2">
             Chances of Finding a Block Solution
             <Dialog>
               <DialogTrigger>
@@ -111,67 +121,69 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
             </Dialog>
           </div>
           {CONFIDENCE_LEVELS.map(({ confidence, label }) => (
-            <div key={label} className="flex justify-end gap-2">
+            <div key={label} className="flex gap-2">
               <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(hashRate, maybeRequiredBinaryZeroes, confidence))}</span>
             </div>
           ))}
         </div>
-      </div>
 
-      <div className="relative">
-        <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
-          <div
-            className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
-            style={{ width: `${percentage}%` }}
-          >
-            {percentage > 5 && (
-              <span className="text-xs font-medium text-white relative z-10">
-                {formatHashRateWithoutDecimals(hashRate)}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Magnitude ticks */}
-        <div className="relative h-8 mt-1">
-          {MAGNITUDE_TICKS.map((value) => {
-            if (value > maxHashRate) return null;
-            const tickPosition = getLogScale(value);
-            return (
+        <div className="flex-1">
+          <div className="relative">
+            <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
               <div
-                key={value}
-                className="absolute -translate-x-1/2"
-                style={{ left: `${tickPosition}%` }}
+                className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
+                style={{ width: `${percentage}%` }}
               >
-                <div className="h-2 w-px bg-gray-600" />
-                <div className="text-[10px] text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap">
-                  {formatHashRateWithoutDecimals(value)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Reference labels */}
-        <div className="relative h-16 mt-4">
-          {MINER_REFERENCES.map((miner) => {
-            const tickPosition = getLogScale(miner.hashRate);
-            return (
-              <div
-                key={miner.name}
-                className="absolute -translate-x-1/2 top-0"
-                style={{ left: `${tickPosition}%` }}
-              >
-                <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
-                <div className="text-xs text-gray-400 whitespace-nowrap mt-1">
-                  {miner.name}
-                  <span className="block hash-text">
-                    {formatHashRateWithoutDecimals(miner.hashRate)}
+                {percentage > 5 && (
+                  <span className="text-xs font-medium text-white relative z-10">
+                    {formatHashRateWithoutDecimals(hashRate)}
                   </span>
-                </div>
+                )}
               </div>
-            );
-          })}
+            </div>
+
+            {/* Magnitude ticks */}
+            <div className="relative h-8 mt-1">
+              {MAGNITUDE_TICKS.map((value) => {
+                if (value > MAGNITUDE_RANGE.MAX_HASH_RATE) return null;
+                const tickPosition = getLogScale(value);
+                return (
+                  <div
+                    key={value}
+                    className="absolute -translate-x-1/2"
+                    style={{ left: `${tickPosition}%` }}
+                  >
+                    <div className="h-2 w-px bg-gray-600" />
+                    <div className="absolute text-xs text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap translate-x-2">
+                      {formatHashRateWithoutDecimals(value)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Reference labels */}
+            <div className="relative h-16 mt-8">
+              {MINER_REFERENCES.map((miner) => {
+                const tickPosition = getLogScale(miner.hashRate);
+                return (
+                  <div
+                    key={miner.name}
+                    className="absolute -translate-x-1/2"
+                    style={{ left: `${tickPosition}%` }}
+                  >
+                    <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
+                    <div className="text-xs text-gray-400 whitespace-nowrap mt-1 text-center">
+                      {miner.name}
+                      <span className="block hash-text">
+                        ~ {formatHashRateWithoutDecimals(miner.hashRate)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </Card>
