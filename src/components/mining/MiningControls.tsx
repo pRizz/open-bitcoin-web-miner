@@ -137,6 +137,16 @@ export function MiningControls() {
         </div>
       </div>
 
+      {/* Start/Stop Button */}
+      <Button
+        className="w-full"
+        onClick={isMining ? stopMining : startMining}
+        variant={isMining ? "destructive" : "default"}
+        disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
+      >
+        {isMining ? "Stop Mining" : "Start Mining"}
+      </Button>
+
       {/* Mining Mode Selection */}
       <div className="space-y-2">
         <Label>Mining Mode</Label>
@@ -221,16 +231,6 @@ export function MiningControls() {
           </TooltipProvider>
         </div>
       </div>
-
-      {/* Start/Stop Button */}
-      <Button
-        className="w-full"
-        onClick={isMining ? stopMining : startMining}
-        variant={isMining ? "destructive" : "default"}
-        disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
-      >
-        {isMining ? "Stop Mining" : "Start Mining"}
-      </Button>
 
       {/* GPU Capabilities */}
       {miningMode === "webgpu" && (
