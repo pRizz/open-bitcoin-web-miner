@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { LeaderboardSubmissionHandler } from "@/components/leaderboard/LeaderboardSubmissionHandler";
+import { loadUsername, loadLeaderboardMessage, STORAGE_KEYS } from "@/utils/localStorage";
 
 interface LeaderboardContextType {
   username: string;
@@ -11,6 +12,7 @@ interface LeaderboardContextType {
   setLeaderboardMessage: (message: string) => void;
   lastSubmissionTime: number;
   maybeSubmitToLeaderboard: () => Promise<void>;
+  resetFields: () => void;
 }
 
 const defaultContext: LeaderboardContextType = {
@@ -20,6 +22,7 @@ const defaultContext: LeaderboardContextType = {
   setLeaderboardMessage: () => {},
   lastSubmissionTime: 0,
   maybeSubmitToLeaderboard: async () => {},
+  resetFields: () => {},
 };
 
 export const LeaderboardContext = createContext<LeaderboardContextType>(defaultContext);
@@ -28,11 +31,18 @@ export function LeaderboardProvider({ children }: { children: React.ReactNode })
   const { toast } = useToast();
   const { miningStats } = useMining();
   const { maybeBlockchainMessage } = useMinerInfo();
-  const [username, setUsername] = useState("");
-  const [leaderboardMessage, setLeaderboardMessage] = useState("");
+  const [username, setUsername] = useState(loadUsername() ?? "");
+  const [leaderboardMessage, setLeaderboardMessage] = useState(loadLeaderboardMessage() ?? "");
   const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
   const submissionHandler = new LeaderboardSubmissionHandler(toast);
+
+  const resetFields = () => {
+    setUsername("");
+    setLeaderboardMessage("");
+    localStorage.removeItem(STORAGE_KEYS.USERNAME);
+    localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_MESSAGE);
+  };
 
   const maybeSubmitToLeaderboard = async () => {
     if (
@@ -77,6 +87,7 @@ export function LeaderboardProvider({ children }: { children: React.ReactNode })
         setLeaderboardMessage,
         lastSubmissionTime,
         maybeSubmitToLeaderboard,
+        resetFields,
       }}
     >
       {children}

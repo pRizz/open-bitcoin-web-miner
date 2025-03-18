@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { formatDuration } from "@/utils/formatters";
+import { motion } from "framer-motion";
 
 interface LeaderboardEntry {
   maybeUsername: string | null;
@@ -19,6 +20,8 @@ interface LeaderboardEntry {
   hexZeroes: number;
   timeToFind: number;
 }
+
+const MotionTableRow = motion(TableRow);
 
 export function GlobalLeaderboard() {
   const { data: leaderboard, isLoading } = useQuery({
@@ -59,7 +62,6 @@ export function GlobalLeaderboard() {
 
   return (
     <Card className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Global Leaderboard</h2>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -75,7 +77,21 @@ export function GlobalLeaderboard() {
           </TableHeader>
           <TableBody>
             {leaderboard?.map((entry, index) => (
-              <TableRow key={entry.hash}>
+              <MotionTableRow
+                key={entry.hash}
+                initial={{ 
+                  color: "hsl(var(--background))",
+                  backgroundColor: "hsl(var(--background))",
+                  borderColor: "hsl(var(--background))"
+                }}
+                animate={{ 
+                  color: "hsl(var(--foreground))",
+                  backgroundColor: "transparent",
+                  borderColor: "hsl(var(--border))"
+                }}
+                transition={{ duration: 0.3 }}
+                className="transition-none"
+              >
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>{entry.maybeUsername || "Anonymous"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">
@@ -87,7 +103,7 @@ export function GlobalLeaderboard() {
                   0x{entry.hash}
                 </TableCell>
                 <TableCell>{formatDuration(entry.timeToFind)}</TableCell>
-              </TableRow>
+              </MotionTableRow>
             ))}
           </TableBody>
         </Table>

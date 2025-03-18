@@ -139,9 +139,10 @@ export function MiningControls() {
 
       {/* Start/Stop Button */}
       <Button
-        className="w-full"
+        className={isMining 
+          ? "w-full bg-red-600 hover:bg-red-700 text-white" 
+          : "w-full bg-green-600 hover:bg-green-700 text-white"}
         onClick={isMining ? stopMining : startMining}
-        variant={isMining ? "destructive" : "default"}
         disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
       >
         {isMining ? "Stop Mining" : "Start Mining"}

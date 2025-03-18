@@ -5,6 +5,7 @@ import { ShareControls } from "@/components/mining/ShareControls";
 import { useShare } from "@/contexts/ShareContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { cn } from "@/lib/utils";
+import { AnimatePresence } from "framer-motion";
 
 function MinerCountIndicator() {
   const { maybeConnectedMinerCount } = useNetworkInfo();
@@ -59,7 +60,9 @@ export function AppLayout() {
             </div>
           </div>
           <div className="p-6">
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <Outlet />
+            </AnimatePresence>
           </div>
         </main>
       </div>

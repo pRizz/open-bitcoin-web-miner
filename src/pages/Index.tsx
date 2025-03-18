@@ -11,6 +11,7 @@ import { LeaderboardInfoPanel } from "@/components/LeaderboardInfoPanel";
 import { DebugLogPanel } from "@/components/debug/DebugLogPanel";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { Button } from "@/components/ui/button";
+import { PageTransition } from "@/components/PageTransition";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -40,34 +41,36 @@ const Index = () => {
   }, [searchParams, startMining, isMining, setMinerAddress, setBlockchainMessage]);
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6 glass-card">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-2xl font-bold">Mining Controls</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetSettings}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Reset Settings
-              </Button>
-            </div>
-            <p className="text-muted-foreground mb-4">Configure your mining settings</p>
-            <MiningControls />
-          </Card>
+    <PageTransition>
+      <div className="max-w-7xl mx-auto">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-6 glass-card">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-2xl font-bold">Mining Controls</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetSettings}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Reset Settings
+                </Button>
+              </div>
+              <p className="text-muted-foreground mb-4">Configure your mining settings</p>
+              <MiningControls />
+            </Card>
 
-          <NetworkStats />
+            <NetworkStats />
+          </div>
+
+          <HashRateGauge hashRate={miningStats.maybeHashRate} />
+          <DebugLogPanel />
+          <LeaderboardInfoPanel />
+          <HashList hashes={miningStats.maybeBestHashes} />
         </div>
-
-        <HashRateGauge hashRate={miningStats.maybeHashRate} />
-        <DebugLogPanel />
-        <LeaderboardInfoPanel />
-        <HashList hashes={miningStats.maybeBestHashes} />
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

@@ -7,14 +7,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { HashSolution } from "@/types/mining";
 import { HashTableRow } from "./HashTableRow";
+import { useMining } from "@/contexts/MiningContext";
 
 interface HashListProps {
   hashes: HashSolution[];
 }
 
 export function HashList({ hashes }: HashListProps) {
+  const { isMining, startMining, stopMining } = useMining();
   const [sortField, setSortField] = useState<keyof HashSolution>("binaryZeroes");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -37,40 +40,57 @@ export function HashList({ hashes }: HashListProps) {
 
   return (
     <Card className="p-6 glass-card">
-      <h2 className="text-2xl font-bold mb-4">Best Hashes Found</h2>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead
-                className="cursor-pointer text-center"
-                onClick={() => toggleSort("binaryZeroes")}
-              >
-                Leading Binary Zeroes
-              </TableHead>
-              <TableHead
-                className="cursor-pointer text-center"
-                onClick={() => toggleSort("hexZeroes")}
-              >
-                Leading Hex Zeroes
-              </TableHead>
-              <TableHead className="text-center">Hash</TableHead>
-              <TableHead
-                className="cursor-pointer text-center"
-                onClick={() => toggleSort("timeToFind")}
-              >
-                Time to Find
-              </TableHead>
-              <TableHead className="text-center">Details</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedHashes.map((hash) => (
-              <HashTableRow key={hash.id} hash={hash} />
-            ))}
-          </TableBody>
-        </Table>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Best Hashes Found</h2>
+        <Button
+          onClick={isMining ? stopMining : startMining}
+          size="sm"
+          className={isMining 
+            ? "bg-red-600 hover:bg-red-700 text-white" 
+            : "bg-green-600 hover:bg-green-700 text-white"}
+        >
+          {isMining ? "Stop Mining" : "Start Mining"}
+        </Button>
       </div>
+      {hashes.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          No hashes found yet. Start mining to discover leading zeros!
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead
+                  className="cursor-pointer text-center"
+                  onClick={() => toggleSort("binaryZeroes")}
+                >
+                  Leading Binary Zeroes
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer text-center"
+                  onClick={() => toggleSort("hexZeroes")}
+                >
+                  Leading Hex Zeroes
+                </TableHead>
+                <TableHead className="text-center">Hash</TableHead>
+                <TableHead
+                  className="cursor-pointer text-center"
+                  onClick={() => toggleSort("timeToFind")}
+                >
+                  Time to Find
+                </TableHead>
+                <TableHead className="text-center">Details</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedHashes.map((hash) => (
+                <HashTableRow key={hash.id} hash={hash} />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </Card>
   );
 }

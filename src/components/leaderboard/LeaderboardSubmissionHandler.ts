@@ -77,7 +77,7 @@ export class LeaderboardSubmissionHandler {
 
       this.toast({
         title: "Success!",
-        description: "Your hash has been added to the leaderboard",
+        description: `Your hash with ${bestHash.binaryZeroes} leading binary zeroes has been added to the leaderboard`,
       });
       return true;
     } catch (error) {
