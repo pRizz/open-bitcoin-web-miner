@@ -1,11 +1,25 @@
 import { createContext, useContext, useState } from "react";
-import { loadMinerAddress, saveMinerAddress, loadBlockchainMessage, saveBlockchainMessage, STORAGE_KEYS } from "@/utils/localStorage";
+import {
+  loadMinerAddress,
+  saveMinerAddress,
+  loadBlockchainMessage,
+  saveBlockchainMessage,
+  loadLeaderboardUsername,
+  saveLeaderboardUsername,
+  loadLeaderboardMessage,
+  saveLeaderboardMessage,
+  STORAGE_KEYS
+} from "@/utils/localStorage";
 
 interface MinerInfoContextType {
     maybeMinerAddress: string | null;
     setMinerAddress: (minerAddress: string | null) => void;
     maybeBlockchainMessage: string | null;
     setBlockchainMessage: (message: string | null) => void;
+    maybeLeaderboardUsername: string | null;
+    setLeaderboardUsername: (username: string | null) => void;
+    maybeLeaderboardMessage: string | null;
+    setLeaderboardMessage: (message: string | null) => void;
     resetSettings: () => void;
 }
 
@@ -14,6 +28,10 @@ const defaultContext: MinerInfoContextType = {
   setMinerAddress: () => {},
   maybeBlockchainMessage: null,
   setBlockchainMessage: () => {},
+  maybeLeaderboardUsername: null,
+  setLeaderboardUsername: () => {},
+  maybeLeaderboardMessage: null,
+  setLeaderboardMessage: () => {},
   resetSettings: () => {},
 }
 
@@ -22,6 +40,8 @@ export const MinerInfoContext = createContext<MinerInfoContextType>(defaultConte
 export function MinerInfoProvider({ children }: { children: React.ReactNode }) {
   const [maybeMinerAddress, setMinerAddressState] = useState<string | null>(() => loadMinerAddress());
   const [maybeBlockchainMessage, setBlockchainMessageState] = useState<string | null>(() => loadBlockchainMessage());
+  const [maybeLeaderboardUsername, setLeaderboardUsernameState] = useState<string | null>(() => loadLeaderboardUsername());
+  const [maybeLeaderboardMessage, setLeaderboardMessageState] = useState<string | null>(() => loadLeaderboardMessage());
 
   const setMinerAddress = (minerAddress: string | null) => {
     setMinerAddressState(minerAddress);
@@ -33,11 +53,25 @@ export function MinerInfoProvider({ children }: { children: React.ReactNode }) {
     saveBlockchainMessage(message);
   };
 
+  const setLeaderboardUsername = (username: string | null) => {
+    setLeaderboardUsernameState(username);
+    saveLeaderboardUsername(username);
+  };
+
+  const setLeaderboardMessage = (message: string | null) => {
+    setLeaderboardMessageState(message);
+    saveLeaderboardMessage(message);
+  };
+
   const resetSettings = () => {
     setMinerAddressState(null);
     setBlockchainMessageState(null);
+    setLeaderboardUsernameState(null);
+    setLeaderboardMessageState(null);
     localStorage.removeItem(STORAGE_KEYS.MINER_ADDRESS);
     localStorage.removeItem(STORAGE_KEYS.BLOCKCHAIN_MESSAGE);
+    localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_USERNAME);
+    localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_MESSAGE);
   };
 
   return (
@@ -46,6 +80,10 @@ export function MinerInfoProvider({ children }: { children: React.ReactNode }) {
       setMinerAddress,
       maybeBlockchainMessage,
       setBlockchainMessage,
+      maybeLeaderboardUsername,
+      setLeaderboardUsername,
+      maybeLeaderboardMessage,
+      setLeaderboardMessage,
       resetSettings
     }}>
       {children}

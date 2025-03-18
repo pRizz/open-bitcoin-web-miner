@@ -24,7 +24,7 @@ interface MiningWebSocketCallbacks {
 export function MiningWebSocketProvider({ children }: { children: React.ReactNode }) {
   const maybeWebSocket = useRef<WebSocket | null>(null);
   const maybeCallbacks = useRef<MiningWebSocketCallbacks | null>(null);
-  const { maybeMinerAddress, maybeBlockchainMessage } = useMinerInfo();
+  const { maybeMinerAddress, maybeBlockchainMessage, maybeLeaderboardUsername, maybeLeaderboardMessage } = useMinerInfo();
 
   console.log("MiningWebSocketProvider constructor called");
 
@@ -36,13 +36,25 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
   const onOpen = useCallback(() => {
     console.log('in useMiningWebSocket onOpen, WebSocket connection established');
 
-    const data: { maybeBtcRewardAddress?: string | null; maybeBlockchainMessage?: string | null } = {};
+    const data: {
+      maybeBtcRewardAddress?: string | null;
+      maybeBlockchainMessage?: string | null;
+      maybeLeaderboardUsername?: string | null;
+      maybeLeaderboardMessage?: string | null;
+    } = {};
     if (maybeMinerAddress) {
       data.maybeBtcRewardAddress = maybeMinerAddress;
     }
     if (maybeBlockchainMessage) {
       data.maybeBlockchainMessage = maybeBlockchainMessage;
     }
+    if (maybeLeaderboardUsername) {
+      data.maybeLeaderboardUsername = maybeLeaderboardUsername;
+    }
+    if (maybeLeaderboardMessage) {
+      data.maybeLeaderboardMessage = maybeLeaderboardMessage;
+    }
+
     const startMiningMessage: WebSocketClientMessage = {
       type: "StartMining",
       data
@@ -51,7 +63,7 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
     maybeWebSocket.current?.send(JSON.stringify(startMiningMessage));
 
     maybeCallbacks.current?.onConnectionStateChange(true);
-  }, [maybeMinerAddress, maybeBlockchainMessage, maybeCallbacks, maybeWebSocket]);
+  }, [maybeMinerAddress, maybeBlockchainMessage, maybeLeaderboardUsername, maybeLeaderboardMessage, maybeCallbacks, maybeWebSocket]);
 
   const onMessage = useCallback((event: MessageEvent) => {
     try {

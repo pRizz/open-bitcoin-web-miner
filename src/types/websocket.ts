@@ -41,7 +41,12 @@ export type WebSocketServerMessage =
 
 export type WebSocketClientMessage =
     | { type: "Submission"; data: MiningSubmission }
-    | { type: "StartMining"; data: { maybeBtcRewardAddress?: string | null, maybeBlockchainMessage?: string | null } };
+    | { type: "StartMining"; data: {
+        maybeBtcRewardAddress?: string | null,
+        maybeBlockchainMessage?: string | null,
+        maybeLeaderboardUsername?: string | null,
+        maybeLeaderboardMessage?: string | null
+      } };
 
 export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number): Uint8Array {
   if (

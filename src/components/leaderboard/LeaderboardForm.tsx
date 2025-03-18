@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
 import { useLeaderboard } from "@/contexts/leaderboard/LeaderboardContext";
-import { saveUsername, saveLeaderboardMessage } from "@/utils/localStorage";
+import { saveLeaderboardUsername, saveLeaderboardMessage } from "@/utils/localStorage";
 import {
   Tooltip,
   TooltipContent,
@@ -19,7 +19,7 @@ export function LeaderboardForm() {
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUsername = e.target.value;
     setUsername(newUsername);
-    saveUsername(newUsername);
+    saveLeaderboardUsername(newUsername);
   };
 
   const handleLeaderboardMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

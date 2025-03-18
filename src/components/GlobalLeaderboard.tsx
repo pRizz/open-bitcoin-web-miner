@@ -16,12 +16,53 @@ import {
 import { formatDuration } from "@/utils/formatters";
 import { motion } from "framer-motion";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { useState, useMemo } from "react";
 
 const MotionTableRow = motion(TableRow);
 
+type SortField = "rank" | "binaryZeroes" | "blockHeight" | "createdAt";
+type SortDirection = "asc" | "desc";
+
 export function GlobalLeaderboard() {
   const { leaderboard, isLoading, error } = useGlobalLeaderboard();
+  const [sortField, setSortField] = useState<SortField>("rank");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection(field === "rank" ? "asc" : "desc");
+    }
+  };
+
+  const sortedLeaderboard = useMemo(() => {
+    if (!leaderboard) return [];
+
+    return [...leaderboard].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+      case "rank":
+        // Rank is based on binaryZeroes, so we'll sort by that
+        comparison = b.rank - a.rank;
+        break;
+      case "binaryZeroes":
+        comparison = b.binaryZeroes - a.binaryZeroes;
+        break;
+      case "blockHeight":
+        comparison = (b.blockHeight || 0) - (a.blockHeight || 0);
+        break;
+      case "createdAt":
+        comparison = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        break;
+      }
+
+      return sortDirection === "asc" ? -comparison : comparison;
+    });
+  }, [leaderboard, sortField, sortDirection]);
 
   if (isLoading) {
     return (
@@ -48,13 +89,25 @@ export function GlobalLeaderboard() {
     );
   }
 
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-4 w-4" />;
+    return sortDirection === "asc" ?
+      <ArrowUp className="inline ml-1 h-4 w-4" /> :
+      <ArrowDown className="inline ml-1 h-4 w-4" />;
+  };
+
   return (
     <Card className="p-6">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="py-10">
-              <TableHead className="text-center">Rank</TableHead>
+              <TableHead
+                className="text-center cursor-pointer hover:text-primary"
+                onClick={() => handleSort("rank")}
+              >
+                Rank <SortIcon field="rank" />
+              </TableHead>
               <TableHead className="text-center">Username</TableHead>
               <TableHead className="text-center">
                 Message
@@ -82,19 +135,32 @@ export function GlobalLeaderboard() {
                   </Tooltip>
                 </TooltipProvider>
               </TableHead>
-              <TableHead className="text-center w-[80px] py-2">
-                Leading<br />Binary<br />Zeroes
+              <TableHead
+                className="text-center w-[80px] py-2 cursor-pointer hover:text-primary"
+                onClick={() => handleSort("binaryZeroes")}
+              >
+                Leading<br />Binary<br />Zeroes <SortIcon field="binaryZeroes" />
               </TableHead>
               <TableHead className="text-center w-[80px] py-2">
                 Leading<br />Hex<br />Zeroes
               </TableHead>
               <TableHead className="text-center">Hash</TableHead>
-              <TableHead className="text-center">Block Height</TableHead>
-              <TableHead className="text-center">Time Found</TableHead>
+              <TableHead
+                className="text-center cursor-pointer hover:text-primary"
+                onClick={() => handleSort("blockHeight")}
+              >
+                Block Height <SortIcon field="blockHeight" />
+              </TableHead>
+              <TableHead
+                className="text-center cursor-pointer hover:text-primary"
+                onClick={() => handleSort("createdAt")}
+              >
+                Time Found <SortIcon field="createdAt" />
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leaderboard?.map((entry, index) => (
+            {sortedLeaderboard.map((entry) => (
               <MotionTableRow
                 key={entry.hash}
                 initial={{
@@ -110,12 +176,12 @@ export function GlobalLeaderboard() {
                 transition={{ duration: 0.3 }}
                 className="transition-none"
               >
-                <TableCell className="text-center">{index + 1}</TableCell>
-                <TableCell className="text-center">{entry.maybeUsername || "Anonymous"}</TableCell>
-                <TableCell className="text-center max-w-[200px] truncate">
+                <TableCell className="text-center">{entry.rank}</TableCell>
+                <TableCell className="text-center whitespace-normal break-words">{entry.maybeUsername || "anonymous"}</TableCell>
+                <TableCell className="text-center whitespace-normal break-words max-w-[200px]">
                   {entry.maybeLeaderboardMessage || "-"}
                 </TableCell>
-                <TableCell className="text-center max-w-[200px] truncate">
+                <TableCell className="text-center whitespace-normal break-words max-w-[200px]">
                   {entry.maybeBlockchainMessage || "-"}
                 </TableCell>
                 <TableCell className="text-center">{entry.binaryZeroes}</TableCell>
@@ -123,7 +189,7 @@ export function GlobalLeaderboard() {
                 <TableCell className="text-center font-mono text-xs truncate max-w-[200px]">
                   <TooltipProvider>
                     <Tooltip delayDuration={0}>
-                      <TooltipTrigger className="cursor-help">
+                      <TooltipTrigger className="cursor-help font-mono text-xs truncate max-w-[120px] whitespace-normal break-words">
                         0x{entry.hash}
                       </TooltipTrigger>
                       <TooltipContent>

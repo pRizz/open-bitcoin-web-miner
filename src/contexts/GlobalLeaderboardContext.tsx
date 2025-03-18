@@ -11,17 +11,27 @@ interface LeaderboardEntry {
   hexZeroes: number;
   blockHeight: number;
   createdAt: string;
+  rank: number;
 }
 
 interface GlobalLeaderboardContextType {
   leaderboard: LeaderboardEntry[] | undefined;
   isLoading: boolean;
   error: Error | null;
+  lastRefreshTime: Date | null;
 }
 
 const GlobalLeaderboardContext = createContext<GlobalLeaderboardContextType | undefined>(undefined);
 
+// Function to get random time between 15 and 30 seconds
+const getRandomRefetchInterval = () => {
+  return Math.floor(Math.random() * (30000 - 15000 + 1) + 15000);
+};
+
 export function GlobalLeaderboardProvider({ children }: { children: React.ReactNode }) {
+  // Track last refresh time
+  const [lastRefreshTime, setLastRefreshTime] = React.useState<Date | null>(null);
+
   const { data: leaderboard, isLoading, error } = useQuery({
     queryKey: ["global-leaderboard"],
     queryFn: async (): Promise<LeaderboardEntry[]> => {
@@ -29,10 +39,16 @@ export function GlobalLeaderboardProvider({ children }: { children: React.ReactN
       if (!response.ok) {
         throw new Error('Failed to fetch leaderboard data');
       }
-      return response.json();
+      const data = await response.json();
+      setLastRefreshTime(new Date());
+      // Add rank to each entry based on binaryZeroes
+      return data.map((entry: LeaderboardEntry, index: number) => ({
+        ...entry,
+        rank: index + 1
+      }));
     },
     staleTime: 30000, // Consider data fresh for 30 seconds
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: getRandomRefetchInterval, // Random time between 15-30 seconds
   });
 
   return (
@@ -41,6 +57,7 @@ export function GlobalLeaderboardProvider({ children }: { children: React.ReactN
         leaderboard,
         isLoading,
         error: error as Error | null,
+        lastRefreshTime,
       }}
     >
       {children}

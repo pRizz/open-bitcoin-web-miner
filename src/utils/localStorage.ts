@@ -4,7 +4,7 @@ import { validateBlockchainMessage } from "./blockchainMessage";
 export const STORAGE_KEYS = {
   MINER_ADDRESS: 'minerAddress',
   BLOCKCHAIN_MESSAGE: 'blockchainMessage',
-  USERNAME: 'username',
+  LEADERBOARD_USERNAME: 'username',
   LEADERBOARD_MESSAGE: 'leaderboardMessage'
 } as const;
 
@@ -18,19 +18,19 @@ function validateLeaderboardMessage(message: string): boolean {
   return message.length <= 120;
 }
 
-export function loadUsername(): string | null {
-  const maybeUsername = localStorage.getItem(STORAGE_KEYS.USERNAME);
+export function loadLeaderboardUsername(): string | null {
+  const maybeUsername = localStorage.getItem(STORAGE_KEYS.LEADERBOARD_USERNAME);
   if (maybeUsername && validateUsername(maybeUsername)) {
     return maybeUsername;
   }
   return null;
 }
 
-export function saveUsername(maybeUsername: string | null): void {
+export function saveLeaderboardUsername(maybeUsername: string | null): void {
   if (maybeUsername && validateUsername(maybeUsername)) {
-    localStorage.setItem(STORAGE_KEYS.USERNAME, maybeUsername);
+    localStorage.setItem(STORAGE_KEYS.LEADERBOARD_USERNAME, maybeUsername);
   } else {
-    localStorage.removeItem(STORAGE_KEYS.USERNAME);
+    localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_USERNAME);
   }
 }
 

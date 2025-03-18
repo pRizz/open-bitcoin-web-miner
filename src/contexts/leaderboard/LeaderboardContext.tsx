@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { LeaderboardSubmissionHandler } from "@/components/leaderboard/LeaderboardSubmissionHandler";
-import { loadUsername, loadLeaderboardMessage, STORAGE_KEYS } from "@/utils/localStorage";
+import { loadLeaderboardUsername, loadLeaderboardMessage, STORAGE_KEYS } from "@/utils/localStorage";
 
 interface LeaderboardContextType {
   username: string;
@@ -29,7 +29,7 @@ export function LeaderboardProvider({ children }: { children: React.ReactNode })
   const { toast } = useToast();
   const { miningStats } = useMining();
   const { maybeBlockchainMessage } = useMinerInfo();
-  const [username, setUsername] = useState(loadUsername() ?? "");
+  const [username, setUsername] = useState(loadLeaderboardUsername() ?? "");
   const [leaderboardMessage, setLeaderboardMessage] = useState(loadLeaderboardMessage() ?? "");
   const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
@@ -38,7 +38,7 @@ export function LeaderboardProvider({ children }: { children: React.ReactNode })
   const resetFields = () => {
     setUsername("");
     setLeaderboardMessage("");
-    localStorage.removeItem(STORAGE_KEYS.USERNAME);
+    localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_USERNAME);
     localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_MESSAGE);
   };
 
