@@ -36,4 +36,4 @@ export function saveBlockchainMessage(maybeMessage: string | null): void {
   } else {
     localStorage.removeItem(STORAGE_KEYS.BLOCKCHAIN_MESSAGE);
   }
-} 
+}

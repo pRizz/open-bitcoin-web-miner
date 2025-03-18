@@ -46,8 +46,8 @@ const Index = () => {
           <Card className="p-6 glass-card">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-2xl font-bold">Mining Controls</h2>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={resetSettings}
                 className="text-muted-foreground hover:text-foreground"

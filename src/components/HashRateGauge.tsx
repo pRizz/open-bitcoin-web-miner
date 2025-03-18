@@ -3,6 +3,7 @@ import { formatHashRate, calculateSecondsToFindBlock, formatTime } from "@/utils
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MinerReference {
   hashRate: number;
@@ -24,9 +25,17 @@ const MAGNITUDE_RANGE = {
 
 // Generate magnitude ticks from 1 H/s to 1 PH/s
 const MAGNITUDE_TICKS = Array.from(
-  { length: MAGNITUDE_RANGE.MAX_EXPONENT - MAGNITUDE_RANGE.MIN_EXPONENT + 1 }, 
+  { length: MAGNITUDE_RANGE.MAX_EXPONENT - MAGNITUDE_RANGE.MIN_EXPONENT + 1 },
   (_, i) => Math.pow(10, i + MAGNITUDE_RANGE.MIN_EXPONENT)
 );
+
+// Generate proportional ticks for numbers 1-9 in each order of magnitude
+const PROPORTIONAL_TICKS = MAGNITUDE_TICKS.flatMap(magnitude => {
+  return [2, 3, 4, 5, 6, 7, 8, 9].map(n => magnitude * n);
+});
+
+// Combine and sort all ticks
+const ALL_TICKS = [...MAGNITUDE_TICKS, ...PROPORTIONAL_TICKS].sort((a, b) => a - b);
 
 const CONFIDENCE_LEVELS = [
   { confidence: 0.05, label: "5%" },
@@ -61,7 +70,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       <div className="flex gap-6">
-        <div className="text-sm text-gray-400 min-w-[300px]">
+        <div className="text-sm text-gray-400 basis-1/6 shrink-0">
           <div className="font-semibold mb-1 flex items-center gap-2">
             Chances of Finding a Block Solution
             <Dialog>
@@ -122,12 +131,13 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
           </div>
           {CONFIDENCE_LEVELS.map(({ confidence, label }) => (
             <div key={label} className="flex gap-2">
+              <span className="text-gray-500">•</span>
               <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(hashRate, maybeRequiredBinaryZeroes, confidence))}</span>
             </div>
           ))}
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 px-10">
           <div className="relative">
             <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
               <div
@@ -144,20 +154,29 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
 
             {/* Magnitude ticks */}
             <div className="relative h-8 mt-1">
-              {MAGNITUDE_TICKS.map((value) => {
+              {ALL_TICKS.map((value) => {
                 if (value > MAGNITUDE_RANGE.MAX_HASH_RATE) return null;
                 const tickPosition = getLogScale(value);
+                const isMainTick = MAGNITUDE_TICKS.includes(value);
                 return (
-                  <div
-                    key={value}
-                    className="absolute -translate-x-1/2"
-                    style={{ left: `${tickPosition}%` }}
-                  >
-                    <div className="h-2 w-px bg-gray-600" />
-                    <div className="absolute text-xs text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap translate-x-2">
-                      {formatHashRateWithoutDecimals(value)}
-                    </div>
-                  </div>
+                  <TooltipProvider key={value}>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="absolute -translate-x-1/2"
+                          style={{ left: `${tickPosition}%` }}
+                        >
+                          <div className={`h-${isMainTick ? '4' : '2'} w-px bg-gray-600`} />
+                          <div className={`absolute ${isMainTick ? 'text-xs' : 'hidden'} text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap translate-x-2`}>
+                            {formatHashRateWithoutDecimals(value)}
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="center">
+                        {formatHashRateWithoutDecimals(value)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 );
               })}
             </div>
