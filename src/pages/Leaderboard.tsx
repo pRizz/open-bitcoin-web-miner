@@ -15,7 +15,6 @@ export default function Leaderboard() {
             <ChevronLeft className="h-4 w-4" />
             Back to Mining
           </Link>
-          <h1 className="text-4xl font-bold">Global Leaderboard</h1>
         </div>
         <GlobalLeaderboard />
       </div>
