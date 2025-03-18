@@ -45,8 +45,8 @@ export function HashList({ hashes }: HashListProps) {
         <Button
           onClick={isMining ? stopMining : startMining}
           size="sm"
-          className={isMining 
-            ? "bg-red-600 hover:bg-red-700 text-white" 
+          className={isMining
+            ? "bg-red-600 hover:bg-red-700 text-white"
             : "bg-green-600 hover:bg-green-700 text-white"}
         >
           {isMining ? "Stop Mining" : "Start Mining"}

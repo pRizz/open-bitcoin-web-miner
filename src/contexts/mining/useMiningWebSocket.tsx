@@ -2,6 +2,7 @@ import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, Nonce
 import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback } from "react";
 import { useMinerInfo } from "./MinerInfoContext";
+import { toast } from "@/hooks/use-toast";
 
 interface MiningWebSocketContextType {
   connect: () => void;
@@ -87,6 +88,11 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
 
   const onError = useCallback((error: ErrorEvent) => {
     console.error('WebSocket error:', error);
+    toast({
+      variant: "destructive",
+      title: "Mining Connection Error",
+      description: "An error occurred while attempting to mine. Please try again.",
+    });
     maybeCallbacks.current?.onError('WebSocket error occurred');
   }, [maybeCallbacks]);
 

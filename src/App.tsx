@@ -11,6 +11,7 @@ import Leaderboard from "@/pages/Leaderboard";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
+import { GlobalLeaderboardProvider } from "./contexts/GlobalLeaderboardContext";
 
 const queryClient = new QueryClient();
 
@@ -41,8 +42,10 @@ function App() {
               <MiningProvider>
                 <ShareProvider>
                   <LeaderboardProvider>
-                    <RouterProvider router={router} />
-                    <Toaster />
+                    <GlobalLeaderboardProvider>
+                      <RouterProvider router={router} />
+                      <Toaster />
+                    </GlobalLeaderboardProvider>
                   </LeaderboardProvider>
                 </ShareProvider>
               </MiningProvider>

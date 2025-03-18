@@ -11,7 +11,6 @@ interface LeaderboardContextType {
   leaderboardMessage: string;
   setLeaderboardMessage: (message: string) => void;
   lastSubmissionTime: number;
-  maybeSubmitToLeaderboard: () => Promise<void>;
   resetFields: () => void;
 }
 
@@ -21,7 +20,6 @@ const defaultContext: LeaderboardContextType = {
   leaderboardMessage: "",
   setLeaderboardMessage: () => {},
   lastSubmissionTime: 0,
-  maybeSubmitToLeaderboard: async () => {},
   resetFields: () => {},
 };
 
@@ -44,40 +42,6 @@ export function LeaderboardProvider({ children }: { children: React.ReactNode })
     localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_MESSAGE);
   };
 
-  const maybeSubmitToLeaderboard = async () => {
-    if (
-      miningStats.maybeBestHashes.length > 0 &&
-      username &&
-      Date.now() - lastSubmissionTime >= 60000 // 1 minute cooldown
-    ) {
-      const validation = submissionHandler.validateInputs(
-        username,
-        leaderboardMessage,
-        maybeBlockchainMessage ?? ""
-      );
-
-      if (!validation.isValid) {
-        toast({
-          title: "Invalid input",
-          description: validation.error,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const success = await submissionHandler.submitHash(
-        username,
-        leaderboardMessage,
-        maybeBlockchainMessage ?? "",
-        miningStats.maybeBestHashes[0]
-      );
-
-      if (success) {
-        setLastSubmissionTime(Date.now());
-      }
-    }
-  };
-
   return (
     <LeaderboardContext.Provider
       value={{
@@ -86,7 +50,6 @@ export function LeaderboardProvider({ children }: { children: React.ReactNode })
         leaderboardMessage,
         setLeaderboardMessage,
         lastSubmissionTime,
-        maybeSubmitToLeaderboard,
         resetFields,
       }}
     >

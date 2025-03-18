@@ -9,14 +9,7 @@ import { Trophy } from "lucide-react";
 
 export function LeaderboardInfoPanel() {
   const { miningStats } = useMining();
-  const { maybeSubmitToLeaderboard, resetFields } = useLeaderboard();
-
-  // Auto-submit functionality
-  useEffect(() => {
-    if (miningStats.maybeBestHashes.length > 0) {
-      maybeSubmitToLeaderboard();
-    }
-  }, [miningStats.maybeBestHashes]);
+  const { resetFields } = useLeaderboard();
 
   return (
     <Card className="p-6 glass-card">

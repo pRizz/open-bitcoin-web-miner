@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -9,41 +7,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatDuration } from "@/utils/formatters";
 import { motion } from "framer-motion";
-
-interface LeaderboardEntry {
-  maybeUsername: string | null;
-  maybeLeaderboardMessage: string | null;
-  hash: string;
-  binaryZeroes: number;
-  hexZeroes: number;
-  timeToFind: number;
-}
+import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
+import { HelpCircle } from "lucide-react";
 
 const MotionTableRow = motion(TableRow);
 
 export function GlobalLeaderboard() {
-  const { data: leaderboard, isLoading } = useQuery({
-    queryKey: ["leaderboard"],
-    queryFn: async (): Promise<LeaderboardEntry[]> => {
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .select("username, leaderboard_message, hash, binary_zeroes, hex_zeroes, time_to_find")
-        .order("binary_zeroes", { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      return data.map((entry) => ({
-        maybeUsername: entry.username,
-        maybeLeaderboardMessage: entry.leaderboard_message,
-        hash: entry.hash,
-        binaryZeroes: entry.binary_zeroes,
-        hexZeroes: entry.hex_zeroes,
-        timeToFind: entry.time_to_find,
-      }));
-    },
-  });
+  const { leaderboard, isLoading, error } = useGlobalLeaderboard();
 
   if (isLoading) {
     return (
@@ -60,31 +38,71 @@ export function GlobalLeaderboard() {
     );
   }
 
+  if (error) {
+    return (
+      <Card className="p-6">
+        <div className="text-red-500">
+          Error loading leaderboard: {error.message}
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-6">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Rank</TableHead>
-              <TableHead>Username</TableHead>
-              <TableHead>Message</TableHead>
-              <TableHead>Binary Zeroes</TableHead>
-              <TableHead>Hex Zeroes</TableHead>
-              <TableHead>Hash</TableHead>
-              <TableHead>Time to Find</TableHead>
+            <TableRow className="py-10">
+              <TableHead className="text-center">Rank</TableHead>
+              <TableHead className="text-center">Username</TableHead>
+              <TableHead className="text-center">
+                Message
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px]">
+                      <p>A message that is only displayed in the leaderboard and is not added to the blockchain.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableHead>
+              <TableHead className="text-center">
+                Blockchain Message
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px]">
+                      <p>This message will be added to the coinbase script signature field, if you successfully find a block. UTF-8 text is allowed, with a maximum length of 100 bytes. No control characters allowed.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableHead>
+              <TableHead className="text-center w-[80px] py-2">
+                Leading<br />Binary<br />Zeroes
+              </TableHead>
+              <TableHead className="text-center w-[80px] py-2">
+                Leading<br />Hex<br />Zeroes
+              </TableHead>
+              <TableHead className="text-center">Hash</TableHead>
+              <TableHead className="text-center">Block Height</TableHead>
+              <TableHead className="text-center">Time Found</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {leaderboard?.map((entry, index) => (
               <MotionTableRow
                 key={entry.hash}
-                initial={{ 
+                initial={{
                   color: "hsl(var(--background))",
                   backgroundColor: "hsl(var(--background))",
                   borderColor: "hsl(var(--background))"
                 }}
-                animate={{ 
+                animate={{
                   color: "hsl(var(--foreground))",
                   backgroundColor: "transparent",
                   borderColor: "hsl(var(--border))"
@@ -92,17 +110,54 @@ export function GlobalLeaderboard() {
                 transition={{ duration: 0.3 }}
                 className="transition-none"
               >
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{entry.maybeUsername || "Anonymous"}</TableCell>
-                <TableCell className="max-w-[200px] truncate">
+                <TableCell className="text-center">{index + 1}</TableCell>
+                <TableCell className="text-center">{entry.maybeUsername || "Anonymous"}</TableCell>
+                <TableCell className="text-center max-w-[200px] truncate">
                   {entry.maybeLeaderboardMessage || "-"}
                 </TableCell>
-                <TableCell>{entry.binaryZeroes}</TableCell>
-                <TableCell>{entry.hexZeroes}</TableCell>
-                <TableCell className="font-mono text-xs truncate max-w-[200px]">
-                  0x{entry.hash}
+                <TableCell className="text-center max-w-[200px] truncate">
+                  {entry.maybeBlockchainMessage || "-"}
                 </TableCell>
-                <TableCell>{formatDuration(entry.timeToFind)}</TableCell>
+                <TableCell className="text-center">{entry.binaryZeroes}</TableCell>
+                <TableCell className="text-center">{entry.hexZeroes}</TableCell>
+                <TableCell className="text-center font-mono text-xs truncate max-w-[200px]">
+                  <TooltipProvider>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger className="cursor-help">
+                        0x{entry.hash}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-mono text-xs">0x{entry.hash}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
+                <TableCell className="text-center">
+                  {entry.blockHeight ? (
+                    <a
+                      href={`https://bitcoinexplorer.org/block-height/${entry.blockHeight}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-600 underline"
+                    >
+                      {entry.blockHeight.toLocaleString()}
+                    </a>
+                  ) : (
+                    "-"
+                  )}
+                </TableCell>
+                <TableCell className="text-center">
+                  <TooltipProvider>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger className="cursor-help">
+                        {new Date(entry.createdAt).toLocaleDateString()}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {new Date(entry.createdAt).toLocaleString()}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
               </MotionTableRow>
             ))}
           </TableBody>

@@ -91,7 +91,7 @@ export function MiningControls() {
       <div className="space-y-2">
         <Label htmlFor="btc-address">Bitcoin Mining Reward Address (optional)</Label>
         <TooltipProvider>
-          <Tooltip>
+          <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Input
                 id="btc-address"
@@ -114,7 +114,7 @@ export function MiningControls() {
         <Label htmlFor="blockchain-message">Add a message to the blockchain (optional)</Label>
         <div className="space-y-1">
           <TooltipProvider>
-            <Tooltip>
+            <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <Input
                   id="blockchain-message"
@@ -127,7 +127,7 @@ export function MiningControls() {
                 />
               </TooltipTrigger>
               <TooltipContent className="max-w-[300px]">
-                <p>This message will be added to the coinbase script signature field, if you successfully find a block. Maximum length is {MAX_MESSAGE_BYTES} bytes when UTF-8 encoded. No control characters allowed.</p>
+                <p>This message will be added to the coinbase script signature field, if you successfully find a block. UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -139,8 +139,8 @@ export function MiningControls() {
 
       {/* Start/Stop Button */}
       <Button
-        className={isMining 
-          ? "w-full bg-red-600 hover:bg-red-700 text-white" 
+        className={isMining
+          ? "w-full bg-red-600 hover:bg-red-700 text-white"
           : "w-full bg-green-600 hover:bg-green-700 text-white"}
         onClick={isMining ? stopMining : startMining}
         disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
@@ -214,7 +214,7 @@ export function MiningControls() {
             Include Bitcoin address in share link
           </Label>
           <TooltipProvider>
-            <Tooltip>
+            <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <div>
                   <Switch

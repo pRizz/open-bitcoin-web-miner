@@ -8,14 +8,14 @@ interface PageTransitionProps {
 
 export function PageTransition({ children }: PageTransitionProps) {
   const location = useLocation();
-  
+
   return (
     <motion.div
       key={location.pathname}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ 
+      transition={{
         duration: 0.2,
         layout: { duration: 0.2 }
       }}
@@ -24,4 +24,4 @@ export function PageTransition({ children }: PageTransitionProps) {
       {children}
     </motion.div>
   );
-} 
+}

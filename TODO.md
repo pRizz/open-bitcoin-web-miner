@@ -13,6 +13,10 @@ General TODO before first public release:
 -[] have a feed of the hash rate that the bright builds website can listen to; maybe zmq or make this a separate project?
 -[] link to lightning network node in AWS
 -[] show a bitcoin block header details view when mining
+-[] host over tor; show onion link
+-[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
+-[] personal best hashes found seems to not add when a better leading binary hash is found
+-[] add leaderboard username and blockchain message to startMining websocket message and remove job id from response message
 
 Future features:
 -[] add captcha's maybe
