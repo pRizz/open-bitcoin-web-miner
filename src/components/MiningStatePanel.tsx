@@ -141,9 +141,9 @@ export const MiningStatePanel = () => {
 
       {/* Pipes between Bitcoin Network and Mining Backend */}
       <div className="mb-2 flex justify-center gap-8 relative z-0">
-        <Pipe direction="down">
+        <Pipe direction="up">
           {activeAnimations
-            .filter(anim => ['challenge', 'difficulty'].includes(anim.type))
+            .filter(anim => [].includes(anim.type))
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}
@@ -154,9 +154,9 @@ export const MiningStatePanel = () => {
               />
             ))}
         </Pipe>
-        <Pipe direction="up">
+        <Pipe direction="down">
           {activeAnimations
-            .filter(anim => anim.type === 'solution')
+            .filter(anim => [].includes(anim.type))
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}
@@ -180,9 +180,9 @@ export const MiningStatePanel = () => {
 
       {/* Pipes between Mining Backend and Web Miner */}
       <div className="mb-2 flex justify-center gap-8 relative z-0">
-        <Pipe direction="down">
+        <Pipe direction="up">
           {activeAnimations
-            .filter(anim => ['challenge', 'difficulty', 'accepted', 'rejected'].includes(anim.type))
+            .filter(anim => anim.type === 'solution')
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}
@@ -193,9 +193,9 @@ export const MiningStatePanel = () => {
               />
             ))}
         </Pipe>
-        <Pipe direction="up">
+        <Pipe direction="down">
           {activeAnimations
-            .filter(anim => anim.type === 'solution')
+            .filter(anim => ['challenge', 'difficulty', 'accepted', 'rejected'].includes(anim.type))
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}

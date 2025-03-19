@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, Target, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Target, ArrowUpRight, ArrowDownRight, Puzzle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MiningEventType } from '@/contexts/mining/MiningEventsContext';
 import { SubmissionResponse } from '@/contexts/mining/MiningEventsContext';
@@ -14,23 +14,23 @@ interface AnimatedMiningIconProps {
 
 export const getIconTypeFromEvent = (eventType: MiningEventType, response?: SubmissionResponse): IconType => {
   switch (eventType) {
-    case 'onNewChallengeReceived':
-      return 'challenge';
-    case 'onNewDifficultyUpdate':
-      return 'difficulty';
-    case 'onSubmitSolution':
-      return 'solution';
-    case 'onReceiveSubmissionResponse':
-      return response?.accepted ? 'accepted' : 'rejected';
+  case 'onNewChallengeReceived':
+    return 'challenge';
+  case 'onNewDifficultyUpdate':
+    return 'difficulty';
+  case 'onSubmitSolution':
+    return 'solution';
+  case 'onReceiveSubmissionResponse':
+    return response?.accepted ? 'accepted' : 'rejected';
   }
 };
 
 const getIcon = (type: IconType) => {
   switch (type) {
   case 'challenge':
-    return <Target className="w-6 h-6 text-blue-500" />;
+    return <Puzzle className="w-6 h-6 text-blue-500" />;
   case 'difficulty':
-    return <ArrowDownRight className="w-6 h-6 text-yellow-500" />;
+    return <Target className="w-6 h-6 text-yellow-500" />;
   case 'solution':
     return <ArrowUpRight className="w-6 h-6 text-purple-500" />;
   case 'accepted':
