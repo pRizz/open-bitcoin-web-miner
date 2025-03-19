@@ -46,7 +46,7 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
     try {
       const jsonData = {
         hash: hash.hash,
-        timeToFind: formatDuration(hash.timeToFind),
+        timeToFind: formatDuration(hash.timeToFindMs),
         nonce: hash.nonce,
         previousBlock: hash.previousBlock,
         merkleRoot: hash.merkleRoot,
@@ -98,12 +98,12 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
           <div>
             <div className="text-gray-400">Time to Find</div>
             <div className="flex items-center gap-2">
-              <div>{formatDuration(hash.timeToFind)}</div>
+              <div>{formatDuration(hash.timeToFindMs)}</div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => handleCopy(formatDuration(hash.timeToFind), "Time to Find")}
+                onClick={() => handleCopy(formatDuration(hash.timeToFindMs), "Time to Find")}
               >
                 <Copy className="h-4 w-4" />
               </Button>

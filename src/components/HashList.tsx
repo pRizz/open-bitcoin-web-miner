@@ -80,7 +80,7 @@ export function HashList() {
                 <TableHead className="text-center">Hash</TableHead>
                 <TableHead
                   className="cursor-pointer text-center"
-                  onClick={() => toggleSort("timeToFind")}
+                  onClick={() => toggleSort("timeToFindMs")}
                 >
                   Time to Find
                 </TableHead>

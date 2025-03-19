@@ -25,7 +25,7 @@ export interface HashSolution {
   bits: string;
   binaryZeroes: number;
   hexZeroes: number;
-  timeToFind: number; // Time in milliseconds
+  timeToFindMs: number;
   status?: 'accepted' | 'rejected' | 'outdated' | 'pending';
 }
 

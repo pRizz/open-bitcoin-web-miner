@@ -114,7 +114,8 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           .join(''),
         binaryZeroes: leadingBinaryZeroes,
         hexZeroes: leadingHexZeroes,
-        timeToFind: 0,
+        timeToFindMs: miningStats.maybeStartTime ? Date.now() - miningStats.maybeStartTime : 0,
+        status: 'pending',
       };
       updateMiningStats(solutionStats);
       addSubmittedHash(solutionStats);

@@ -64,7 +64,7 @@ export function HashTableRow({ hash }: HashTableRowProps) {
         {hash.hash.slice(0, 20)}...
       </TableCell>
       <TableCell className="text-center font-mono">
-        {formatDuration(hash.timeToFind)}
+        {formatDuration(hash.timeToFindMs)}
       </TableCell>
       <TableCell className="text-center">
         {hash.status && (

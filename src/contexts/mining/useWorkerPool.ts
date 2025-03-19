@@ -21,7 +21,7 @@ export const useWorkerPool = (
   workerPool.current.updateSpeed(miningSpeed);
   workerPool.current.setMode(miningMode);
   workerPool.current.onHashRate = onHashRate;
-  workerPool.current.onHash = onSolution;
+  workerPool.current.onSolution = onSolution;
   workerPool.current.onError = (error) => {
     toast({
       title: "Mining Error",

@@ -21,7 +21,7 @@ export class WorkerPool {
   private currentMode: MiningMode = "cpu";
   private threadCount: number = 1; // FIXME
   onHashRate: (hashRate: number) => void = () => {};
-  onHash: (solution: MiningSolution) => void = () => {};
+  onSolution: (solution: MiningSolution) => void = () => {};
   onError: (error: string) => void = () => {};
   onGPUCapabilities: (capabilities: any) => void = () => {};
 
@@ -194,7 +194,7 @@ export class WorkerPool {
           maybeJobId: this.maybeCurrentChallenge?.maybeJobId,
           maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader
         };
-        this.onHash(solution);
+        this.onSolution(solution);
       } else if (type === "hashRate") {
         const movingAverage = this.calculateMovingAverage(data);
         this.onHashRate(movingAverage);
