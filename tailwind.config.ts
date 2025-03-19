@@ -131,8 +131,8 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "fade-up": "fade-up 3.5s ease-out infinite",
-        'move-down': 'move-down 1s ease-out forwards',
-        'move-up': 'move-up 1s ease-out forwards',
+        'move-down': 'move-down 1s linear forwards',
+        'move-up': 'move-up 1s linear forwards',
         'flash': 'flash 0.2s ease-in-out'
       },
     },

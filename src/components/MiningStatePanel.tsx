@@ -4,7 +4,7 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { useMiningEvents, MiningEventType } from "@/contexts/mining/MiningEventsContext";
 import { cn } from "@/lib/utils";
-import { Database, Computer, CheckCircle2, XCircle, Target, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { Database, Computer, CheckCircle2, XCircle, Target } from "lucide-react";
 import { formatHashRate } from "@/utils/mining";
 import { useEffect, useState } from "react";
 import { AnimatedMiningIcon } from "./AnimatedMiningIcon";
@@ -22,45 +22,13 @@ const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   </div>
 );
 
-const ArrowPair = () => (
-  <div className="relative w-48 h-6 mx-auto flex justify-between items-center">
-    <div className="w-12 flex justify-center">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="text-muted-foreground"
-      >
-        {/* Down arrow */}
-        <path
-          d="M12 4L12 20M12 20L8 16M12 20L16 16"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+const Pipe = ({ direction, children }: { direction: 'up' | 'down', children?: React.ReactNode }) => (
+  <div className="relative w-32 h-12 my-[-8px]">
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-10 h-full border-x-2 border-muted-foreground/20" />
     </div>
-    <div className="w-12 flex justify-center">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="text-muted-foreground"
-      >
-        {/* Up arrow */}
-        <path
-          d="M12 20L12 4M12 4L8 8M12 4L16 8"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+    <div className="absolute inset-0 flex items-center justify-center">
+      {children}
     </div>
   </div>
 );
@@ -71,31 +39,6 @@ const BitcoinIcon = () => (
     alt="Bitcoin"
     className="w-8 h-8"
   />
-);
-
-const AnimatedArrow = ({ isActive, direction }: { isActive: boolean; direction: 'up' | 'down' }) => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={cn(
-      "transition-colors duration-300",
-      isActive ? "text-green-500" : "text-muted-foreground"
-    )}
-  >
-    <path
-      d={direction === 'down'
-        ? "M12 4L12 20M12 20L8 16M12 20L16 16"
-        : "M12 20L12 4M12 4L8 8M12 4L16 8"
-      }
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
 );
 
 interface AnimationInstance {
@@ -111,13 +54,6 @@ export const MiningStatePanel = () => {
   const { subscribe } = useMiningEvents();
 
   const [activeAnimations, setActiveAnimations] = useState<AnimationInstance[]>([]);
-  const [arrowStates, setArrowStates] = useState<{
-    up: boolean;
-    down: boolean;
-  }>({
-    up: false,
-    down: false,
-  });
 
   // Example 1: we get two events in a row, with a delay of 500ms between them
   // The first event will trigger an animation, and the second event will be queued up
@@ -155,12 +91,10 @@ export const MiningStatePanel = () => {
         const direction = eventType === 'onSubmitSolution' ? 'up' : 'down';
 
         setActiveAnimations(prev => [...prev, { id: animationId, type: eventType, direction }]);
-        setArrowStates(prev => ({ ...prev, [direction]: true }));
 
         // Remove the animation after it completes
         setTimeout(() => {
           setActiveAnimations(prev => prev.filter(anim => anim.id !== animationId));
-          setArrowStates(prev => ({ ...prev, [direction]: false }));
         }, 2000);
       }, delay);
     };
@@ -183,7 +117,7 @@ export const MiningStatePanel = () => {
       <h2 className="text-2xl font-bold mb-4">Mining State</h2>
 
       {/* Bitcoin Network Section */}
-      <div className="mb-2 p-4 border rounded-lg">
+      <div className="mb-2 p-4 border rounded-lg relative z-10 bg-background">
         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
           <BitcoinIcon />
           The Bitcoin Network
@@ -204,50 +138,90 @@ export const MiningStatePanel = () => {
         </div>
       </div>
 
-      {/* Arrow pair between Bitcoin Network and Mining Backend */}
-      <div className="mb-2">
-        <ArrowPair />
+      {/* Pipes between Bitcoin Network and Mining Backend */}
+      <div className="mb-2 flex justify-center gap-8 relative z-0">
+        <Pipe direction="down">
+          {activeAnimations
+            .filter(anim => ['onNewChallengeReceived', 'onNewDifficultyUpdate'].includes(anim.type))
+            .map((anim) => (
+              <AnimatedMiningIcon
+                key={anim.id}
+                type={anim.type === 'onNewChallengeReceived' ? 'challenge' : 'difficulty'}
+                isAnimating={true}
+                direction={anim.direction}
+                className="absolute left-[50%] -translate-x-[50%]"
+              />
+            ))}
+        </Pipe>
+        <Pipe direction="up">
+          {activeAnimations
+            .filter(anim => anim.type === 'onSubmitSolution')
+            .map((anim) => (
+              <AnimatedMiningIcon
+                key={anim.id}
+                type="solution"
+                isAnimating={true}
+                direction={anim.direction}
+                className="absolute left-[50%] -translate-x-[50%]"
+              />
+            ))}
+        </Pipe>
       </div>
 
       {/* Mining Backend Section */}
-      <div className="mb-2 p-4 border rounded-lg relative">
+      <div className="mb-2 p-4 border rounded-lg relative z-10 bg-background">
         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
           <Database className="w-8 h-8 text-muted-foreground" />
           Mining Backend
         </h3>
         <StatusIndicator isConnected={true} />
-        {activeAnimations
-          .filter(anim => ['onNewChallengeReceived', 'onNewDifficultyUpdate', 'onReceiveSubmissionResponse'].includes(anim.type))
-          .map((anim, index) => (
-            <AnimatedMiningIcon
-              key={anim.id}
-              type={anim.type === 'onNewChallengeReceived' ? 'challenge' :
-                anim.type === 'onNewDifficultyUpdate' ? 'difficulty' :
-                  anim.type === 'onReceiveSubmissionResponse' ? 'accepted' : 'rejected'}
-              isAnimating={true}
-              direction={anim.direction}
-              className={cn(
-                "left-[25%] top-1/2",
-                index > 0 && "ml-4" // Add margin between multiple icons
-              )}
-            />
-          ))}
-      </div>
-
-      {/* Arrow pair between Mining Backend and Web Miner */}
-      <div className="mb-2 relative">
-        <div className="relative w-48 h-6 mx-auto flex justify-between items-center">
-          <div className="w-12 flex justify-center">
-            <AnimatedArrow isActive={arrowStates.down} direction="down" />
-          </div>
-          <div className="w-12 flex justify-center">
-            <AnimatedArrow isActive={arrowStates.up} direction="up" />
-          </div>
+        <div className="relative z-0">
+          {activeAnimations
+            .filter(anim => anim.type === 'onReceiveSubmissionResponse')
+            .map((anim) => (
+              <AnimatedMiningIcon
+                key={anim.id}
+                type={anim.type === 'onReceiveSubmissionResponse' ? 'accepted' : 'rejected'}
+                isAnimating={true}
+                direction={anim.direction}
+                className="absolute left-[25%] top-1/2"
+              />
+            ))}
         </div>
       </div>
 
+      {/* Pipes between Mining Backend and Web Miner */}
+      <div className="mb-2 flex justify-center gap-8 relative z-0">
+        <Pipe direction="down">
+          {activeAnimations
+            .filter(anim => ['onNewChallengeReceived', 'onNewDifficultyUpdate'].includes(anim.type))
+            .map((anim) => (
+              <AnimatedMiningIcon
+                key={anim.id}
+                type={anim.type === 'onNewChallengeReceived' ? 'challenge' : 'difficulty'}
+                isAnimating={true}
+                direction={anim.direction}
+                className="absolute left-[50%] -translate-x-[50%]"
+              />
+            ))}
+        </Pipe>
+        <Pipe direction="up">
+          {activeAnimations
+            .filter(anim => anim.type === 'onSubmitSolution')
+            .map((anim) => (
+              <AnimatedMiningIcon
+                key={anim.id}
+                type="solution"
+                isAnimating={true}
+                direction={anim.direction}
+                className="absolute left-[50%] -translate-x-[50%]"
+              />
+            ))}
+        </Pipe>
+      </div>
+
       {/* Web Miner Section */}
-      <div className="p-4 border rounded-lg relative">
+      <div className="p-4 border rounded-lg relative z-10 bg-background">
         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
           <Computer className="w-8 h-8 text-muted-foreground" />
           Web Miner
@@ -291,20 +265,6 @@ export const MiningStatePanel = () => {
             <FlashingText value={miningStats.maybeRequiredBinaryZeroes} />
           </div>
         </div>
-        {activeAnimations
-          .filter(anim => anim.type === 'onSubmitSolution')
-          .map((anim, index) => (
-            <AnimatedMiningIcon
-              key={anim.id}
-              type="solution"
-              isAnimating={true}
-              direction={anim.direction}
-              className={cn(
-                "left-[75%] top-[-25px]",
-                index > 0 && "ml-4" // Add margin between multiple icons
-              )}
-            />
-          ))}
       </div>
     </Card>
   );
