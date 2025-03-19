@@ -12,6 +12,7 @@ import { DebugLogPanel } from "@/components/debug/DebugLogPanel";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/PageTransition";
+import { MiningStatePanel } from "@/components/MiningStatePanel";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -44,7 +45,7 @@ const Index = () => {
     <PageTransition>
       <div className="max-w-7xl mx-auto">
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6 glass-card">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-2xl font-bold">Mining Controls</h2>
@@ -62,6 +63,7 @@ const Index = () => {
             </Card>
 
             <NetworkStats />
+            <MiningStatePanel />
           </div>
 
           <HashRateGauge hashRate={miningStats.maybeHashRate} />
