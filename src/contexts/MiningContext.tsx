@@ -11,6 +11,7 @@ import API_CONFIG from "@/config/api";
 import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, DifficultyUpdate } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { u8ArrayBEToNonce } from "@/utils/nonceUtils";
+import { useMiningEvents } from "./mining/MiningEventsContext";
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -47,6 +48,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const { addLog } = useDebug();
   const miningWebSocket = useMiningWebSocket();
   const { maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { emit } = useMiningEvents();
   const {
     miningStats,
     updateMiningStats,
@@ -131,7 +133,10 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
     // Update mining stats with new target zeros
     updateRequiredBinaryZeroes(targetZeros);
-  }, [addLog, updateMiningChallenge, updateRequiredBinaryZeroes]);
+    
+    // Emit new challenge event
+    emit('onNewChallengeReceived');
+  }, [addLog, updateMiningChallenge, updateRequiredBinaryZeroes, emit]);
 
   const handleBlockTemplateUpdate = useCallback((blockHeader: NoncelessBlockHeader) => {
     addLog("New block template received");
@@ -148,7 +153,9 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const submitSolution = useCallback((submission: MiningSubmission) => {
     miningWebSocket.submitSolution(submission);
     addLog(`Submitted mining solution for job ${submission.job_id}`);
-  }, [addLog, miningWebSocket]);
+    // Emit solution submission event
+    emit('onSubmitSolution');
+  }, [addLog, miningWebSocket, emit]);
 
   const stopMining = useCallback(() => {
     const modeString = miningMode.toUpperCase();
@@ -171,9 +178,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         case MiningSubmissionStatus.ACCEPTED:
         case MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK:
           updateSubmissionStats(true);
+          // Emit accepted submission response event
+          emit('onReceiveSubmissionResponse', { accepted: true });
           break;
         case MiningSubmissionStatus.REJECTED:
           updateSubmissionStats(false);
+          // Emit rejected submission response event
+          emit('onReceiveSubmissionResponse', { accepted: false });
           break;
         case MiningSubmissionStatus.OUTDATED:
           // Outdated submissions don't count towards accepted/rejected stats
@@ -189,6 +200,9 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         
         // Update mining stats with new difficulty
         updateRequiredBinaryZeroes(newDifficulty);
+        
+        // Emit difficulty update event
+        emit('onNewDifficultyUpdate');
       }
     },
     onConnectionStateChange: (connected) => {

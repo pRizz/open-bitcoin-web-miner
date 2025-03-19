@@ -12,6 +12,7 @@ import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
 import { GlobalLeaderboardProvider } from "./contexts/GlobalLeaderboardContext";
+import { MiningEventsProvider } from "@/contexts/mining/MiningEventsContext";
 
 const queryClient = new QueryClient();
 
@@ -39,16 +40,18 @@ function App() {
         <NetworkInfoProvider>
           <MinerInfoProvider>
             <MiningWebSocketProvider>
-              <MiningProvider>
-                <ShareProvider>
-                  <LeaderboardProvider>
-                    <GlobalLeaderboardProvider>
-                      <RouterProvider router={router} />
-                      <Toaster />
-                    </GlobalLeaderboardProvider>
-                  </LeaderboardProvider>
-                </ShareProvider>
-              </MiningProvider>
+              <MiningEventsProvider>
+                <MiningProvider>
+                  <ShareProvider>
+                    <LeaderboardProvider>
+                      <GlobalLeaderboardProvider>
+                        <RouterProvider router={router} />
+                        <Toaster />
+                      </GlobalLeaderboardProvider>
+                    </LeaderboardProvider>
+                  </ShareProvider>
+                </MiningProvider>
+              </MiningEventsProvider>
             </MiningWebSocketProvider>
           </MinerInfoProvider>
         </NetworkInfoProvider>
