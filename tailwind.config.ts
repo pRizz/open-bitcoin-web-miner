@@ -107,6 +107,23 @@ export default {
           '10%': { opacity: '1' },
           '90%': { opacity: '1' },
           '100%': { transform: 'translateY(-50px)', opacity: '0' }
+        },
+        'flash': {
+          '0%': {
+            fontSize: '0.6rem',
+            color: 'hsl(var(--foreground))',
+            opacity: '1'
+          },
+          '50%': {
+            fontSize: '1rem',
+            color: 'hsl(var(--primary))',
+            opacity: '0.8'
+          },
+          '100%': {
+            fontSize: '0.6rem',
+            color: 'hsl(var(--foreground))',
+            opacity: '1'
+          }
         }
       },
       animation: {
@@ -115,7 +132,8 @@ export default {
         pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "fade-up": "fade-up 3.5s ease-out infinite",
         'move-down': 'move-down 1s ease-out forwards',
-        'move-up': 'move-up 1s ease-out forwards'
+        'move-up': 'move-up 1s ease-out forwards',
+        'flash': 'flash 0.2s ease-in-out'
       },
     },
   },

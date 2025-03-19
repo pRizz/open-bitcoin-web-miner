@@ -8,6 +8,7 @@ import { Database, Computer, CheckCircle2, XCircle, Target, ArrowDownRight, Arro
 import { formatHashRate } from "@/utils/mining";
 import { useEffect, useState } from "react";
 import { AnimatedMiningIcon } from "./AnimatedMiningIcon";
+import { FlashingText } from "./FlashingText";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2">
@@ -190,15 +191,15 @@ export const MiningStatePanel = () => {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Current Block Height:</span>
-            <span className="font-mono text-xs">{maybeBlockHeight || "N/A"}</span>
+            <FlashingText value={maybeBlockHeight} />
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Network Difficulty:</span>
-            <span className="font-mono text-xs">{maybeNetworkDifficulty !== undefined ? `${(maybeNetworkDifficulty / 1e12).toFixed(2)} T` : "N/A"}</span>
+            <FlashingText value={maybeNetworkDifficulty !== undefined ? `${(maybeNetworkDifficulty / 1e12).toFixed(2)} T` : undefined} />
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Required Binary Zeroes:</span>
-            <span className="font-mono text-xs">{maybeRequiredBinaryZeroes || "N/A"}</span>
+            <FlashingText value={maybeRequiredBinaryZeroes} />
           </div>
         </div>
       </div>
@@ -254,40 +255,40 @@ export const MiningStatePanel = () => {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Status:</span>
-            <span className="font-mono text-xs">{isMining ? "Active" : "Inactive"}</span>
+            <FlashingText value={isMining ? "Active" : "Inactive"} />
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Miner Address:</span>
-            <span className="font-mono text-xs">{maybeMinerAddress || "Not Set"}</span>
+            <FlashingText value={maybeMinerAddress} />
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Hash Rate:</span>
-            <span className="font-mono text-xs">{formatHashRate(miningStats.maybeHashRate)}</span>
+            <FlashingText value={formatHashRate(miningStats.maybeHashRate)} disableFlash />
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Total Hashes:</span>
-            <span className="font-mono text-xs">{miningStats.maybeTotalHashes || "0"}</span>
+            <FlashingText value={miningStats.maybeTotalHashes || "0"} />
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
               Accepted Hashes
             </span>
-            <span className="font-mono text-xs">{miningStats.acceptedHashes}</span>
+            <FlashingText value={miningStats.acceptedHashes} />
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500" />
               Rejected Hashes
             </span>
-            <span className="font-mono text-xs">{miningStats.rejectedHashes}</span>
+            <FlashingText value={miningStats.rejectedHashes || "0"} />
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-yellow-500" />
               Required Leading Binary Zeros
             </span>
-            <span className="font-mono text-xs">{miningStats.maybeRequiredBinaryZeroes || "N/A"}</span>
+            <FlashingText value={miningStats.maybeRequiredBinaryZeroes} />
           </div>
         </div>
         {activeAnimations
