@@ -1,7 +1,9 @@
 import { CheckCircle2, XCircle, Target, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MiningEventType } from '@/contexts/mining/MiningEventsContext';
+import { SubmissionResponse } from '@/contexts/mining/MiningEventsContext';
 
-type IconType = 'challenge' | 'difficulty' | 'solution' | 'accepted' | 'rejected';
+export type IconType = 'challenge' | 'difficulty' | 'solution' | 'accepted' | 'rejected';
 
 interface AnimatedMiningIconProps {
   type: IconType;
@@ -9,6 +11,19 @@ interface AnimatedMiningIconProps {
   direction: 'up' | 'down';
   className?: string;
 }
+
+export const getIconTypeFromEvent = (eventType: MiningEventType, response?: SubmissionResponse): IconType => {
+  switch (eventType) {
+    case 'onNewChallengeReceived':
+      return 'challenge';
+    case 'onNewDifficultyUpdate':
+      return 'difficulty';
+    case 'onSubmitSolution':
+      return 'solution';
+    case 'onReceiveSubmissionResponse':
+      return response?.accepted ? 'accepted' : 'rejected';
+  }
+};
 
 const getIcon = (type: IconType) => {
   switch (type) {

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Database, Computer, CheckCircle2, XCircle, Target } from "lucide-react";
 import { formatHashRate } from "@/utils/mining";
 import { useEffect, useState } from "react";
-import { AnimatedMiningIcon } from "./AnimatedMiningIcon";
+import { AnimatedMiningIcon, getIconTypeFromEvent, type IconType } from "./AnimatedMiningIcon";
 import { FlashingText } from "./FlashingText";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
@@ -43,7 +43,7 @@ const BitcoinIcon = () => (
 
 interface AnimationInstance {
   id: string;
-  type: MiningEventType;
+  type: IconType;
   direction: 'up' | 'down';
 }
 
@@ -89,8 +89,9 @@ export const MiningStatePanel = () => {
       setTimeout(() => {
         const animationId = `${eventType}-${Date.now()}`;
         const direction = eventType === 'onSubmitSolution' ? 'up' : 'down';
+        const iconType = getIconTypeFromEvent(eventType, data);
 
-        setActiveAnimations(prev => [...prev, { id: animationId, type: eventType, direction }]);
+        setActiveAnimations(prev => [...prev, { id: animationId, type: iconType, direction }]);
 
         // Remove the animation after it completes
         setTimeout(() => {
@@ -142,27 +143,27 @@ export const MiningStatePanel = () => {
       <div className="mb-2 flex justify-center gap-8 relative z-0">
         <Pipe direction="down">
           {activeAnimations
-            .filter(anim => ['onNewChallengeReceived', 'onNewDifficultyUpdate'].includes(anim.type))
+            .filter(anim => ['challenge', 'difficulty'].includes(anim.type))
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}
-                type={anim.type === 'onNewChallengeReceived' ? 'challenge' : 'difficulty'}
+                type={anim.type}
                 isAnimating={true}
                 direction={anim.direction}
-                className="absolute left-[50%] -translate-x-[50%]"
+                className="absolute"
               />
             ))}
         </Pipe>
         <Pipe direction="up">
           {activeAnimations
-            .filter(anim => anim.type === 'onSubmitSolution')
+            .filter(anim => anim.type === 'solution')
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}
-                type="solution"
+                type={anim.type}
                 isAnimating={true}
                 direction={anim.direction}
-                className="absolute left-[50%] -translate-x-[50%]"
+                className="absolute"
               />
             ))}
         </Pipe>
@@ -175,46 +176,33 @@ export const MiningStatePanel = () => {
           Mining Backend
         </h3>
         <StatusIndicator isConnected={true} />
-        <div className="relative z-0">
-          {activeAnimations
-            .filter(anim => anim.type === 'onReceiveSubmissionResponse')
-            .map((anim) => (
-              <AnimatedMiningIcon
-                key={anim.id}
-                type={anim.type === 'onReceiveSubmissionResponse' ? 'accepted' : 'rejected'}
-                isAnimating={true}
-                direction={anim.direction}
-                className="absolute left-[25%] top-1/2"
-              />
-            ))}
-        </div>
       </div>
 
       {/* Pipes between Mining Backend and Web Miner */}
       <div className="mb-2 flex justify-center gap-8 relative z-0">
         <Pipe direction="down">
           {activeAnimations
-            .filter(anim => ['onNewChallengeReceived', 'onNewDifficultyUpdate'].includes(anim.type))
+            .filter(anim => ['challenge', 'difficulty', 'accepted', 'rejected'].includes(anim.type))
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}
-                type={anim.type === 'onNewChallengeReceived' ? 'challenge' : 'difficulty'}
+                type={anim.type}
                 isAnimating={true}
                 direction={anim.direction}
-                className="absolute left-[50%] -translate-x-[50%]"
+                className="absolute"
               />
             ))}
         </Pipe>
         <Pipe direction="up">
           {activeAnimations
-            .filter(anim => anim.type === 'onSubmitSolution')
+            .filter(anim => anim.type === 'solution')
             .map((anim) => (
               <AnimatedMiningIcon
                 key={anim.id}
-                type="solution"
+                type={anim.type}
                 isAnimating={true}
                 direction={anim.direction}
-                className="absolute left-[50%] -translate-x-[50%]"
+                className="absolute"
               />
             ))}
         </Pipe>
