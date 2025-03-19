@@ -74,7 +74,7 @@ export const MiningStatePanel = () => {
   // lastEventTime = now + 1300 = now + 1300;
   useEffect(() => {
     let lastEventTime = 0;
-    const QUEUE_DELAY = 500; // ms between events
+    const QUEUE_DELAY = 300; // ms between events
 
     const handleEvent = (eventType: MiningEventType, data?: any) => {
       console.log("handleEvent", eventType, data);

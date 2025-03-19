@@ -38,9 +38,11 @@ const PROPORTIONAL_TICKS = MAGNITUDE_TICKS.flatMap(magnitude => {
 const ALL_TICKS = [...MAGNITUDE_TICKS, ...PROPORTIONAL_TICKS].sort((a, b) => a - b);
 
 const CONFIDENCE_LEVELS = [
-  { confidence: 0.05, label: "5%" },
+  { confidence: 0.01, label: "1%" },
+  { confidence: 0.1, label: "10%" },
   { confidence: 0.50, label: "50%" },
-  { confidence: 0.95, label: "95%" },
+  { confidence: 0.90, label: "90%" },
+  { confidence: 0.99, label: "99%" },
 ];
 
 interface HashRateGaugeProps {
@@ -70,7 +72,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Hash Rate</h2>
       <div className="flex gap-6">
-        <div className="text-sm text-gray-400 basis-1/6 shrink-0">
+        <div className="text-sm text-gray-400 basis-7/24 shrink-0">
           <div className="font-semibold mb-1 flex items-center gap-2">
             Chances of Finding a Block Solution
             <Dialog>
