@@ -65,9 +65,9 @@ const ArrowPair = () => (
 );
 
 const BitcoinIcon = () => (
-  <img 
-    src="/Bitcoin.svg" 
-    alt="Bitcoin" 
+  <img
+    src="/Bitcoin.svg"
+    alt="Bitcoin"
     className="w-8 h-8"
   />
 );
@@ -85,7 +85,7 @@ const AnimatedArrow = ({ isActive, direction }: { isActive: boolean; direction: 
     )}
   >
     <path
-      d={direction === 'down' 
+      d={direction === 'down'
         ? "M12 4L12 20M12 20L8 16M12 20L16 16"
         : "M12 20L12 4M12 4L8 8M12 4L16 8"
       }
@@ -97,26 +97,19 @@ const AnimatedArrow = ({ isActive, direction }: { isActive: boolean; direction: 
   </svg>
 );
 
+interface AnimationInstance {
+  id: string;
+  type: MiningEventType;
+  direction: 'up' | 'down';
+}
+
 export const MiningStatePanel = () => {
   const { miningStats, isMining } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes } = useNetworkInfo();
   const { subscribe } = useMiningEvents();
 
-  const [activeAnimations, setActiveAnimations] = useState<{
-    challenge: boolean;
-    difficulty: boolean;
-    solution: boolean;
-    accepted: boolean;
-    rejected: boolean;
-  }>({
-    challenge: false,
-    difficulty: false,
-    solution: false,
-    accepted: false,
-    rejected: false,
-  });
-
+  const [activeAnimations, setActiveAnimations] = useState<AnimationInstance[]>([]);
   const [arrowStates, setArrowStates] = useState<{
     up: boolean;
     down: boolean;
@@ -148,64 +141,26 @@ export const MiningStatePanel = () => {
 
     const handleEvent = (eventType: MiningEventType, data?: any) => {
       console.log("handleEvent", eventType, data);
-      
+
       const now = Date.now();
       const timeSinceLastEvent = now - lastEventTime;
-      
+
       // If an event occurred within the last QUEUE_DELAY ms, wait for the remaining time
       const delay = Math.max(0, QUEUE_DELAY - timeSinceLastEvent);
       lastEventTime = Date.now() + delay;
-      
+
       setTimeout(() => {
-        switch (eventType) {
-          case 'onNewChallengeReceived':
-            console.log("handleEvent: onNewChallengeReceived");
-            setActiveAnimations(prev => ({ ...prev, challenge: true }));
-            setArrowStates(prev => ({ ...prev, down: true }));
-            setTimeout(() => {
-              setActiveAnimations(prev => ({ ...prev, challenge: false }));
-              setArrowStates(prev => ({ ...prev, down: false }));
-            }, 2000);
-            break;
-          case 'onNewDifficultyUpdate':
-            console.log("handleEvent: onNewDifficultyUpdate");
-            setActiveAnimations(prev => ({ ...prev, difficulty: true }));
-            setArrowStates(prev => ({ ...prev, down: true }));
-            setTimeout(() => {
-              setActiveAnimations(prev => ({ ...prev, difficulty: false }));
-              setArrowStates(prev => ({ ...prev, down: false }));
-            }, 2000);
-            break;
-          case 'onSubmitSolution':
-            console.log("handleEvent: onSubmitSolution");
-            setActiveAnimations(prev => ({ ...prev, solution: true }));
-            setArrowStates(prev => ({ ...prev, up: true }));
-            setTimeout(() => {
-              setActiveAnimations(prev => ({ ...prev, solution: false }));
-              setArrowStates(prev => ({ ...prev, up: false }));
-            }, 2000);
-            break;
-          case 'onReceiveSubmissionResponse':
-            console.log("handleEvent: onReceiveSubmissionResponse");
-            if (data?.accepted) {
-              console.log("handleEvent: onReceiveSubmissionResponse: accepted");
-              setActiveAnimations(prev => ({ ...prev, accepted: true }));
-              setArrowStates(prev => ({ ...prev, down: true }));
-              setTimeout(() => {
-                setActiveAnimations(prev => ({ ...prev, accepted: false }));
-                setArrowStates(prev => ({ ...prev, down: false }));
-              }, 2000);
-            } else {
-              console.log("handleEvent: onReceiveSubmissionResponse: rejected");
-              setActiveAnimations(prev => ({ ...prev, rejected: true }));
-              setArrowStates(prev => ({ ...prev, down: true }));
-              setTimeout(() => {
-                setActiveAnimations(prev => ({ ...prev, rejected: false }));
-                setArrowStates(prev => ({ ...prev, down: false }));
-              }, 2000);
-            }
-            break;
-        }
+        const animationId = `${eventType}-${Date.now()}`;
+        const direction = eventType === 'onSubmitSolution' ? 'up' : 'down';
+
+        setActiveAnimations(prev => [...prev, { id: animationId, type: eventType, direction }]);
+        setArrowStates(prev => ({ ...prev, [direction]: true }));
+
+        // Remove the animation after it completes
+        setTimeout(() => {
+          setActiveAnimations(prev => prev.filter(anim => anim.id !== animationId));
+          setArrowStates(prev => ({ ...prev, [direction]: false }));
+        }, 2000);
       }, delay);
     };
 
@@ -225,7 +180,7 @@ export const MiningStatePanel = () => {
   return (
     <Card className="p-6 glass-card">
       <h2 className="text-2xl font-bold mb-4">Mining State</h2>
-      
+
       {/* Bitcoin Network Section */}
       <div className="mb-2 p-4 border rounded-lg">
         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -260,30 +215,22 @@ export const MiningStatePanel = () => {
           Mining Backend
         </h3>
         <StatusIndicator isConnected={true} />
-        <AnimatedMiningIcon
-          type="challenge"
-          isAnimating={activeAnimations.challenge}
-          direction="down"
-          className="left-[25%] top-1/2"
-        />
-        <AnimatedMiningIcon
-          type="difficulty"
-          isAnimating={activeAnimations.difficulty}
-          direction="down"
-          className="left-[25%] top-1/2"
-        />
-        <AnimatedMiningIcon
-          type="accepted"
-          isAnimating={activeAnimations.accepted}
-          direction="down"
-          className="left-[25%] top-1/2"
-        />
-        <AnimatedMiningIcon
-          type="rejected"
-          isAnimating={activeAnimations.rejected}
-          direction="down"
-          className="left-[25%] top-1/2"
-        />
+        {activeAnimations
+          .filter(anim => ['onNewChallengeReceived', 'onNewDifficultyUpdate', 'onReceiveSubmissionResponse'].includes(anim.type))
+          .map((anim, index) => (
+            <AnimatedMiningIcon
+              key={anim.id}
+              type={anim.type === 'onNewChallengeReceived' ? 'challenge' :
+                anim.type === 'onNewDifficultyUpdate' ? 'difficulty' :
+                  anim.type === 'onReceiveSubmissionResponse' ? 'accepted' : 'rejected'}
+              isAnimating={true}
+              direction={anim.direction}
+              className={cn(
+                "left-[25%] top-1/2",
+                index > 0 && "ml-4" // Add margin between multiple icons
+              )}
+            />
+          ))}
       </div>
 
       {/* Arrow pair between Mining Backend and Web Miner */}
@@ -343,13 +290,21 @@ export const MiningStatePanel = () => {
             <span className="font-mono text-xs">{miningStats.maybeRequiredBinaryZeroes || "N/A"}</span>
           </div>
         </div>
-        <AnimatedMiningIcon
-          type="solution"
-          isAnimating={activeAnimations.solution}
-          direction="up"
-          className="left-[75%] top-[-25px]"
-        />
+        {activeAnimations
+          .filter(anim => anim.type === 'onSubmitSolution')
+          .map((anim, index) => (
+            <AnimatedMiningIcon
+              key={anim.id}
+              type="solution"
+              isAnimating={true}
+              direction={anim.direction}
+              className={cn(
+                "left-[75%] top-[-25px]",
+                index > 0 && "ml-4" // Add margin between multiple icons
+              )}
+            />
+          ))}
       </div>
     </Card>
   );
-}; 
+};

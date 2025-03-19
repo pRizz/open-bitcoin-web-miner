@@ -27,10 +27,16 @@ export enum MiningSubmissionStatus {
   ACCEPTED_AND_FOUND_BLOCK = 3,
 }
 
+export interface WorkMetadata {
+  block_header_hash: number[];
+  block_height: number;
+}
+
 export interface MiningSubmissionResponse {
     status: MiningSubmissionStatus;
     message: string;
-    maybe_difficulty_update: DifficultyUpdate | null;
+    maybe_difficulty_update?: DifficultyUpdate;
+    work_metadata: WorkMetadata[];
   }
 
 export interface DifficultyUpdate {

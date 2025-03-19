@@ -53,6 +53,7 @@ const Index = () => {
                   variant="ghost"
                   size="sm"
                   onClick={resetSettings}
+                  disabled={isMining}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Reset Settings
@@ -69,7 +70,7 @@ const Index = () => {
           <HashRateGauge hashRate={miningStats.maybeHashRate} />
           <DebugLogPanel />
           <LeaderboardInfoPanel />
-          <HashList hashes={miningStats.maybeBestHashes} />
+          <HashList />
         </div>
       </div>
     </PageTransition>

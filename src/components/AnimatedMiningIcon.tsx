@@ -12,16 +12,16 @@ interface AnimatedMiningIconProps {
 
 const getIcon = (type: IconType) => {
   switch (type) {
-    case 'challenge':
-      return <Target className="w-6 h-6 text-blue-500" />;
-    case 'difficulty':
-      return <ArrowDownRight className="w-6 h-6 text-yellow-500" />;
-    case 'solution':
-      return <ArrowUpRight className="w-6 h-6 text-purple-500" />;
-    case 'accepted':
-      return <CheckCircle2 className="w-6 h-6 text-green-500" />;
-    case 'rejected':
-      return <XCircle className="w-6 h-6 text-red-500" />;
+  case 'challenge':
+    return <Target className="w-6 h-6 text-blue-500" />;
+  case 'difficulty':
+    return <ArrowDownRight className="w-6 h-6 text-yellow-500" />;
+  case 'solution':
+    return <ArrowUpRight className="w-6 h-6 text-purple-500" />;
+  case 'accepted':
+    return <CheckCircle2 className="w-6 h-6 text-green-500" />;
+  case 'rejected':
+    return <XCircle className="w-6 h-6 text-red-500" />;
   }
 };
 
@@ -41,4 +41,4 @@ export const AnimatedMiningIcon = ({ type, isAnimating, direction, className }: 
       {getIcon(type)}
     </div>
   );
-}; 
+};

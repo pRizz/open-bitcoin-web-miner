@@ -1,6 +1,6 @@
 import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
 
-export type MiningEventType = 
+export type MiningEventType =
   | 'onNewChallengeReceived'
   | 'onNewDifficultyUpdate'
   | 'onSubmitSolution'
@@ -62,4 +62,4 @@ export const MiningEventsProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </MiningEventsContext.Provider>
   );
-}; 
+};

@@ -3,6 +3,7 @@ import { NoncelessBlockHeader } from "./websocket";
 export interface MiningStats {
   maybeHashRate?: number;
   maybeBestHashes?: HashSolution[];
+  maybeSubmittedHashes?: HashSolution[];
   maybeTotalHashes?: number;
   maybeStartTime?: number | null;
   maybeBlockHeight?: number;
@@ -25,6 +26,7 @@ export interface HashSolution {
   binaryZeroes: number;
   hexZeroes: number;
   timeToFind: number; // Time in milliseconds
+  status?: 'accepted' | 'rejected' | 'outdated' | 'pending';
 }
 
 export interface MiningSolution {

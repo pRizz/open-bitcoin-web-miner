@@ -12,16 +12,14 @@ import { HashSolution } from "@/types/mining";
 import { HashTableRow } from "./HashTableRow";
 import { useMining } from "@/contexts/MiningContext";
 
-interface HashListProps {
-  hashes: HashSolution[];
-}
-
-export function HashList({ hashes }: HashListProps) {
-  const { isMining, startMining, stopMining } = useMining();
-  const [sortField, setSortField] = useState<keyof HashSolution>("binaryZeroes");
+export function HashList() {
+  const { isMining, startMining, stopMining, miningStats } = useMining();
+  const [sortField, setSortField] = useState<keyof HashSolution>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  const sortedHashes = [...hashes].sort((a, b) => {
+  const submittedHashes = miningStats.maybeSubmittedHashes || [];
+
+  const sortedHashes = [...submittedHashes].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
     return sortDirection === "asc"
@@ -39,9 +37,9 @@ export function HashList({ hashes }: HashListProps) {
   };
 
   return (
-    <Card className="p-6 glass-card">
+    <Card className="p-6 glass-card h-[300px] flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Best Hashes Found</h2>
+        <h2 className="text-2xl font-bold">Submitted Hashes</h2>
         <Button
           onClick={isMining ? stopMining : startMining}
           size="sm"
@@ -52,15 +50,21 @@ export function HashList({ hashes }: HashListProps) {
           {isMining ? "Stop Mining" : "Start Mining"}
         </Button>
       </div>
-      {hashes.length === 0 ? (
+      {submittedHashes.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          No hashes found yet. Start mining to discover leading zeros!
+          No hashes submitted yet. Start mining to submit hashes!
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="flex-1 overflow-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 bg-background">
               <TableRow>
+                <TableHead
+                  className="cursor-pointer text-center"
+                  onClick={() => toggleSort("timestamp")}
+                >
+                  Time Submitted
+                </TableHead>
                 <TableHead
                   className="cursor-pointer text-center"
                   onClick={() => toggleSort("binaryZeroes")}
@@ -80,6 +84,8 @@ export function HashList({ hashes }: HashListProps) {
                 >
                   Time to Find
                 </TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">Nonce</TableHead>
                 <TableHead className="text-center">Details</TableHead>
               </TableRow>
             </TableHeader>

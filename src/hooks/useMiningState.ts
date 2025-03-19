@@ -2,6 +2,8 @@ import { useState } from "react";
 import { MiningStats, HashSolution } from "@/types/mining";
 import { useToast } from "@/hooks/use-toast";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
+import { WorkMetadata } from "@/types/websocket";
+import { hexStringFromU8Array } from "@/utils/mining";
 const STORAGE_KEY = "bitcoin-mining-simulator";
 
 export const useMiningState = () => {
@@ -13,6 +15,7 @@ export const useMiningState = () => {
     return stored ? JSON.parse(stored) : {
       maybeHashRate: 0,
       maybeBestHashes: [],
+      maybeSubmittedHashes: [],
       maybeTotalHashes: 0,
       maybeStartTime: null,
       maybeRequiredBinaryZeroes: 0,
@@ -23,35 +26,26 @@ export const useMiningState = () => {
 
   const updateMiningStats = (solution: HashSolution) => {
     setMiningStats(prev => {
-      const currentBest = prev.maybeBestHashes[0];
+      // Calculate time to find if mining has started
+      const timeToFind = prev.maybeStartTime ? Date.now() - prev.maybeStartTime : 0;
+      const solutionWithTime = { ...solution, timeToFind };
 
-      if (!currentBest || solution.binaryZeroes > currentBest.binaryZeroes) {
-        // Calculate time to find if mining has started
-        const timeToFind = prev.maybeStartTime ? Date.now() - prev.maybeStartTime : 0;
-        const solutionWithTime = { ...solution, timeToFind };
+      const updatedHashes = [solutionWithTime, ...(prev.maybeBestHashes || [])]
+        .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
+        .slice(0, 100);
 
-        const updatedHashes = [solutionWithTime, ...prev.maybeBestHashes]
-          .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
-          .slice(0, 100);
-
-        if (solution.binaryZeroes >= maybeRequiredBinaryZeroes) {
-          toast({
-            title: "Block Found!",
-            description: `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`,
-            variant: "default",
-          });
-        }
-
-        return {
-          ...prev,
-          maybeBestHashes: updatedHashes,
-          maybeTotalHashes: prev.maybeTotalHashes + 1,
-        };
+      if (solution.binaryZeroes >= maybeRequiredBinaryZeroes) {
+        toast({
+          title: "Block Found!",
+          description: `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`,
+          variant: "default",
+        });
       }
 
       return {
         ...prev,
-        maybeTotalHashes: prev.maybeTotalHashes + 1,
+        maybeBestHashes: updatedHashes,
+        maybeTotalHashes: (prev.maybeTotalHashes || 0) + 1,
       };
     });
   };
@@ -70,11 +64,33 @@ export const useMiningState = () => {
     }));
   };
 
-  const updateSubmissionStats = (isAccepted: boolean) => {
+  const updateSubmissionStats = ({isAccepted, workMetadata}: {isAccepted: boolean, workMetadata: WorkMetadata}) => {
+    console.log("updateSubmissionStats called with isAccepted", isAccepted, "workMetadata", workMetadata);
+    setMiningStats(prev => {
+      const submittedHashes = prev.maybeSubmittedHashes || [];
+      const block_header_hash_as_hex = hexStringFromU8Array(new Uint8Array(workMetadata.block_header_hash));
+      console.log("submittedHashes", submittedHashes);
+      const updatedHashes = submittedHashes.map(h => {
+        console.log("h.hash", h.hash, "block_header_hash_as_hex", block_header_hash_as_hex);
+        return h.hash === block_header_hash_as_hex ? { ...h, status: isAccepted ? 'accepted' as const : 'rejected' as const } : h
+      });
+
+      return {
+        ...prev,
+        acceptedHashes: isAccepted ? (prev.acceptedHashes + 1) : prev.acceptedHashes,
+        rejectedHashes: !isAccepted ? (prev.rejectedHashes + 1) : prev.rejectedHashes,
+        maybeSubmittedHashes: updatedHashes,
+      };
+    });
+  };
+
+  const addSubmittedHash = (solution: HashSolution) => {
     setMiningStats(prev => ({
       ...prev,
-      acceptedHashes: isAccepted ? prev.acceptedHashes + 1 : prev.acceptedHashes,
-      rejectedHashes: !isAccepted ? prev.rejectedHashes + 1 : prev.rejectedHashes,
+      maybeSubmittedHashes: [
+        { ...solution, status: 'pending' as const },
+        ...(prev.maybeSubmittedHashes || [])
+      ].slice(0, 100), // Keep last 100 submissions
     }));
   };
 
@@ -82,6 +98,7 @@ export const useMiningState = () => {
     setMiningStats({
       maybeHashRate: 0,
       maybeBestHashes: [],
+      maybeSubmittedHashes: [],
       maybeTotalHashes: 0,
       maybeStartTime: null,
       maybeRequiredBinaryZeroes: 0,
@@ -117,6 +134,7 @@ export const useMiningState = () => {
     updateHashRate,
     updateRequiredBinaryZeroes,
     updateSubmissionStats,
+    addSubmittedHash,
     resetStats,
     startMining,
     stopMining,

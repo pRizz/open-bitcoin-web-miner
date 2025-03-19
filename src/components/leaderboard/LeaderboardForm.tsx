@@ -4,6 +4,7 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
 import { useLeaderboard } from "@/contexts/leaderboard/LeaderboardContext";
 import { saveLeaderboardUsername, saveLeaderboardMessage } from "@/utils/localStorage";
+import { useMining } from "@/contexts/MiningContext";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +16,7 @@ import { HelpCircle } from "lucide-react";
 export function LeaderboardForm() {
   const { username, setUsername, leaderboardMessage, setLeaderboardMessage } = useLeaderboard();
   const { maybeBlockchainMessage, setBlockchainMessage } = useMinerInfo();
+  const { isMining } = useMining();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUsername = e.target.value;
@@ -39,6 +41,7 @@ export function LeaderboardForm() {
             onChange={handleUsernameChange}
             placeholder="Enter your username"
             maxLength={20}
+            disabled={isMining}
           />
           <div className="text-xs text-muted-foreground text-right">
             {username.length} / 20 characters
@@ -66,6 +69,7 @@ export function LeaderboardForm() {
             onChange={handleLeaderboardMessageChange}
             placeholder="Optional message to display on the leaderboard"
             maxLength={120}
+            disabled={isMining}
           />
           <div className="text-xs text-muted-foreground text-right">
             {leaderboardMessage.length} / 120 characters
@@ -93,6 +97,7 @@ export function LeaderboardForm() {
             onChange={(e) => setBlockchainMessage(e.target.value || null)}
             placeholder="Optional message for the blockchain"
             maxLength={MAX_MESSAGE_BYTES}
+            disabled={isMining}
           />
           <div className="text-xs text-muted-foreground text-right">
             {getMessageByteLength(maybeBlockchainMessage)} / {MAX_MESSAGE_BYTES} bytes
