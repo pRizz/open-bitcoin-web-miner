@@ -20,8 +20,15 @@ export interface MiningSubmission {
     nonceless_block_header: NoncelessBlockHeader;
   }
 
+export enum MiningSubmissionStatus {
+  ACCEPTED = 0,
+  REJECTED = 1,
+  OUTDATED = 2,
+  ACCEPTED_AND_FOUND_BLOCK = 3,
+}
+
 export interface MiningSubmissionResponse {
-    status: number;
+    status: MiningSubmissionStatus;
     message: string;
     maybe_difficulty_update: DifficultyUpdate | null;
   }

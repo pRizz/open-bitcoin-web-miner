@@ -15,6 +15,9 @@ export const useMiningState = () => {
       maybeBestHashes: [],
       maybeTotalHashes: 0,
       maybeStartTime: null,
+      maybeRequiredBinaryZeroes: 0,
+      acceptedHashes: 0,
+      rejectedHashes: 0,
     };
   });
 
@@ -60,12 +63,30 @@ export const useMiningState = () => {
     }));
   };
 
+  const updateRequiredBinaryZeroes = (requiredBinaryZeroes: number) => {
+    setMiningStats(prev => ({
+      ...prev,
+      maybeRequiredBinaryZeroes: requiredBinaryZeroes,
+    }));
+  };
+
+  const updateSubmissionStats = (isAccepted: boolean) => {
+    setMiningStats(prev => ({
+      ...prev,
+      acceptedHashes: isAccepted ? prev.acceptedHashes + 1 : prev.acceptedHashes,
+      rejectedHashes: !isAccepted ? prev.rejectedHashes + 1 : prev.rejectedHashes,
+    }));
+  };
+
   const resetStats = () => {
     setMiningStats({
       maybeHashRate: 0,
       maybeBestHashes: [],
       maybeTotalHashes: 0,
       maybeStartTime: null,
+      maybeRequiredBinaryZeroes: 0,
+      acceptedHashes: 0,
+      rejectedHashes: 0,
     });
     localStorage.removeItem(STORAGE_KEY);
     toast({
@@ -94,6 +115,8 @@ export const useMiningState = () => {
     miningStats,
     updateMiningStats,
     updateHashRate,
+    updateRequiredBinaryZeroes,
+    updateSubmissionStats,
     resetStats,
     startMining,
     stopMining,

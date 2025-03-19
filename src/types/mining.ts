@@ -8,6 +8,8 @@ export interface MiningStats {
   maybeBlockHeight?: number;
   maybeDifficulty?: number;
   maybeRequiredBinaryZeroes?: number;
+  acceptedHashes: number;
+  rejectedHashes: number;
 }
 
 // TODO: take a nonceless block header instead of each individual field

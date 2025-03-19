@@ -8,7 +8,7 @@ import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useNetworkInfo } from "./NetworkInfoContext";
 import API_CONFIG from "@/config/api";
-import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE } from "@/types/websocket";
+import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, DifficultyUpdate } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { u8ArrayBEToNonce } from "@/utils/nonceUtils";
 
@@ -17,6 +17,8 @@ const defaultContext: MiningContextType = {
     maybeBlockHeight: 0,
     maybeDifficulty: 0,
     maybeRequiredBinaryZeroes: 0,
+    acceptedHashes: 0,
+    rejectedHashes: 0,
   },
   isMining: false,
   miningSpeed: 100,
@@ -49,6 +51,8 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     miningStats,
     updateMiningStats,
     updateHashRate,
+    updateRequiredBinaryZeroes,
+    updateSubmissionStats,
     resetStats,
     startMining: startMiningStats,
     stopMining: stopMiningStats,
@@ -124,7 +128,10 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       blockHeader: blockHeader,
       maybeTargetZeros: targetZeros
     });
-  }, [addLog, updateMiningChallenge]);
+
+    // Update mining stats with new target zeros
+    updateRequiredBinaryZeroes(targetZeros);
+  }, [addLog, updateMiningChallenge, updateRequiredBinaryZeroes]);
 
   const handleBlockTemplateUpdate = useCallback((blockHeader: NoncelessBlockHeader) => {
     addLog("New block template received");
@@ -156,12 +163,32 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const miningWebSocketManagerCallbacks = {
     onNewChallenge: handleNewChallenge,
     onBlockTemplateUpdate: handleBlockTemplateUpdate,
-    onSubmissionResponse: (status, message, maybeDifficultyUpdate) => {
+    onSubmissionResponse: (status: MiningSubmissionStatus, message: string, maybeDifficultyUpdate: DifficultyUpdate | null) => {
       addLog(`Mining submission response: ${message} (status: ${status})`);
+      
+      // Update mining stats based on submission status
+      switch (status) {
+        case MiningSubmissionStatus.ACCEPTED:
+        case MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK:
+          updateSubmissionStats(true);
+          break;
+        case MiningSubmissionStatus.REJECTED:
+          updateSubmissionStats(false);
+          break;
+        case MiningSubmissionStatus.OUTDATED:
+          // Outdated submissions don't count towards accepted/rejected stats
+          break;
+        default:
+          console.warn(`Unknown submission status: ${status}`);
+      }
+
       if (maybeDifficultyUpdate) {
         const newDifficulty = maybeDifficultyUpdate.new_min_leading_zero_count;
         addLog(`Updating mining difficulty to ${newDifficulty} leading zeros`);
         workerPool.updateDifficulty(newDifficulty);
+        
+        // Update mining stats with new difficulty
+        updateRequiredBinaryZeroes(newDifficulty);
       }
     },
     onConnectionStateChange: (connected) => {

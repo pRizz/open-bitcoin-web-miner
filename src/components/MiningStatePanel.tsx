@@ -3,7 +3,8 @@ import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { cn } from "@/lib/utils";
-import { Database, Computer } from "lucide-react";
+import { Database, Computer, CheckCircle2, XCircle, Target } from "lucide-react";
+import { formatHashRate } from "@/utils/mining";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2">
@@ -86,7 +87,7 @@ export const MiningStatePanel = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Network Difficulty:</span>
-            <span>{maybeNetworkDifficulty || "N/A"}</span>
+            <span>{maybeNetworkDifficulty !== undefined ? `${(maybeNetworkDifficulty / 1e12).toFixed(2)} T` : "N/A"}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Required Binary Zeroes:</span>
@@ -131,11 +132,32 @@ export const MiningStatePanel = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Hash Rate:</span>
-            <span>{miningStats.maybeHashRate || "0"} H/s</span>
+            <span>{formatHashRate(miningStats.maybeHashRate)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Total Hashes:</span>
             <span>{miningStats.maybeTotalHashes || "0"}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              Accepted Hashes
+            </span>
+            <span className="font-mono text-xs">{miningStats.acceptedHashes}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-red-500" />
+              Rejected Hashes
+            </span>
+            <span className="font-mono text-xs">{miningStats.rejectedHashes}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Target className="w-4 h-4 text-yellow-500" />
+              Required Leading Binary Zeros
+            </span>
+            <span className="font-mono text-xs">{miningStats.maybeRequiredBinaryZeroes || "N/A"}</span>
           </div>
         </div>
       </div>
