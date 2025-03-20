@@ -110,7 +110,7 @@ export function NetworkStats() {
         </div>
         <div>
           <label className="text-sm text-gray-400 flex items-center gap-2">
-            Required Leading Binary Zeroes To Mine a Block
+            Required Leading Binary Zeroes To Mine a Bitcoin Block
             <Dialog>
               <DialogTrigger>
                 <HelpCircle className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-300" />
@@ -123,7 +123,7 @@ export function NetworkStats() {
           </StatValue>
         </div>
         <div>
-          <label className="text-sm text-gray-400">The Odds Any Random Hash Will Mine a Block</label>
+          <label className="text-sm text-gray-400">The Odds Any Random Hash Will Mine a Bitcoin Block</label>
           <StatValue isLoading={maybeRequiredBinaryZeroes === undefined}>
             {maybeRequiredBinaryZeroes !== undefined && `1 in ${formatLargeNumber(Math.pow(2, maybeRequiredBinaryZeroes))}`}
           </StatValue>

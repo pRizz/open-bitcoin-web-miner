@@ -17,6 +17,8 @@ General TODO before first public release:
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] add leaderboard username and blockchain message to startMining websocket message and remove job id from response message
+-[] add versioning
+-[] add a settings page; allow enabling of saving to sessionStorage
 
 Future features:
 -[] add captcha's maybe
