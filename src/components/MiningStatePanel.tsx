@@ -4,11 +4,12 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { useMiningEvents, MiningEventType } from "@/contexts/mining/MiningEventsContext";
 import { cn } from "@/lib/utils";
-import { Database, Computer, CheckCircle2, XCircle, Target } from "lucide-react";
+import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle } from "lucide-react";
 import { formatHashRate } from "@/utils/mining";
 import { useEffect, useState } from "react";
 import { AnimatedMiningIcon, getIconTypeFromEvent, type IconType } from "./AnimatedMiningIcon";
 import { FlashingText } from "./FlashingText";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2">
@@ -242,6 +243,21 @@ export const MiningStatePanel = () => {
             <span className="text-muted-foreground flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500" />
               Rejected Hashes
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[300px]">
+                    <p>Solutions may be rejected if:</p>
+                    <ul className="list-disc pl-4 mt-1 space-y-1">
+                      <li>A solution was attempted to be submitted while a difficulty update was sent to the client</li>
+                      <li>A solution was attempted to be submitted while a block update was sent to the client</li>
+                      <li>The solution does not meet the current difficulty requirements</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </span>
             <FlashingText value={miningStats.rejectedHashes || "0"} />
           </div>
