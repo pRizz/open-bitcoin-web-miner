@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { HashSolution } from "@/types/mining";
 import { HashTableRow } from "./HashTableRow";
 import { useMining } from "@/contexts/MiningContext";
+import { compareHashes } from "@/utils/mining";
 
-export function HashList() {
+export function SubmittedSolutionsList() {
   const { isMining, startMining, stopMining, miningStats } = useMining();
   const [sortField, setSortField] = useState<keyof HashSolution>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -22,6 +23,15 @@ export function HashList() {
   const sortedHashes = [...submittedHashes].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
+
+    // Special handling for hash-based sorting
+    if (sortField === "binaryZeroes" || sortField === "hexZeroes") {
+      return sortDirection === "asc"
+        ? compareHashes(a.hash, b.hash)
+        : compareHashes(b.hash, a.hash);
+    }
+
+    // Default sorting for other fields
     return sortDirection === "asc"
       ? (aValue as number) - (bValue as number)
       : (bValue as number) - (aValue as number);
@@ -39,7 +49,7 @@ export function HashList() {
   return (
     <Card className="p-6 glass-card h-[300px] flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Submitted Hashes</h2>
+        <h2 className="text-2xl font-bold">Submitted Solutions</h2>
         <Button
           onClick={isMining ? stopMining : startMining}
           size="sm"

@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { HashRateGauge } from "@/components/HashRateGauge";
 import { NetworkStats } from "@/components/NetworkStats";
-import { HashList } from "@/components/HashList";
+import { SubmittedSolutionsList } from "@/components/SubmittedSolutionsList";
 import { useMining } from "@/contexts/MiningContext";
 import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
@@ -70,7 +70,7 @@ const Index = () => {
           <HashRateGauge hashRate={miningStats.maybeHashRate} />
           <DebugLogPanel />
           <LeaderboardInfoPanel />
-          <HashList />
+          <SubmittedSolutionsList />
         </div>
       </div>
     </PageTransition>

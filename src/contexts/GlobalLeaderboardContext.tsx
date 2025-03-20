@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import API_CONFIG from "@/config/api";
+import { compareHashes } from "@/utils/mining";
 
 interface LeaderboardEntry {
   maybeUsername: string | null;
@@ -41,8 +42,12 @@ export function GlobalLeaderboardProvider({ children }: { children: React.ReactN
       }
       const data = await response.json();
       setLastRefreshTime(new Date());
-      // Add rank to each entry based on binaryZeroes
-      return data.map((entry: LeaderboardEntry, index: number) => ({
+
+      // Sort entries by hash to determine rank
+      const sortedEntries = [...data].sort((a, b) => compareHashes(a.hash, b.hash));
+
+      // Add rank to each entry based on hash comparison
+      return sortedEntries.map((entry: LeaderboardEntry, index: number) => ({
         ...entry,
         rank: index + 1
       }));

@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
 import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useState, useMemo } from "react";
+import { compareHashes } from "@/utils/mining";
 
 const MotionTableRow = motion(TableRow);
 
@@ -46,11 +47,12 @@ export function GlobalLeaderboard() {
 
       switch (sortField) {
       case "rank":
-        // Rank is based on binaryZeroes, so we'll sort by that
-        comparison = b.rank - a.rank;
+        // Rank is based on hash comparison
+        comparison = compareHashes(a.hash, b.hash);
         break;
       case "binaryZeroes":
-        comparison = b.binaryZeroes - a.binaryZeroes;
+        // Use hash comparison for binary zeroes
+        comparison = compareHashes(a.hash, b.hash);
         break;
       case "blockHeight":
         comparison = (b.blockHeight || 0) - (a.blockHeight || 0);
@@ -60,7 +62,7 @@ export function GlobalLeaderboard() {
         break;
       }
 
-      return sortDirection === "asc" ? -comparison : comparison;
+      return sortDirection === "asc" ? comparison : -comparison;
     });
   }, [leaderboard, sortField, sortDirection]);
 

@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, Target, ArrowUpRight, ArrowDownRight, Puzzle } from 'lucide-react';
+import { CheckCircle2, XCircle, Target, ArrowUpRight, ArrowDownRight, Puzzle, Binary } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MiningEventType } from '@/contexts/mining/MiningEventsContext';
 import { SubmissionResponse } from '@/contexts/mining/MiningEventsContext';
@@ -32,7 +32,7 @@ const getIcon = (type: IconType) => {
   case 'difficulty':
     return <Target className="w-6 h-6 text-yellow-500" />;
   case 'solution':
-    return <ArrowUpRight className="w-6 h-6 text-purple-500" />;
+    return <Binary className="w-6 h-6 text-purple-500" />;
   case 'accepted':
     return <CheckCircle2 className="w-6 h-6 text-green-500" />;
   case 'rejected':

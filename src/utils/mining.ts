@@ -1,6 +1,21 @@
 import { HashSolution } from "@/types/mining";
 import API_CONFIG from "@/config/api";
 
+/**
+ * Compares two hash strings as big integers
+ * @param a First hash string
+ * @param b Second hash string
+ * @returns -1 if a < b, 0 if a = b, 1 if a > b
+ */
+export function compareHashes(a: string, b: string): number {
+  // First compare lengths (shorter hash is smaller)
+  if (a.length !== b.length) {
+    return a.length - b.length;
+  }
+  // If lengths are equal, compare as strings (which works for hex strings)
+  return a.localeCompare(b);
+}
+
 // Deprecated; use calculateLeadingZeroesU8Array instead
 export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
   // Calculate hex zeroes
