@@ -8,18 +8,18 @@ export function BinaryZeroesHelp() {
   return (
     <DialogContent className="max-h-[80vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Understanding Binary Zeroes in Hash Values</DialogTitle>
+        <DialogTitle>Understanding Leading Binary Zeroes in Hash Values</DialogTitle>
       </DialogHeader>
       <div className="space-y-4 text-sm">
         <p>
-          When we talk about leading zeroes in hash values, we count them in binary (base-2) format rather than hexadecimal (base-16) format. This gives us more precise control over the difficulty since each hexadecimal digit represents 4 binary digits (bits).
+          When we talk about leading zeroes in hash values, we count them in binary (base-2) format rather than hexadecimal (base-16) format. This gives us more precise control over the difficulty than hexadecimal because each hexadecimal digit represents 4 binary digits (bits).
         </p>
 
         <div className="space-y-2">
           <p className="font-semibold text-green-400">Example 1: Multiple Leading Zeroes</p>
           <p>Let's look at this hash value:</p>
           <div className="font-mono bg-gray-900 p-4 rounded-md">
-            0x0000f423...
+            0x0000f42069...
           </div>
 
           <p>In hexadecimal format, this has 4 leading zeroes.</p>
@@ -87,7 +87,7 @@ export function BinaryZeroesHelp() {
           <ul className="list-disc list-inside space-y-2">
             <li>Directly shows the probability (1/2^n)</li>
             <li>Makes it easy to calculate chances mentally</li>
-            <li>Provides intuitive difficulty steps (each +1 = twice as hard)</li>
+            <li>Provides intuitive difficulty steps (for each unit increase in leading binary zeroes, the difficulty is doubled)</li>
             <li>Uses small, manageable numbers (e.g., 32 zeroes vs 53 trillion difficulty)</li>
           </ul>
         </div>

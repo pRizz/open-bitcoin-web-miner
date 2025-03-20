@@ -60,4 +60,7 @@ function App() {
   );
 }
 
+console.log(`Version ${import.meta.env.PACKAGE_VERSION}`);
+console.log(`Build Time: ${import.meta.env.BUILD_TIME}`);
+
 export default App;

@@ -19,6 +19,7 @@ import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
 import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useState, useMemo } from "react";
 import { compareHashes } from "@/utils/mining";
+import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 
 const MotionTableRow = motion(TableRow);
 
@@ -27,6 +28,7 @@ type SortDirection = "asc" | "desc";
 
 export function GlobalLeaderboard() {
   const { leaderboard, isLoading, error } = useGlobalLeaderboard();
+  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
   const [sortField, setSortField] = useState<SortField>("rank");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -142,6 +144,16 @@ export function GlobalLeaderboard() {
                 onClick={() => handleSort("binaryZeroes")}
               >
                 Leading<br />Binary<br />Zeroes <SortIcon field="binaryZeroes" />
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px]">
+                      <p>The number of leading binary zeroes in the block hash. The network currently requires at least {maybeRequiredBinaryZeroes} leading binary zeroes to mine a valid Bitcoin block.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
               <TableHead className="text-center w-[80px] py-2">
                 Leading<br />Hex<br />Zeroes

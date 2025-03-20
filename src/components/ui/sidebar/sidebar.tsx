@@ -95,7 +95,11 @@ export const Sidebar = React.forwardRef<
             data-sidebar="sidebar"
             className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
           >
-            {children}
+            <div className="flex-1">{children}</div>
+            <div className="mt-auto border-t border-sidebar-border p-4 text-xs text-sidebar-foreground/60">
+              <div>v{import.meta.env.PACKAGE_VERSION}</div>
+              <div>Build Time: {import.meta.env.BUILD_TIME}</div>
+            </div>
           </div>
         </div>
       </div>

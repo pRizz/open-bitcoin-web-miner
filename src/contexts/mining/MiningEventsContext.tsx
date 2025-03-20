@@ -37,7 +37,6 @@ export const MiningEventsProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const subscribe = useCallback((eventType: MiningEventType, callback: MiningEventCallback) => {
-    console.log("MiningEventsProvider: subscribe", eventType, callback);
     setSubscribers(prev => ({
       ...prev,
       [eventType]: [...prev[eventType], callback],

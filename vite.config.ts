@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import packageVersion from 'vite-plugin-package-version';
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
@@ -13,10 +14,14 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
+    packageVersion(),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  define: {
+    'import.meta.env.BUILD_TIME': JSON.stringify(new Date().toISOString()),
   },
 }));

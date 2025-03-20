@@ -110,7 +110,7 @@ export function NetworkStats() {
         </div>
         <div>
           <label className="text-sm text-gray-400 flex items-center gap-2">
-            Required Leading Binary Zeroes To Mine a Bitcoin Block
+            Required Leading Binary Zeroes In a BlockHash To Mine a Bitcoin Block
             <Dialog>
               <DialogTrigger>
                 <HelpCircle className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-300" />
