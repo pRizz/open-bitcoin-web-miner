@@ -17,7 +17,7 @@ export function HashList() {
   const [sortField, setSortField] = useState<keyof HashSolution>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  const submittedHashes = miningStats.maybeSubmittedHashes || [];
+  const submittedHashes = miningStats.maybeSubmittedSolutions || [];
 
   const sortedHashes = [...submittedHashes].sort((a, b) => {
     const aValue = a[sortField];

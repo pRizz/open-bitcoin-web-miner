@@ -4,12 +4,14 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { useMiningEvents, MiningEventType } from "@/contexts/mining/MiningEventsContext";
 import { cn } from "@/lib/utils";
-import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle } from "lucide-react";
+import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle, RotateCcw } from "lucide-react";
 import { formatHashRate } from "@/utils/mining";
 import { useEffect, useState } from "react";
 import { AnimatedMiningIcon, getIconTypeFromEvent, type IconType } from "./AnimatedMiningIcon";
 import { FlashingText } from "./FlashingText";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { formatLargeNumber } from "@/utils/formatters";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2">
@@ -49,7 +51,7 @@ interface AnimationInstance {
 }
 
 export const MiningStatePanel = () => {
-  const { miningStats, isMining } = useMining();
+  const { miningStats, isMining, resetData } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes } = useNetworkInfo();
   const { subscribe } = useMiningEvents();
@@ -211,10 +213,30 @@ export const MiningStatePanel = () => {
 
       {/* Web Miner Section */}
       <div className="p-4 border rounded-lg relative z-10 bg-background">
-        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-          <Computer className="w-8 h-8 text-muted-foreground" />
-          Web Miner
-        </h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Computer className="w-8 h-8 text-muted-foreground" />
+            Web Miner
+          </h3>
+          <TooltipProvider>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetData}
+                  className="flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Reset Stats
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Reset all mining statistics</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Status:</span>
@@ -229,20 +251,24 @@ export const MiningStatePanel = () => {
             <FlashingText value={formatHashRate(miningStats.maybeHashRate)} disableFlash />
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Total Hashes:</span>
-            <FlashingText value={miningStats.maybeTotalHashes || "0"} />
+            <span className="text-muted-foreground">Cumulative Hashes:</span>
+            <FlashingText value={formatLargeNumber(miningStats.cumulativeHashes)} />
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Total Solutions:</span>
+            <FlashingText value={miningStats.maybeTotalSolutions || "0"} />
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
-              Accepted Hashes
+              Accepted Solutions
             </span>
-            <FlashingText value={miningStats.acceptedHashes} />
+            <FlashingText value={miningStats.acceptedSolutions || "0"} />
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500" />
-              Rejected Hashes
+              Rejected Solutions
               <TooltipProvider>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger>
@@ -259,7 +285,7 @@ export const MiningStatePanel = () => {
                 </Tooltip>
               </TooltipProvider>
             </span>
-            <FlashingText value={miningStats.rejectedHashes || "0"} />
+            <FlashingText value={miningStats.rejectedSolutions || "0"} />
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground flex items-center gap-2">

@@ -1,38 +1,47 @@
-import { useState } from "react";
-import { MiningStats, HashSolution } from "@/types/mining";
+import { useState, useEffect } from "react";
+import { MiningStats, HashSolution, SessionMiningStats, PersistentMiningStats } from "@/types/mining";
 import { useToast } from "@/hooks/use-toast";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { WorkMetadata } from "@/types/websocket";
 import { hexStringFromU8Array } from "@/utils/mining";
+
 const STORAGE_KEY = "bitcoin-mining-simulator";
+
+const defaultPersistentStats: PersistentMiningStats = {
+  maybeBestSolutions: [],
+  maybeSubmittedSolutions: [],
+  maybeTotalSolutions: 0,
+  cumulativeHashes: 0,
+  acceptedSolutions: 0,
+  rejectedSolutions: 0,
+};
+
+const defaultSessionStats: SessionMiningStats = {
+  maybeHashRate: 0,
+  maybeStartTime: null,
+  maybeRequiredBinaryZeroes: 0,
+};
 
 export const useMiningState = () => {
   console.log("useMiningState called");
   const { toast } = useToast();
   const { maybeRequiredBinaryZeroes } = useNetworkInfo();
-  const [miningStats, setMiningStats] = useState<MiningStats>(() => {
+
+  const [persistentStats, setPersistentStats] = useState<PersistentMiningStats>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {
-      maybeHashRate: 0,
-      maybeBestHashes: [],
-      maybeSubmittedHashes: [],
-      maybeTotalHashes: 0,
-      maybeStartTime: null,
-      maybeRequiredBinaryZeroes: 0,
-      acceptedHashes: 0,
-      rejectedHashes: 0,
-    };
+    return stored ? JSON.parse(stored) : defaultPersistentStats;
   });
 
-  const updateMiningStats = (solution: HashSolution) => {
-    setMiningStats(prev => {
-      // Calculate time to find if mining has started
+  const [sessionStats, setSessionStats] = useState<SessionMiningStats>(() => ({
+    ...defaultSessionStats,
+    maybeRequiredBinaryZeroes,
+  }));
+
+  const updateMiningStats = (solution: HashSolution, cumulativeHashes: number) => {
+    // Update session stats
+    setSessionStats(prev => {
       const timeToFind = prev.maybeStartTime ? Date.now() - prev.maybeStartTime : 0;
       const solutionWithTime = { ...solution, timeToFind };
-
-      const updatedHashes = [solutionWithTime, ...(prev.maybeBestHashes || [])]
-        .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
-        .slice(0, 100);
 
       if (solution.binaryZeroes >= maybeRequiredBinaryZeroes) {
         toast({
@@ -42,23 +51,33 @@ export const useMiningState = () => {
         });
       }
 
+      return prev;
+    });
+
+    // Update persistent stats
+    setPersistentStats(prev => {
+      const updatedHashes = [solution, ...(prev.maybeBestSolutions || [])]
+        .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
+        .slice(0, 100);
+
       return {
         ...prev,
-        maybeBestHashes: updatedHashes,
-        maybeTotalHashes: (prev.maybeTotalHashes || 0) + 1,
+        maybeBestSolutions: updatedHashes,
+        maybeTotalSolutions: (prev.maybeTotalSolutions || 0) + 1,
+        cumulativeHashes: prev.cumulativeHashes + cumulativeHashes,
       };
     });
   };
 
   const updateHashRate = (hashRate: number) => {
-    setMiningStats(prev => ({
+    setSessionStats(prev => ({
       ...prev,
       maybeHashRate: hashRate,
     }));
   };
 
   const updateRequiredBinaryZeroes = (requiredBinaryZeroes: number) => {
-    setMiningStats(prev => ({
+    setSessionStats(prev => ({
       ...prev,
       maybeRequiredBinaryZeroes: requiredBinaryZeroes,
     }));
@@ -66,8 +85,8 @@ export const useMiningState = () => {
 
   const updateSubmissionStats = ({isAccepted, workMetadata}: {isAccepted: boolean, workMetadata: WorkMetadata}) => {
     console.log("updateSubmissionStats called with isAccepted", isAccepted, "workMetadata", workMetadata);
-    setMiningStats(prev => {
-      const submittedHashes = prev.maybeSubmittedHashes || [];
+    setPersistentStats(prev => {
+      const submittedHashes = prev.maybeSubmittedSolutions || [];
       const block_header_hash_as_hex = hexStringFromU8Array(new Uint8Array(workMetadata.block_header_hash));
       console.log("submittedHashes", submittedHashes);
       const updatedHashes = submittedHashes.map(h => {
@@ -77,33 +96,28 @@ export const useMiningState = () => {
 
       return {
         ...prev,
-        acceptedHashes: isAccepted ? (prev.acceptedHashes + 1) : prev.acceptedHashes,
-        rejectedHashes: !isAccepted ? (prev.rejectedHashes + 1) : prev.rejectedHashes,
-        maybeSubmittedHashes: updatedHashes,
+        acceptedSolutions: isAccepted ? (prev.acceptedSolutions + 1) : prev.acceptedSolutions,
+        rejectedSolutions: !isAccepted ? (prev.rejectedSolutions + 1) : prev.rejectedSolutions,
+        maybeSubmittedSolutions: updatedHashes,
       };
     });
   };
 
   const addSubmittedHash = (solution: HashSolution) => {
-    setMiningStats(prev => ({
+    setPersistentStats(prev => ({
       ...prev,
-      maybeSubmittedHashes: [
+      maybeSubmittedSolutions: [
         { ...solution, status: 'pending' as const },
-        ...(prev.maybeSubmittedHashes || [])
+        ...(prev.maybeSubmittedSolutions || [])
       ].slice(0, 100), // Keep last 100 submissions
     }));
   };
 
   const resetStats = () => {
-    setMiningStats({
-      maybeHashRate: 0,
-      maybeBestHashes: [],
-      maybeSubmittedHashes: [],
-      maybeTotalHashes: 0,
-      maybeStartTime: null,
-      maybeRequiredBinaryZeroes: 0,
-      acceptedHashes: 0,
-      rejectedHashes: 0,
+    setPersistentStats(defaultPersistentStats);
+    setSessionStats({
+      ...defaultSessionStats,
+      maybeRequiredBinaryZeroes,
     });
     localStorage.removeItem(STORAGE_KEY);
     toast({
@@ -114,18 +128,29 @@ export const useMiningState = () => {
   };
 
   const startMining = () => {
-    setMiningStats(prev => ({
+    setSessionStats(prev => ({
       ...prev,
       maybeStartTime: Date.now(),
     }));
   };
 
   const stopMining = () => {
-    setMiningStats(prev => ({
+    setSessionStats(prev => ({
       ...prev,
       maybeHashRate: 0,
       maybeStartTime: null,
     }));
+  };
+
+  // Save persistent stats to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistentStats));
+  }, [persistentStats]);
+
+  // Combine session and persistent stats for the return value
+  const miningStats: MiningStats = {
+    ...sessionStats,
+    ...persistentStats,
   };
 
   return {

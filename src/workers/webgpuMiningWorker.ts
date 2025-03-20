@@ -8,6 +8,7 @@ let running = false;
 let hashCount = 0;
 let startTime = performance.now();
 let miningSpeed = 100;
+let cumulativeHashes = 0;
 const HASH_RATE_UPDATE_INTERVAL = 1000;
 
 let maybeGPUDevice: GPUDevice | null = null;
@@ -386,12 +387,14 @@ async function mine() {
             const solution: MiningSolution = {
               hash: hashWords,
               nonceVecU8: serializeNonceLE(solutionNonce),
-              maybeBlockHeader: maybeCurrentChallenge.blockHeader
+              maybeBlockHeader: maybeCurrentChallenge.blockHeader,
+              cumulativeHashes: cumulativeHashes
             };
             self.postMessage({
               type: "hash",
               data: solution
             });
+            cumulativeHashes = 0; // Reset after sending
           }
         }
       }
@@ -403,6 +406,7 @@ async function mine() {
       readBuffer.destroy();
 
       updateHashRate(batchSize);
+      cumulativeHashes += batchSize;
 
       if (sleepTime > 0) {
         await new Promise(resolve => setTimeout(resolve, sleepTime));

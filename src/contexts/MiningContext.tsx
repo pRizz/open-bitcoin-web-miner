@@ -18,8 +18,9 @@ const defaultContext: MiningContextType = {
     maybeBlockHeight: 0,
     maybeDifficulty: 0,
     maybeRequiredBinaryZeroes: 0,
-    acceptedHashes: 0,
-    rejectedHashes: 0,
+    acceptedSolutions: 0,
+    rejectedSolutions: 0,
+    cumulativeHashes: 0,
   },
   isMining: false,
   miningSpeed: 100,
@@ -116,7 +117,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         timeToFindMs: miningStats.maybeStartTime ? Date.now() - miningStats.maybeStartTime : 0,
         status: 'pending',
       };
-      updateMiningStats(solutionStats);
+      updateMiningStats(solutionStats, solution.cumulativeHashes);
       addSubmittedHash(solutionStats);
     }
   );

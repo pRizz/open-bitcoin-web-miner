@@ -1,17 +1,23 @@
 import { NoncelessBlockHeader } from "./websocket";
 
-export interface MiningStats {
+export interface SessionMiningStats {
   maybeHashRate?: number;
-  maybeBestHashes?: HashSolution[];
-  maybeSubmittedHashes?: HashSolution[];
-  maybeTotalHashes?: number;
   maybeStartTime?: number | null;
   maybeBlockHeight?: number;
   maybeDifficulty?: number;
   maybeRequiredBinaryZeroes?: number;
-  acceptedHashes: number;
-  rejectedHashes: number;
 }
+
+export interface PersistentMiningStats {
+  maybeBestSolutions?: HashSolution[];
+  maybeSubmittedSolutions?: HashSolution[];
+  maybeTotalSolutions?: number;
+  cumulativeHashes: number;
+  acceptedSolutions: number;
+  rejectedSolutions: number;
+}
+
+export interface MiningStats extends SessionMiningStats, PersistentMiningStats {}
 
 // TODO: take a nonceless block header instead of each individual field
 export interface HashSolution {
@@ -33,6 +39,7 @@ export interface MiningSolution {
   hash: string;
   nonceVecU8: Uint8Array;
   maybeBlockHeader?: NoncelessBlockHeader;
+  cumulativeHashes: number;
 }
 
 export type MiningMode = "cpu" | "webgl" | "webgpu";

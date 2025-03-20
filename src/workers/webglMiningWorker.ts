@@ -7,6 +7,7 @@ let running = false;
 let hashCount = 0;
 let startTime = performance.now();
 let miningSpeed = 100;
+let cumulativeHashes = 0;
 let maybeCurrentChallenge: MiningChallenge | null = null;
 const HASH_RATE_UPDATE_INTERVAL = 1000;
 
@@ -255,18 +256,21 @@ function mine() {
       const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
       if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
         const solution: MiningSolution = {
-          hash,
+          hash: hash,
           nonceVecU8: serializeNonceLE(nonce),
-          maybeBlockHeader: maybeCurrentChallenge.blockHeader
+          maybeBlockHeader: maybeCurrentChallenge.blockHeader,
+          cumulativeHashes: cumulativeHashes
         };
         self.postMessage({
           type: "hash",
           data: solution
         });
+        cumulativeHashes = 0; // Reset after sending
       }
     }
 
     updateHashRate(batchSize);
+    cumulativeHashes += batchSize;
 
     if (sleepTime > 0) {
       await new Promise(resolve => setTimeout(resolve, sleepTime));

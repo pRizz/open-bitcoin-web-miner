@@ -11,6 +11,7 @@ interface MiningState {
   lastHashRateUpdateMs: number;
   miningSpeed: number;
   maybeCurrentChallenge: MiningChallenge | null;
+  cumulativeHashes: number;
 }
 
 const state: MiningState = {
@@ -19,6 +20,7 @@ const state: MiningState = {
   lastHashRateUpdateMs: Date.now(),
   miningSpeed: 100,
   maybeCurrentChallenge: null,
+  cumulativeHashes: 0,
 };
 
 const HASH_RATE_UPDATE_INTERVAL = 1000; // 1 second
@@ -98,6 +100,7 @@ function mine() {
         // const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
         const hashAsU8Array = await doubleSha256BlockHeaderU8Array(state.maybeCurrentChallenge.blockHeader, nonce);
         state.hashCount++;
+        state.cumulativeHashes++;
         hashesInBatchCount++;
 
         const { leadingBinaryZeroes: binary } = calculateLeadingZeroesU8Array(hashAsU8Array);
@@ -113,12 +116,14 @@ function mine() {
           const solution: MiningSolution = {
             hash: hashHex,
             nonceVecU8: serializeNonceLE(nonce),
-            maybeBlockHeader: state.maybeCurrentChallenge.blockHeader
+            maybeBlockHeader: state.maybeCurrentChallenge.blockHeader,
+            cumulativeHashes: state.cumulativeHashes
           };
           self.postMessage({
             type: 'hash',
             data: solution
           });
+          state.cumulativeHashes = 0; // Reset after sending
         }
       }
 

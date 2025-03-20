@@ -191,7 +191,8 @@ export class WorkerPool {
         const solution: MiningSolution = {
           hash: miningSolution.hash,
           nonceVecU8: miningSolution.nonceVecU8,
-          maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader
+          maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader,
+          cumulativeHashes: miningSolution.cumulativeHashes
         };
         this.onSolution(solution);
       } else if (type === "hashRate") {
