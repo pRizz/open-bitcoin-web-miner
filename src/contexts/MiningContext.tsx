@@ -75,20 +75,19 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     (solution: MiningSolution) => {
       const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(solution.hash);
 
-      if (!solution.maybeJobId || !solution.maybeBlockHeader) {
-        console.error('Invalid solution received: missing jobId or blockHeader');
+      if (!solution.maybeBlockHeader) {
+        console.error('Invalid solution received: missing blockHeader');
         return;
       }
       console.log("Found solution", solution);
       console.log("leadingBinaryZeroes", leadingBinaryZeroes);
 
       const miningSubmission: MiningSubmission = {
-        job_id: solution.maybeJobId,
         nonceVecU8: Array.from(solution.nonceVecU8),
         nonceless_block_header: solution.maybeBlockHeader
       };
-      console.log(`Submitting mining solution for job ${solution.maybeJobId}`);
-      addLog(`Submitting mining solution for job ${solution.maybeJobId}`);
+      console.log(`Submitting mining solution`);
+      addLog(`Submitting mining solution`);
       console.log(`Mining submission: ${JSON.stringify(miningSubmission)}`);
       addLog(`Mining submission: ${JSON.stringify(miningSubmission)}`);
 
@@ -124,12 +123,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
   const { gpuCapabilities, startMining: startWorkerPool, stopMining: stopWorkerPool, updateThreadCount, updateMiningChallenge } = workerPool;
 
-  const handleNewChallenge = useCallback((jobId: string, blockHeader: NoncelessBlockHeader, targetZeros: number) => {
-    addLog(`New mining challenge received. Job ID: ${jobId}, Target zeros: ${targetZeros}`);
-    console.log(`New mining challenge received. Job ID: ${jobId}, Target zeros: ${targetZeros}, Block header: ${JSON.stringify(blockHeader)}`);
+  const handleNewChallenge = useCallback((blockHeader: NoncelessBlockHeader, targetZeros: number) => {
+    addLog(`New mining challenge received. Target zeros: ${targetZeros}, Block header: ${JSON.stringify(blockHeader)}`);
+    console.log(`New mining challenge received. Target zeros: ${targetZeros}, Block header: ${JSON.stringify(blockHeader)}`);
 
     updateMiningChallenge({
-      maybeJobId: jobId,
       blockHeader: blockHeader,
       maybeTargetZeros: targetZeros
     });
@@ -155,7 +153,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
   const submitSolution = useCallback((submission: MiningSubmission) => {
     miningWebSocket.submitSolution(submission);
-    addLog(`Submitted mining solution for job ${submission.job_id}`);
+    addLog(`Submitted mining solution`);
     // Emit solution submission event
     emit('onSubmitSolution');
   }, [addLog, miningWebSocket, emit]);

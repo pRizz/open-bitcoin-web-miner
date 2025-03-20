@@ -9,13 +9,11 @@ export interface NoncelessBlockHeader {
   }
 
 export interface MiningChallengeResponse {
-    job_id: string;
     nonceless_block_header: NoncelessBlockHeader;
     target_leading_zero_count: number;
   }
 
 export interface MiningSubmission {
-    job_id: string;
     nonceVecU8: number[];
     nonceless_block_header: NoncelessBlockHeader;
   }

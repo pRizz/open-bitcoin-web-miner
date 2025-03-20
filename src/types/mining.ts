@@ -32,14 +32,12 @@ export interface HashSolution {
 export interface MiningSolution {
   hash: string;
   nonceVecU8: Uint8Array;
-  maybeJobId?: string;
   maybeBlockHeader?: NoncelessBlockHeader;
 }
 
 export type MiningMode = "cpu" | "webgl" | "webgpu";
 
 export interface MiningChallenge {
-  maybeJobId?: string;
   blockHeader: NoncelessBlockHeader;
   maybeTargetZeros?: number;
   maybeKeepExisting?: boolean;

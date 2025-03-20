@@ -14,7 +14,7 @@ interface MiningWebSocketContextType {
 const MiningWebSocketContext = createContext<MiningWebSocketContextType | undefined>(undefined);
 
 interface MiningWebSocketCallbacks {
-  onNewChallenge: (jobId: string, blockHeader: NoncelessBlockHeader, targetZeros: number) => void;
+  onNewChallenge: (blockHeader: NoncelessBlockHeader, targetZeros: number) => void;
   onBlockTemplateUpdate: (blockHeader: NoncelessBlockHeader) => void;
   onSubmissionResponse: (
     status: MiningSubmissionStatus,
@@ -78,9 +78,8 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
 
       switch (message.type) {
       case "ChallengeResponse": {
-        const { job_id, nonceless_block_header, target_leading_zero_count } = message.data;
+        const { nonceless_block_header, target_leading_zero_count } = message.data;
         maybeCallbacks.current?.onNewChallenge(
-          job_id,
           nonceless_block_header,
           target_leading_zero_count
         );

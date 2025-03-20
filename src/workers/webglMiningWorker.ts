@@ -257,7 +257,6 @@ function mine() {
         const solution: MiningSolution = {
           hash,
           nonceVecU8: serializeNonceLE(nonce),
-          maybeJobId: maybeCurrentChallenge.maybeJobId,
           maybeBlockHeader: maybeCurrentChallenge.blockHeader
         };
         self.postMessage({

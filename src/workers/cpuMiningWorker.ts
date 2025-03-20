@@ -113,7 +113,6 @@ function mine() {
           const solution: MiningSolution = {
             hash: hashHex,
             nonceVecU8: serializeNonceLE(nonce),
-            maybeJobId: state.maybeCurrentChallenge.maybeJobId,
             maybeBlockHeader: state.maybeCurrentChallenge.blockHeader
           };
           self.postMessage({

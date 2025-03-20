@@ -191,7 +191,6 @@ export class WorkerPool {
         const solution: MiningSolution = {
           hash: miningSolution.hash,
           nonceVecU8: miningSolution.nonceVecU8,
-          maybeJobId: this.maybeCurrentChallenge?.maybeJobId,
           maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader
         };
         this.onSolution(solution);
@@ -281,7 +280,7 @@ export class WorkerPool {
   updateChallenge(challenge: MiningChallenge & { maybeKeepExisting?: boolean }) {
     console.log("Updating challenge in worker pool:", challenge);
     if (challenge.maybeKeepExisting && this.maybeCurrentChallenge) {
-      // Only update the block header, keep existing jobId and targetZeros
+      // Only update the block header, keep existing targetZeros
       this.maybeCurrentChallenge = {
         ...this.maybeCurrentChallenge,
         blockHeader: challenge.blockHeader
