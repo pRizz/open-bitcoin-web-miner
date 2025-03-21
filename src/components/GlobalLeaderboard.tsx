@@ -20,7 +20,7 @@ import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useState, useMemo } from "react";
 import { compareHashes } from "@/utils/mining";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
-
+import { messageTooltip, nameTagTooltip, blockchainMessageTooltip } from "@/components/leaderboard/LeaderboardConstants";
 const MotionTableRow = motion(TableRow);
 
 type SortField = "rank" | "binaryZeroes" | "blockHeight" | "createdAt";
@@ -112,7 +112,19 @@ export function GlobalLeaderboard() {
               >
                 Rank <SortIcon field="rank" />
               </TableHead>
-              <TableHead className="text-center">Username</TableHead>
+              <TableHead className="text-center">
+                Name Tag
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px]">
+                      <p>{nameTagTooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                </TableHead>
               <TableHead className="text-center">
                 Message
                 <TooltipProvider>
@@ -121,7 +133,7 @@ export function GlobalLeaderboard() {
                       <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
-                      <p>A message that is only displayed in the leaderboard and is not added to the blockchain.</p>
+                      <p>{messageTooltip}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -134,7 +146,7 @@ export function GlobalLeaderboard() {
                       <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
-                      <p>This message will be added to the coinbase script signature field, if you successfully find a block. UTF-8 text is allowed, with a maximum length of 100 bytes. No control characters allowed.</p>
+                      <p>{blockchainMessageTooltip}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

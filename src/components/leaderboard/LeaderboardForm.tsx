@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HelpCircle } from "lucide-react";
+import { messageTooltip, nameTagTooltip, blockchainMessageTooltip } from "./LeaderboardConstants";
 
 export function LeaderboardForm() {
   const { username, setUsername, leaderboardMessage, setLeaderboardMessage } = useLeaderboard();
@@ -33,13 +34,25 @@ export function LeaderboardForm() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Username (1-20 alphanumeric characters)</Label>
+        <Label htmlFor="username">
+          Name Tag (1-20 alphanumeric characters)
+          <TooltipProvider>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[300px]">
+                <p>{nameTagTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </Label>
         <div className="space-y-1">
           <Input
             id="username"
             value={username}
             onChange={handleUsernameChange}
-            placeholder="Enter your username"
+            placeholder="Enter your name tag"
             maxLength={20}
             disabled={isMining}
           />
@@ -57,7 +70,7 @@ export function LeaderboardForm() {
                 <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent className="max-w-[300px]">
-                <p>A message that is only displayed in the leaderboard and is not added to the blockchain.</p>
+                <p>{messageTooltip}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -85,7 +98,7 @@ export function LeaderboardForm() {
                 <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent className="max-w-[300px]">
-                <p>This message will be added to the coinbase script signature field, if you successfully find a block. UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.</p>
+                <p>{blockchainMessageTooltip}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
