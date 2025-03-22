@@ -45,10 +45,17 @@ export interface BlockTemplateUpdate {
     nonceless_block_header: NoncelessBlockHeader;
   }
 
+export interface LeaderboardAddSuccess {
+  block_hash_hex: string;
+  rank: number;
+  leading_binary_zeroes: number;
+}
+
 export type WebSocketServerMessage =
     | { type: "ChallengeResponse"; data: MiningChallengeResponse }
     | { type: "SubmissionResponse"; data: MiningSubmissionResponse }
-    | { type: "BlockTemplateUpdate"; data: BlockTemplateUpdate };
+    | { type: "BlockTemplateUpdate"; data: BlockTemplateUpdate }
+    | { type: "LeaderboardAddSuccess"; data: LeaderboardAddSuccess };
 
 export type WebSocketClientMessage =
     | { type: "Submission"; data: MiningSubmission }

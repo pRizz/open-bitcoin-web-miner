@@ -16,7 +16,7 @@ import {
 import { formatDuration } from "@/utils/formatters";
 import { motion } from "framer-motion";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
-import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { compareHashes } from "@/utils/mining";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
@@ -124,7 +124,7 @@ export function GlobalLeaderboard() {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                </TableHead>
+              </TableHead>
               <TableHead className="text-center">
                 Message
                 <TooltipProvider>
@@ -182,6 +182,19 @@ export function GlobalLeaderboard() {
                 onClick={() => handleSort("createdAt")}
               >
                 Time Found <SortIcon field="createdAt" />
+              </TableHead>
+              <TableHead className="text-center">
+                Inspect
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px]">
+                      <p>View detailed information about this submission</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -249,6 +262,15 @@ export function GlobalLeaderboard() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                </TableCell>
+                <TableCell className="text-center">
+                  <a
+                    href={`/submission/${entry.hash}`}
+                    className="inline-flex items-center gap-1 text-blue-500 hover:text-blue-600"
+                  >
+                    <Search className="h-4 w-4" />
+                    Inspect
+                  </a>
                 </TableCell>
               </MotionTableRow>
             ))}

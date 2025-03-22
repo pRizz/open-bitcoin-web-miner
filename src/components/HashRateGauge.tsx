@@ -4,14 +4,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { HelpCircle } from "lucide-react";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useMining } from "@/contexts/MiningContext";
 
 interface MinerReference {
   hashRate: number;
   name: string;
+  maybeLink?: string;
 }
 
 const MINER_REFERENCES: MinerReference[] = [
-  { hashRate: 1e12, name: "Bitaxe" },        // 1 TH/s
+  { hashRate: 1e12, name: "Bitaxe", maybeLink: "https://bitaxe.org/" },        // 1 TH/s
   { hashRate: 100e12, name: "Antminer S21" }, // 100 TH/s
 ];
 
@@ -45,12 +47,10 @@ const CONFIDENCE_LEVELS = [
   { confidence: 0.99, label: "99%" },
 ];
 
-interface HashRateGaugeProps {
-  hashRate: number;
-}
-
-export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
+export function HashRateGauge() {
   const { maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { miningStats } = useMining();
+  const { maybeHashRate } = miningStats;
 
   // Use logarithmic scale for better visualization of small hash rates
   const getLogScale = (value: number) => {
@@ -60,7 +60,7 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
     return (logValue / logMax) * 100;
   };
 
-  const percentage = Math.min(getLogScale(hashRate), 100);
+  const maybePercentage = Math.min(getLogScale(maybeHashRate), 100);
 
   // Helper function to format hash rate without decimals
   const formatHashRateWithoutDecimals = (value: number) => {
@@ -131,12 +131,12 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
               </DialogContent>
             </Dialog>
           </div>
-          {CONFIDENCE_LEVELS.map(({ confidence, label }) => (
+          {maybeHashRate && CONFIDENCE_LEVELS.map(({ confidence, label }) => (
             <div key={label} className="flex gap-2">
               <span className="text-gray-500">•</span>
-              <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(hashRate, maybeRequiredBinaryZeroes, confidence))}</span>
+              <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(maybeHashRate, maybeRequiredBinaryZeroes, confidence))}</span>
             </div>
-          ))}
+          )) || <span className="text-gray-500">• Start mining to see your chances of finding a block solution</span>}
         </div>
 
         <div className="flex-1 px-10">
@@ -144,11 +144,11 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
             <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
-                style={{ width: `${percentage}%` }}
+                style={{ width: `${maybePercentage || 0}%` }}
               >
-                {percentage > 5 && (
+                {(maybePercentage || 0) > 5 && (
                   <span className="text-xs font-medium text-white relative z-10">
-                    {formatHashRateWithoutDecimals(hashRate)}
+                    {formatHashRateWithoutDecimals(maybeHashRate)}
                   </span>
                 )}
               </div>
@@ -195,7 +195,13 @@ export function HashRateGauge({ hashRate }: HashRateGaugeProps) {
                   >
                     <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
                     <div className="text-xs text-gray-400 whitespace-nowrap mt-1 text-center">
-                      {miner.name}
+                      {miner.maybeLink ? (
+                        <a className="text-blue-500 hover:text-blue-600 underline" href={miner.maybeLink} target="_blank" rel="noopener">
+                          {miner.name}
+                        </a>
+                      ) : (
+                        miner.name
+                      )}
                       <span className="block hash-text">
                         ~ {formatHashRateWithoutDecimals(miner.hashRate)}
                       </span>

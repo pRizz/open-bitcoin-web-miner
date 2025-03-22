@@ -4,7 +4,7 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { useMiningEvents, MiningEventType } from "@/contexts/mining/MiningEventsContext";
 import { cn } from "@/lib/utils";
-import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle, RotateCcw } from "lucide-react";
+import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle, RotateCcw, Binary } from "lucide-react";
 import { formatHashRate } from "@/utils/mining";
 import { useEffect, useState } from "react";
 import { AnimatedMiningIcon, getIconTypeFromEvent, type IconType } from "./AnimatedMiningIcon";
@@ -255,7 +255,10 @@ export const MiningStatePanel = () => {
             <FlashingText value={formatLargeNumber(miningStats.cumulativeHashes)} />
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Total Solutions:</span>
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Binary className="w-4 h-4 text-purple-500" />
+              Total Solutions
+            </span>
             <FlashingText value={miningStats.maybeTotalSolutions || "0"} />
           </div>
           <div className="flex justify-between items-center">

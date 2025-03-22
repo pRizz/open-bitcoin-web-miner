@@ -20,6 +20,7 @@ interface GlobalLeaderboardContextType {
   isLoading: boolean;
   error: Error | null;
   lastRefreshTime: Date | null;
+  refetch: () => Promise<void>;
 }
 
 const GlobalLeaderboardContext = createContext<GlobalLeaderboardContextType | undefined>(undefined);
@@ -33,7 +34,7 @@ export function GlobalLeaderboardProvider({ children }: { children: React.ReactN
   // Track last refresh time
   const [lastRefreshTime, setLastRefreshTime] = React.useState<Date | null>(null);
 
-  const { data: leaderboard, isLoading, error } = useQuery({
+  const { data: leaderboard, isLoading, error, refetch: queryRefetch } = useQuery({
     queryKey: ["global-leaderboard"],
     queryFn: async (): Promise<LeaderboardEntry[]> => {
       const response = await fetch(`${API_CONFIG.baseUrl}/global-leaderboard`);
@@ -56,6 +57,10 @@ export function GlobalLeaderboardProvider({ children }: { children: React.ReactN
     refetchInterval: getRandomRefetchInterval, // Random time between 15-30 seconds
   });
 
+  const refetch = async () => {
+    await queryRefetch();
+  };
+
   return (
     <GlobalLeaderboardContext.Provider
       value={{
@@ -63,6 +68,7 @@ export function GlobalLeaderboardProvider({ children }: { children: React.ReactN
         isLoading,
         error: error as Error | null,
         lastRefreshTime,
+        refetch,
       }}
     >
       {children}

@@ -8,6 +8,7 @@ import { NetworkInfoProvider } from "@/contexts/NetworkInfoContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
+import SubmissionPage from "@/pages/submission/[hash]";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
         path: "leaderboard",
         element: <Leaderboard />,
       },
+      {
+        path: "submission/:hash",
+        element: <SubmissionPage />,
+      },
     ],
   },
 ]);
@@ -39,20 +44,20 @@ function App() {
       <DebugProvider>
         <NetworkInfoProvider>
           <MinerInfoProvider>
-            <MiningWebSocketProvider>
-              <MiningEventsProvider>
-                <MiningProvider>
-                  <ShareProvider>
-                    <LeaderboardProvider>
-                      <GlobalLeaderboardProvider>
+            <GlobalLeaderboardProvider>
+              <ShareProvider>
+                <MiningWebSocketProvider>
+                  <MiningEventsProvider>
+                    <MiningProvider>
+                      <LeaderboardProvider>
                         <RouterProvider router={router} />
                         <Toaster />
-                      </GlobalLeaderboardProvider>
-                    </LeaderboardProvider>
-                  </ShareProvider>
-                </MiningProvider>
-              </MiningEventsProvider>
-            </MiningWebSocketProvider>
+                      </LeaderboardProvider>
+                    </MiningProvider>
+                  </MiningEventsProvider>
+                </MiningWebSocketProvider>
+              </ShareProvider>
+            </GlobalLeaderboardProvider>
           </MinerInfoProvider>
         </NetworkInfoProvider>
       </DebugProvider>

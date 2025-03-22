@@ -17,7 +17,6 @@ import { MiningStatePanel } from "@/components/MiningStatePanel";
 const Index = () => {
   const [searchParams] = useSearchParams();
   const {
-    miningStats,
     isMining,
     startMining,
   } = useMining();
@@ -63,11 +62,11 @@ const Index = () => {
               <MiningControls />
             </Card>
 
-            <NetworkStats />
             <MiningStatePanel />
+            <NetworkStats />
           </div>
 
-          <HashRateGauge hashRate={miningStats.maybeHashRate} />
+          <HashRateGauge />
           <DebugLogPanel />
           <LeaderboardInfoPanel />
           <SubmittedSolutionsList />

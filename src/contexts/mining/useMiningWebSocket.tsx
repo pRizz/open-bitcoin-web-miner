@@ -3,6 +3,9 @@ import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback } from "react";
 import { useMinerInfo } from "./MinerInfoContext";
 import { toast } from "@/hooks/use-toast";
+import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
+import { Link } from "react-router-dom";
+import { Trophy } from "lucide-react";
 
 interface MiningWebSocketContextType {
   connect: () => void;
@@ -30,6 +33,7 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
   const maybeWebSocket = useRef<WebSocket | null>(null);
   const maybeCallbacks = useRef<MiningWebSocketCallbacks | null>(null);
   const { maybeMinerAddress, maybeBlockchainMessage, maybeLeaderboardUsername, maybeLeaderboardMessage } = useMinerInfo();
+  const { refetch: refetchLeaderboard } = useGlobalLeaderboard();
 
   console.log("MiningWebSocketProvider constructor called");
 
@@ -100,12 +104,29 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
         maybeCallbacks.current?.onBlockTemplateUpdate(nonceless_block_header);
         break;
       }
+      case "LeaderboardAddSuccess": {
+        const { block_hash_hex, rank, leading_binary_zeroes } = message.data;
+        console.log(`Global leaderboard entry added: Hash ${block_hash_hex}, Rank ${rank}, Binary Zeroes ${leading_binary_zeroes}`);
+        toast({
+          title: "Global Leaderboard Entry Added!",
+          description: `You found a hash that had ${leading_binary_zeroes} leading binary zeroes and ranked #${rank} on the global leaderboard!`,
+          // TODO: add link to submission page; broken
+          // action: (
+          //   <Link to="/leaderboard" className="inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600">
+          //     <Trophy className="h-4 w-4" />
+          //     View Leaderboard
+          //   </Link>
+          // ),
+        });
+        refetchLeaderboard();
+        break;
+      }
       }
     } catch (error) {
       console.error('Error processing WebSocket message:', error);
       maybeCallbacks.current?.onError(`Error processing WebSocket message: ${error}`);
     }
-  }, [maybeCallbacks]);
+  }, [maybeCallbacks, refetchLeaderboard]);
 
   const onError = useCallback((error: ErrorEvent) => {
     console.error('WebSocket error:', error);
