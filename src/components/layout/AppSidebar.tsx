@@ -1,4 +1,4 @@
-import { Home, Trophy, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,19 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import { useMining } from "@/contexts/MiningContext";
-
-const menuItems = [
-  {
-    title: "Personal Mining",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Global Leaderboard",
-    url: "/leaderboard",
-    icon: Trophy,
-  },
-];
+import { APP_PAGES } from "@/types/pages";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -38,16 +26,16 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title} className="px-3">
+              {APP_PAGES.map((page) => (
+                <SidebarMenuItem key={page.path} className="px-3">
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.url}
+                    isActive={location.pathname === page.path}
                     className="px-3 py-2 w-full transition-colors duration-200"
                   >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4 mr-3" />
-                      <span className="font-medium">{item.title}</span>
+                    <Link to={page.path}>
+                      <page.icon className="h-4 w-4 mr-3" />
+                      <span className="font-medium">{page.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

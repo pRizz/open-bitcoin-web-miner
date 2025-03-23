@@ -6,6 +6,7 @@ import { useShare } from "@/contexts/ShareContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
+import { getPageTitle } from "@/types/pages";
 
 function MinerCountIndicator() {
   const { maybeConnectedMinerCount } = useNetworkInfo();
@@ -33,10 +34,6 @@ export function AppLayout() {
   const location = useLocation();
   const { includeAutoStart, includeAddress } = useShare();
 
-  const getPageTitle = () => {
-    return location.pathname === "/" ? "Personal Mining" : "Global Leaderboard";
-  };
-
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full">
@@ -46,7 +43,7 @@ export function AppLayout() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="h-8 w-8" />
-                <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
+                <h1 className="text-4xl font-bold">{getPageTitle(location.pathname)}</h1>
               </div>
               <div className="flex items-center gap-4">
                 <MinerCountIndicator />

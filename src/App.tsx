@@ -9,6 +9,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
 import SubmissionPage from "@/pages/submission/[hash]";
+import About from "@/pages/About";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: "submission/:hash",
         element: <SubmissionPage />,
+      },
+      {
+        path: "about",
+        element: <About />,
       },
     ],
   },
