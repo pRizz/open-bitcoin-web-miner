@@ -36,7 +36,7 @@ export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/">
+        <Link to="/leaderboard">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -48,8 +48,12 @@ export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <h2 className="text-sm text-muted-foreground">Rank</h2>
+              <h2 className="text-sm text-muted-foreground">Current Rank</h2>
               <p className="text-xl font-mono">{submission.rank}</p>
+            </div>
+            <div>
+              <h2 className="text-sm text-muted-foreground">Rank at Time Found ({new Date(submission.createdAt).toLocaleString()})</h2>
+              <p className="text-xl font-mono">{submission.initialRank}</p>
             </div>
             <div>
               <h2 className="text-sm text-muted-foreground">Name Tag</h2>

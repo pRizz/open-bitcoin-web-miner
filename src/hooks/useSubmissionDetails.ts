@@ -3,6 +3,7 @@ import API_CONFIG from "@/config/api";
 
 interface Submission {
   rank: number;
+  initialRank: number;
   hash: string;
   maybeUsername: string | null;
   maybeLeaderboardMessage: string | null;
@@ -21,7 +22,9 @@ export function useSubmissionDetails(hash: string) {
       if (!response.ok) {
         throw new Error(`Failed to fetch submission: ${response.statusText}`);
       }
-      return response.json();
+      const data = await response.json();
+      console.log("submission", data);
+      return data;
     },
   });
 

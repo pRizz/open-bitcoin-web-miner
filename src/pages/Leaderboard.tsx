@@ -1,8 +1,9 @@
 import { GlobalLeaderboard } from "@/components/GlobalLeaderboard";
 import { Link } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
+import { Button } from "@/components/ui/button";
 
 export default function Leaderboard() {
   const { lastRefreshTime } = useGlobalLeaderboard();
@@ -11,13 +12,14 @@ export default function Leaderboard() {
     <PageTransition>
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center text-lg text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to Mining
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold">Global Leaderboard</h1>
+          </div>
           {lastRefreshTime && (
             <span className="text-sm text-muted-foreground">
               Last updated: {lastRefreshTime.toLocaleTimeString()}
