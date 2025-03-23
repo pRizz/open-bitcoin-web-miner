@@ -17,7 +17,7 @@ const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2 text-muted-foreground">
     <div
       className={cn(
-        "w-4 h-4 rounded-full",
+        "w-3 h-3 mx-0.5 rounded-full",
         isConnected ? "bg-green-500" : "bg-red-500"
       )}
     />

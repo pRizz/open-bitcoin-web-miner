@@ -19,7 +19,7 @@ export function SubmittedSolutionsList() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const submittedHashes = miningStats.maybeSubmittedSolutions || [];
-
+  const totalSolutions = miningStats.maybeTotalSolutions || 0;
   const sortedHashes = [...submittedHashes].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
@@ -49,7 +49,7 @@ export function SubmittedSolutionsList() {
   return (
     <Card className="p-6 glass-card h-[300px] flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Submitted Solutions</h2>
+        <h2 className="text-2xl font-bold">Submitted Solutions ({totalSolutions})</h2>
         <Button
           onClick={isMining ? stopMining : startMining}
           size="sm"
