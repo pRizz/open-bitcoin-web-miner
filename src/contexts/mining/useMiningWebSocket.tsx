@@ -108,7 +108,7 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
         const { block_hash_hex, rank, leading_binary_zeroes } = message.data;
         console.log(`Global leaderboard entry added: Hash ${block_hash_hex}, Rank ${rank}, Binary Zeroes ${leading_binary_zeroes}`);
         toast({
-          title: "Global Leaderboard Entry Added!",
+          title: "🏆 Global Leaderboard Entry Added!",
           description: `You found a hash that had ${leading_binary_zeroes} leading binary zeroes and ranked #${rank} on the global leaderboard!`,
           // TODO: add link to submission page; broken
           // action: (

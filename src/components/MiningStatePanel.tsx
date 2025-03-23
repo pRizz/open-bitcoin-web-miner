@@ -14,10 +14,10 @@ import { Button } from "@/components/ui/button";
 import { formatLargeNumber } from "@/utils/formatters";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-2 text-muted-foreground">
     <div
       className={cn(
-        "w-3 h-3 rounded-full",
+        "w-4 h-4 rounded-full",
         isConnected ? "bg-green-500" : "bg-red-500"
       )}
     />
@@ -53,8 +53,9 @@ interface AnimationInstance {
 export const MiningStatePanel = () => {
   const { miningStats, isMining, resetData } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
-  const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes, maybeConnectedMinerCount, maybeServerStartingMinLeadingZeroCount } = useNetworkInfo();
   const { subscribe } = useMiningEvents();
+  const isConnected = maybeConnectedMinerCount !== undefined;
 
   const [activeAnimations, setActiveAnimations] = useState<AnimationInstance[]>([]);
 
@@ -178,7 +179,19 @@ export const MiningStatePanel = () => {
           <Database className="w-8 h-8 text-muted-foreground" />
           Mining Backend
         </h3>
-        <StatusIndicator isConnected={true} />
+        <div className="space-y-2 text-sm">
+          <StatusIndicator isConnected={isConnected} />
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground flex items-center gap-2 text-sm">
+              <Target className="w-4 h-4 text-yellow-500" />
+                Minimum Required Starting Leading Binary Zeros
+            </span>
+            <FlashingText value={maybeServerStartingMinLeadingZeroCount} />
+          </div>
+          <p className="text-muted-foreground text-xs">
+                The odds any random hash has <FlashingText value={maybeServerStartingMinLeadingZeroCount} /> leading zeros are 1 in 2^<FlashingText value={maybeServerStartingMinLeadingZeroCount} /> or 1 in {Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0).toLocaleString()}
+          </p>
+        </div>
       </div>
 
       {/* Pipes between Mining Backend and Web Miner */}
@@ -294,6 +307,16 @@ export const MiningStatePanel = () => {
             <span className="text-muted-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-yellow-500" />
               Required Leading Binary Zeros
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[400px] z-50">
+                    <p>This value is dynamically adjusted based on your computer's mining speed to maintain an optimal solution submission rate.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </span>
             <FlashingText value={miningStats.maybeRequiredBinaryZeroes} />
           </div>

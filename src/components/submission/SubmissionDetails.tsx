@@ -72,7 +72,7 @@ export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
                 {submission.binaryZeroes}
                 {maybeRequiredBinaryZeroes && (
                   <span className="text-sm text-muted-foreground ml-2">
-                    (Required: {maybeRequiredBinaryZeroes})
+                    (Required {maybeRequiredBinaryZeroes} leading binary zeroes to find a block solution)
                   </span>
                 )}
               </p>

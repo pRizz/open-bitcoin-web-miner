@@ -4,12 +4,9 @@ import { calculateRequiredBinaryZeroes } from "@/utils/mining";
 
 interface NetworkInfoResponse {
   data: {
-    result: {
-      Ok: {
-        block_height: number;
-        network_difficulty: number;
-      }
-    }
+    block_height: number;
+    network_difficulty: number;
+    server_starting_min_leading_zero_count: number;
   };
   status: string;
 }
@@ -28,6 +25,7 @@ export interface NetworkInfoContextType {
   maybeRequiredBinaryZeroes: number | undefined;
   maybeConnectedWebsocketCount: number | undefined;
   maybeConnectedMinerCount: number | undefined;
+  maybeServerStartingMinLeadingZeroCount: number | undefined;
 }
 
 const NetworkInfoContext = createContext<NetworkInfoContextType | undefined>(undefined);
@@ -38,7 +36,8 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
     maybeNetworkDifficulty: undefined,
     maybeRequiredBinaryZeroes: undefined,
     maybeConnectedWebsocketCount: undefined,
-    maybeConnectedMinerCount: undefined
+    maybeConnectedMinerCount: undefined,
+    maybeServerStartingMinLeadingZeroCount: undefined
   });
 
   useEffect(() => {
@@ -57,12 +56,14 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
           return;
         }
 
-        if (!networkData.data.result.Ok) {
+        console.log('Network data:', networkData);
+
+        if (!networkData.data) {
           console.error('Network info response is not Ok:', networkData);
           return;
         }
 
-        const { block_height, network_difficulty } = networkData.data.result.Ok;
+        const { block_height, network_difficulty, server_starting_min_leading_zero_count } = networkData.data;
         const { connected_websocket_count, connected_miner_count } = websocketData.data;
         console.log('Connected websocket count:', connected_websocket_count);
         console.log('Connected miners count:', connected_miner_count);
@@ -80,7 +81,8 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
             maybeNetworkDifficulty: network_difficulty,
             maybeRequiredBinaryZeroes: requiredZeroes,
             maybeConnectedWebsocketCount: connected_websocket_count,
-            maybeConnectedMinerCount: connected_miner_count
+            maybeConnectedMinerCount: connected_miner_count,
+            maybeServerStartingMinLeadingZeroCount: server_starting_min_leading_zero_count
           });
         }
 
