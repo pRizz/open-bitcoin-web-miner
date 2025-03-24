@@ -10,6 +10,7 @@ import Index from "@/pages/Index";
 import Leaderboard from "@/pages/Leaderboard";
 import SubmissionPage from "@/pages/submission/[hash]";
 import About from "@/pages/About";
+import ProofOfRewardPage from "@/pages/ProofOfReward";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
       {
         path: "about",
         element: <About />,
+      },
+      {
+        path: "proof-of-reward",
+        element: <ProofOfRewardPage />,
       },
     ],
   },

@@ -4,7 +4,7 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { useMiningEvents, MiningEventType } from "@/contexts/mining/MiningEventsContext";
 import { cn } from "@/lib/utils";
-import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle, RotateCcw, Binary } from "lucide-react";
+import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle, RotateCcw, Binary, ChevronRight } from "lucide-react";
 import { formatHashRate } from "@/utils/mining";
 import { useEffect, useState } from "react";
 import { AnimatedMiningIcon, getIconTypeFromEvent, type IconType } from "./AnimatedMiningIcon";
@@ -12,6 +12,7 @@ import { FlashingText } from "./FlashingText";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { formatLargeNumber } from "@/utils/formatters";
+import { Link } from "react-router-dom";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2 text-muted-foreground">
@@ -255,10 +256,16 @@ export const MiningStatePanel = () => {
             <span className="text-muted-foreground">Status:</span>
             <FlashingText value={isMining ? "Active" : "Inactive"} />
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Miner Address:</span>
-            <FlashingText value={maybeMinerAddress} />
-          </div>
+          {maybeMinerAddress && (
+              <div className="flex justify-between">
+                <Link to="/proof-of-reward" className="text-primary hover:underline">
+                    <div className="flex items-center gap-1">
+                        <span className="text-muted-foreground">Proof of Reward for Your Address</span>
+                        <ChevronRight className="w-4 h-4" />
+                    </div>
+              </Link>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Hash Rate:</span>
             <FlashingText value={formatHashRate(miningStats.maybeHashRate)} disableFlash />
