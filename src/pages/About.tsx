@@ -4,21 +4,21 @@ export default function About() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <h1 className="text-4xl font-bold mb-8">About Bitcoin Mining</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>What is Bitcoin Mining?</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Bitcoin mining is the process of validating and adding new transactions to the Bitcoin blockchain. 
-            Miners compete to solve complex mathematical puzzles, and the first one to find a solution gets to 
+            Bitcoin mining is the process of validating and adding new transactions to the Bitcoin blockchain.
+            Miners compete to solve complex mathematical puzzles, and the first one to find a solution gets to
             add a new block of transactions to the blockchain and is rewarded with newly created bitcoins.
           </p>
           <p>
-            The difficulty of these puzzles automatically adjusts to maintain a target block time of approximately 
-            10 minutes, regardless of the total computational power of the network. This is what makes Bitcoin 
-            mining "hard" - as more miners join the network, the difficulty increases to maintain the target 
+            The difficulty of these puzzles automatically adjusts to maintain a target block time of approximately
+            10 minutes, regardless of the total computational power of the network. This is what makes Bitcoin
+            mining "hard" - as more miners join the network, the difficulty increases to maintain the target
             block time.
           </p>
         </CardContent>
@@ -30,8 +30,8 @@ export default function About() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            At its core, Bitcoin mining involves finding a specific input (called a nonce) that, when combined 
-            with the block's data and processed through the double SHA-256 hash function, produces a hash value 
+            At its core, Bitcoin mining involves finding a specific input (called a nonce) that, when combined
+            with the block's data and processed through the double SHA-256 hash function, produces a hash value
             that is numerically less than a target value set by the network's difficulty.
           </p>
           <p>
@@ -51,9 +51,9 @@ export default function About() {
             <li>Nonce (the value miners modify to find a valid hash)</li>
           </ul>
           <p>
-            The target value is a 256-bit number that represents the maximum allowed hash value. The lower the 
-            target, the more difficult it is to find a valid nonce. This target is what the network adjusts to 
-            maintain the 10-minute block time - if blocks are being found too quickly, the target becomes more 
+            The target value is a 256-bit number that represents the maximum allowed hash value. The lower the
+            target, the more difficult it is to find a valid nonce. This target is what the network adjusts to
+            maintain the 10-minute block time - if blocks are being found too quickly, the target becomes more
             difficult (lower), and if blocks are being found too slowly, the target becomes easier (higher).
           </p>
         </CardContent>
@@ -65,9 +65,9 @@ export default function About() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            This website provides a platform for real Bitcoin mining on consumer hardware. While the chances of 
-            successfully mining a block are extremely low due to the massive computational power of the Bitcoin 
-            network, this platform serves as an educational tool to help people understand Bitcoin mining in a 
+            This website provides a platform for real Bitcoin mining on consumer hardware. While the chances of
+            successfully mining a block are extremely low due to the massive computational power of the Bitcoin
+            network, this platform serves as an educational tool to help people understand Bitcoin mining in a
             more intuitive way. We aim to:
           </p>
           <ul className="list-disc pl-6 space-y-2">
@@ -102,8 +102,8 @@ export default function About() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            While this platform performs real Bitcoin mining, mining on consumer hardware is extremely unlikely 
-            to be successful due to the highly competitive nature of the Bitcoin network. Professional Bitcoin 
+            While this platform performs real Bitcoin mining, mining on consumer hardware is extremely unlikely
+            to be successful due to the highly competitive nature of the Bitcoin network. Professional Bitcoin
             mining requires:
           </p>
           <ul className="list-disc pl-6 space-y-2">
@@ -113,13 +113,14 @@ export default function About() {
             <li>Considerable capital investment</li>
           </ul>
           <p>
-            The chances of successfully mining a Bitcoin block on consumer hardware are extremely low, as we're 
-            competing against the entire Bitcoin network's computational power. However, the educational value 
-            and understanding gained from participating in real Bitcoin mining can be invaluable for learning 
-            about how Bitcoin works.
+            Think of this as a fun way to participate in "lottery mining" - while the chances of winning are
+            extremely low (as we're competing against the entire Bitcoin network's computational power), it's an
+            engaging way to learn about Bitcoin mining and potentially get lucky! Every hash attempt could theoretically be the winning one, even though the odds are
+            astronomical. The educational value and understanding gained from participating in real Bitcoin mining
+            can be invaluable for learning about how Bitcoin works.
           </p>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

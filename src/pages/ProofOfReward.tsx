@@ -14,10 +14,10 @@ export default function ProofOfRewardPage() {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Proof of Reward</h1>
-      
+
       <Card className="p-6">
         <h2 className="text-2xl font-bold mb-4">Mining Activity</h2>
-        
+
         <div className="space-y-4">
           {maybeMinerAddress && (
             <div className="flex justify-between items-center">
@@ -83,4 +83,4 @@ export default function ProofOfRewardPage() {
       </Card>
     </div>
   );
-} 
+}

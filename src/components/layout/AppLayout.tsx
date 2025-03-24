@@ -6,7 +6,7 @@ import { useShare } from "@/contexts/ShareContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
-import { getPageTitle } from "@/types/pages";
+import { getPageTitle } from "@/routes";
 
 function MinerCountIndicator() {
   const { maybeConnectedMinerCount } = useNetworkInfo();

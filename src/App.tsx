@@ -16,12 +16,13 @@ import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
 import { GlobalLeaderboardProvider } from "./contexts/GlobalLeaderboardContext";
 import { MiningEventsProvider } from "@/contexts/mining/MiningEventsContext";
+import { routes } from "./routes";
 
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: routes.home.routerPath,
     element: <AppLayout />,
     children: [
       {
@@ -29,19 +30,19 @@ const router = createBrowserRouter([
         element: <Index />,
       },
       {
-        path: "leaderboard",
+        path: routes.leaderboard.routerPath,
         element: <Leaderboard />,
       },
       {
-        path: "submission/:hash",
+        path: routes.submission.routerPath,
         element: <SubmissionPage />,
       },
       {
-        path: "about",
+        path: routes.about.routerPath,
         element: <About />,
       },
       {
-        path: "proof-of-reward",
+        path: routes.proofOfReward.routerPath,
         element: <ProofOfRewardPage />,
       },
     ],

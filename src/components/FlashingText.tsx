@@ -5,9 +5,10 @@ interface FlashingTextProps {
   value: string | number | undefined | null;
   className?: string;
   disableFlash?: boolean;
+  defaultValue?: string | number | undefined | null;
 }
 
-export const FlashingText = ({ value, className, disableFlash = false }: FlashingTextProps) => {
+export const FlashingText = ({ value, className, defaultValue = 'N/A', disableFlash = false }: FlashingTextProps) => {
   const [isFlashing, setIsFlashing] = useState(false);
   const [prevValue, setPrevValue] = useState(value);
   const timeoutRef = useRef<NodeJS.Timeout>();
@@ -50,7 +51,7 @@ export const FlashingText = ({ value, className, disableFlash = false }: Flashin
         className
       )}
     >
-      {value || "N/A"}
+      {value || defaultValue}
     </span>
   );
 };

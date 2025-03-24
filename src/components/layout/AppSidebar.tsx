@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import { useMining } from "@/contexts/MiningContext";
-import { APP_PAGES } from "@/types/pages";
+import { sidebarPages } from "@/routes";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -26,16 +26,16 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {APP_PAGES.map((page) => (
-                <SidebarMenuItem key={page.path} className="px-3">
+              {sidebarPages.map((route) => (
+                <SidebarMenuItem key={route.path} className="px-3">
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === page.path}
+                    isActive={location.pathname === route.path}
                     className="px-3 py-2 w-full transition-colors duration-200"
                   >
-                    <Link to={page.path}>
-                      <page.icon className="h-4 w-4 mr-3" />
-                      <span className="font-medium">{page.title}</span>
+                    <Link to={route.path}>
+                      <route.icon className="h-4 w-4 mr-3" />
+                      <span className="font-medium">{route.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

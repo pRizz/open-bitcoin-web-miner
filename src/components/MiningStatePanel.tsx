@@ -190,7 +190,8 @@ export const MiningStatePanel = () => {
             <FlashingText value={maybeServerStartingMinLeadingZeroCount} />
           </div>
           <p className="text-muted-foreground text-xs">
-                The odds any random hash has <FlashingText value={maybeServerStartingMinLeadingZeroCount} /> leading zeros are 1 in 2^<FlashingText value={maybeServerStartingMinLeadingZeroCount} /> or 1 in {Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0).toLocaleString()}
+                The odds any random hash has <FlashingText value={maybeServerStartingMinLeadingZeroCount} defaultValue="n" /> leading zeros are 1 in 2^<FlashingText value={maybeServerStartingMinLeadingZeroCount} defaultValue="n" />
+            {maybeServerStartingMinLeadingZeroCount && <span > or 1 in {Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0).toLocaleString()}</span>}
           </p>
         </div>
       </div>
@@ -257,12 +258,12 @@ export const MiningStatePanel = () => {
             <FlashingText value={isMining ? "Active" : "Inactive"} />
           </div>
           {maybeMinerAddress && (
-              <div className="flex justify-between">
-                <Link to="/proof-of-reward" className="text-primary hover:underline">
-                    <div className="flex items-center gap-1">
-                        <span className="text-muted-foreground">Proof of Reward for Your Address</span>
-                        <ChevronRight className="w-4 h-4" />
-                    </div>
+            <div className="flex justify-between">
+              <Link to="/proof-of-reward" className="text-primary hover:underline">
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Proof of Reward for Your Address</span>
+                  <ChevronRight className="w-4 h-4" />
+                </div>
               </Link>
             </div>
           )}
