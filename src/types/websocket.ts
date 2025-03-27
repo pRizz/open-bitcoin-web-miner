@@ -28,11 +28,10 @@ export enum MiningSubmissionStatus {
 export interface WorkMetadata {
   block_header_hash: number[];
   block_height: number;
+  status: MiningSubmissionStatus;
 }
 
 export interface MiningSubmissionResponse {
-    status: MiningSubmissionStatus;
-    message: string;
     maybe_difficulty_update?: DifficultyUpdate;
     work_metadata: WorkMetadata[];
   }

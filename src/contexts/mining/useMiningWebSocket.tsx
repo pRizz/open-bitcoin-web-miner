@@ -1,10 +1,9 @@
-import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, DifficultyUpdate, MiningSubmissionStatus, WorkMetadata } from "@/types/websocket";
+import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, DifficultyUpdate, MiningSubmissionStatus, WorkMetadata, MiningSubmissionResponse } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback } from "react";
 import { useMinerInfo } from "./MinerInfoContext";
 import { toast } from "@/hooks/use-toast";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
-import { Link } from "react-router-dom";
 import { Trophy } from "lucide-react";
 
 interface MiningWebSocketContextType {
@@ -19,12 +18,7 @@ const MiningWebSocketContext = createContext<MiningWebSocketContextType | undefi
 interface MiningWebSocketCallbacks {
   onNewChallenge: (blockHeader: NoncelessBlockHeader, targetZeros: number) => void;
   onBlockTemplateUpdate: (blockHeader: NoncelessBlockHeader) => void;
-  onSubmissionResponse: (
-    status: MiningSubmissionStatus,
-    message: string,
-    maybeDifficultyUpdate: DifficultyUpdate | null,
-    workMetadata: WorkMetadata[]
-  ) => void;
+  onSubmissionResponse: (submissionResponse: MiningSubmissionResponse) => void;
   onConnectionStateChange: (connected: boolean) => void;
   onError: (error: string) => void;
 }
@@ -90,13 +84,12 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
         break;
       }
       case "SubmissionResponse": {
-        const { status, message: responseMessage, maybe_difficulty_update, work_metadata } = message.data;
-        maybeCallbacks.current?.onSubmissionResponse(
-          status,
-          responseMessage,
-          maybe_difficulty_update || null,
+        const { maybe_difficulty_update, work_metadata } = message.data;
+        const submissionResponse: MiningSubmissionResponse = {
+          maybe_difficulty_update,
           work_metadata
-        );
+        };
+        maybeCallbacks.current?.onSubmissionResponse(submissionResponse);
         break;
       }
       case "BlockTemplateUpdate": {

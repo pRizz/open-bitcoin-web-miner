@@ -17,9 +17,9 @@ type DynamicRoute = BaseRoute & {
   paramName: string;
 };
 
-type Route = StaticRoute | DynamicRoute;
+// type Route = StaticRoute | DynamicRoute;
 
-export const routes: Record<string, Route> = {
+export const routes = {
   home: {
     type: 'static' as const,
     path: '/',
@@ -60,6 +60,10 @@ export const routes: Record<string, Route> = {
 
 export type RouteName = keyof typeof routes;
 export type RouteConfig = typeof routes[RouteName];
+
+export function getRoute(key: RouteName): typeof routes[RouteName] {
+  return routes[key];
+}
 
 // Type guard to check if a route is dynamic
 export function isDynamicRoute(route: RouteConfig): route is Extract<RouteConfig, { type: 'dynamic' }> {

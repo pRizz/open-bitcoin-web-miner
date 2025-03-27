@@ -9,9 +9,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useMining } from "@/contexts/MiningContext";
 import { sidebarPages } from "@/routes";
+import { TypedLink } from "@/components/TypedLink";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -33,10 +34,10 @@ export function AppSidebar() {
                     isActive={location.pathname === route.path}
                     className="px-3 py-2 w-full transition-colors duration-200"
                   >
-                    <Link to={route.path}>
+                    <TypedLink route={route.path === '/' ? 'home' : route.path.slice(1) as any}>
                       <route.icon className="h-4 w-4 mr-3" />
                       <span className="font-medium">{route.title}</span>
-                    </Link>
+                    </TypedLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

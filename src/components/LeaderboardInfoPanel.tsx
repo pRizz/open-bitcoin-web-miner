@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useMining } from "@/contexts/MiningContext";
 import { LeaderboardForm } from "./leaderboard/LeaderboardForm";
 import { useLeaderboard } from "@/contexts/leaderboard/LeaderboardContext";
-import { Link } from "react-router-dom";
+import { TypedLink } from "@/components/TypedLink";
 import { Trophy } from "lucide-react";
 
 export function LeaderboardInfoPanel() {
@@ -30,13 +30,13 @@ export function LeaderboardInfoPanel() {
       </p>
       <LeaderboardForm />
       <div className="mt-6 text-center">
-        <Link
-          to="/leaderboard"
+        <TypedLink
+          route="leaderboard"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <Trophy className="mr-2 h-4 w-4" />
           View Global Leaderboard
-        </Link>
+        </TypedLink>
       </div>
     </Card>
   );

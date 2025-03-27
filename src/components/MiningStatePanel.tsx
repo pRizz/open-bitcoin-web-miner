@@ -12,10 +12,10 @@ import { FlashingText } from "./FlashingText";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { formatLargeNumber } from "@/utils/formatters";
-import { Link } from "react-router-dom";
+import { TypedLink } from "@/components/TypedLink";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
-  <div className="flex items-center gap-2 text-muted-foreground">
+  <div className="flex items-center gap-2 text-muted-foreground border-b border-muted-foreground/20 pb-1">
     <div
       className={cn(
         "w-3 h-3 mx-0.5 rounded-full",
@@ -37,11 +37,11 @@ const Pipe = ({ direction, children }: { direction: 'up' | 'down', children?: Re
   </div>
 );
 
-const BitcoinIcon = () => (
+const BitcoinIcon = ({ className }: { className?: string }) => (
   <img
     src="/Bitcoin.svg"
     alt="Bitcoin"
-    className="w-8 h-8"
+    className={cn("w-8 h-8", className)}
   />
 );
 
@@ -51,10 +51,14 @@ interface AnimationInstance {
   direction: 'up' | 'down';
 }
 
+function formatSatsToBTC(sats: number) {
+  return `${Number((sats / 1e8).toFixed(8)).toString()} BTC`;
+}
+
 export const MiningStatePanel = () => {
   const { miningStats, isMining, resetData } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
-  const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes, maybeConnectedMinerCount, maybeServerStartingMinLeadingZeroCount } = useNetworkInfo();
+  const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes, maybeConnectedMinerCount, maybeServerStartingMinLeadingZeroCount, maybeBaseBlockReward, maybeMiningReward } = useNetworkInfo();
   const { subscribe } = useMiningEvents();
   const isConnected = maybeConnectedMinerCount !== undefined;
 
@@ -129,17 +133,21 @@ export const MiningStatePanel = () => {
           The Bitcoin Network
         </h3>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Current Block Height:</span>
-            <FlashingText value={maybeBlockHeight} />
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground">Base Block Reward</span>
+            <FlashingText value={formatSatsToBTC(maybeBaseBlockReward)} />
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Network Difficulty:</span>
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground">Block Height</span>
+            <FlashingText value={maybeBlockHeight?.toLocaleString()} />
+          </div>
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground">Network Difficulty</span>
             <FlashingText value={maybeNetworkDifficulty !== undefined ? `${(maybeNetworkDifficulty / 1e12).toFixed(2)} T` : undefined} />
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Required Binary Zeroes:</span>
-            <FlashingText value={maybeRequiredBinaryZeroes} />
+            <span className="text-muted-foreground">Required Binary Zeroes</span>
+            <FlashingText value={maybeRequiredBinaryZeroes?.toLocaleString()} />
           </div>
         </div>
       </div>
@@ -176,21 +184,27 @@ export const MiningStatePanel = () => {
 
       {/* Mining Backend Section */}
       <div className="mb-2 p-4 border rounded-lg relative z-10 bg-background">
-        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+        <h3 className="text-lg font-semibold mb-2 flex gap-2">
           <Database className="w-8 h-8 text-muted-foreground" />
           Mining Backend
         </h3>
         <div className="space-y-2 text-sm">
           <StatusIndicator isConnected={isConnected} />
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground flex items-center gap-2 text-sm">
+              <BitcoinIcon className="w-4 h-4" /> Mining Reward
+            </span>
+            <FlashingText value={formatSatsToBTC(maybeMiningReward)} />
+          </div>
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2 text-sm">
               <Target className="w-4 h-4 text-yellow-500" />
                 Minimum Required Starting Leading Binary Zeros
             </span>
-            <FlashingText value={maybeServerStartingMinLeadingZeroCount} />
+            <FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} />
           </div>
           <p className="text-muted-foreground text-xs">
-                The odds any random hash has <FlashingText value={maybeServerStartingMinLeadingZeroCount} defaultValue="n" /> leading zeros are 1 in 2^<FlashingText value={maybeServerStartingMinLeadingZeroCount} defaultValue="n" />
+                The odds any random hash has <FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" /> leading zeros are 1 in 2^<FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" />
             {maybeServerStartingMinLeadingZeroCount && <span > or 1 in {Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0).toLocaleString()}</span>}
           </p>
         </div>
@@ -253,43 +267,43 @@ export const MiningStatePanel = () => {
           </TooltipProvider>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Status:</span>
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground">Status</span>
             <FlashingText value={isMining ? "Active" : "Inactive"} />
           </div>
           {maybeMinerAddress && (
-            <div className="flex justify-between">
-              <Link to="/proof-of-reward" className="text-primary hover:underline">
+            <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+              <TypedLink route="proofOfReward" className="text-primary hover:underline">
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">Proof of Reward for Your Address</span>
                   <ChevronRight className="w-4 h-4" />
                 </div>
-              </Link>
+              </TypedLink>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Hash Rate:</span>
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground">Hash Rate</span>
             <FlashingText value={formatHashRate(miningStats.maybeHashRate)} disableFlash />
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Cumulative Hashes:</span>
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground">Cumulative Hashes</span>
             <FlashingText value={formatLargeNumber(miningStats.cumulativeHashes)} />
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               <Binary className="w-4 h-4 text-purple-500" />
               Total Solutions
             </span>
             <FlashingText value={miningStats.maybeTotalSolutions || "0"} />
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
               Accepted Solutions
             </span>
             <FlashingText value={miningStats.acceptedSolutions || "0"} />
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500" />
               Rejected Solutions
@@ -311,7 +325,7 @@ export const MiningStatePanel = () => {
             </span>
             <FlashingText value={miningStats.rejectedSolutions || "0"} />
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-yellow-500" />
               Required Leading Binary Zeros

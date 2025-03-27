@@ -7,6 +7,8 @@ interface NetworkInfoResponse {
     block_height: number;
     network_difficulty: number;
     server_starting_min_leading_zero_count: number;
+    base_block_reward_sats: number;
+    miner_reward_sats: number;
   };
   status: string;
 }
@@ -26,6 +28,8 @@ export interface NetworkInfoContextType {
   maybeConnectedWebsocketCount: number | undefined;
   maybeConnectedMinerCount: number | undefined;
   maybeServerStartingMinLeadingZeroCount: number | undefined;
+  maybeBaseBlockReward: number | undefined;
+  maybeMiningReward: number | undefined;
 }
 
 const NetworkInfoContext = createContext<NetworkInfoContextType | undefined>(undefined);
@@ -37,7 +41,9 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
     maybeRequiredBinaryZeroes: undefined,
     maybeConnectedWebsocketCount: undefined,
     maybeConnectedMinerCount: undefined,
-    maybeServerStartingMinLeadingZeroCount: undefined
+    maybeServerStartingMinLeadingZeroCount: undefined,
+    maybeBaseBlockReward: undefined,
+    maybeMiningReward: undefined
   });
 
   useEffect(() => {
@@ -63,7 +69,7 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
           return;
         }
 
-        const { block_height, network_difficulty, server_starting_min_leading_zero_count } = networkData.data;
+        const { block_height, network_difficulty, server_starting_min_leading_zero_count, base_block_reward_sats: base_block_reward, miner_reward_sats: mining_reward } = networkData.data;
         const { connected_websocket_count, connected_miner_count } = websocketData.data;
         console.log('Connected websocket count:', connected_websocket_count);
         console.log('Connected miners count:', connected_miner_count);
@@ -74,7 +80,10 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
         if (block_height !== networkInfo.maybeBlockHeight ||
             network_difficulty !== networkInfo.maybeNetworkDifficulty ||
             connected_websocket_count !== networkInfo.maybeConnectedWebsocketCount ||
-            connected_miner_count !== networkInfo.maybeConnectedMinerCount) {
+            connected_miner_count !== networkInfo.maybeConnectedMinerCount ||
+            server_starting_min_leading_zero_count !== networkInfo.maybeServerStartingMinLeadingZeroCount ||
+            base_block_reward !== networkInfo.maybeBaseBlockReward ||
+            mining_reward !== networkInfo.maybeMiningReward) {
           const requiredZeroes = calculateRequiredBinaryZeroes(network_difficulty);
           setNetworkInfo({
             maybeBlockHeight: block_height,
@@ -82,7 +91,9 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
             maybeRequiredBinaryZeroes: requiredZeroes,
             maybeConnectedWebsocketCount: connected_websocket_count,
             maybeConnectedMinerCount: connected_miner_count,
-            maybeServerStartingMinLeadingZeroCount: server_starting_min_leading_zero_count
+            maybeServerStartingMinLeadingZeroCount: server_starting_min_leading_zero_count,
+            maybeBaseBlockReward: base_block_reward,
+            maybeMiningReward: mining_reward
           });
         }
 

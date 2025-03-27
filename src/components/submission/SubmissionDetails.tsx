@@ -5,7 +5,7 @@ import { formatDuration } from "@/utils/formatters";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { TypedLink } from "@/components/TypedLink";
 
 interface SubmissionDetailsProps {
   hash: string;
@@ -36,11 +36,11 @@ export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/leaderboard">
+        <TypedLink route="leaderboard">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-        </Link>
+        </TypedLink>
         <h1 className="text-2xl font-bold">Submission Details</h1>
       </div>
 

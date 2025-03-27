@@ -90,7 +90,6 @@ export const useMiningState = () => {
       const block_header_hash_as_hex = hexStringFromU8Array(new Uint8Array(workMetadata.block_header_hash));
       console.log("submittedHashes", submittedHashes);
       const updatedHashes = submittedHashes.map(h => {
-        console.log("h.hash", h.hash, "block_header_hash_as_hex", block_header_hash_as_hex);
         return h.hash === block_header_hash_as_hex ? { ...h, status: isAccepted ? 'accepted' as const : 'rejected' as const } : h
       });
 

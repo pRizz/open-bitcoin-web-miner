@@ -8,7 +8,7 @@ import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useNetworkInfo } from "./NetworkInfoContext";
 import API_CONFIG from "@/config/api";
-import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, DifficultyUpdate, WorkMetadata } from "@/types/websocket";
+import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, DifficultyUpdate, WorkMetadata, MiningSubmissionResponse } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { u8ArrayBEToNonce } from "@/utils/nonceUtils";
 import { useMiningEvents } from "./mining/MiningEventsContext";
@@ -172,13 +172,14 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const miningWebSocketManagerCallbacks = {
     onNewChallenge: handleNewChallenge,
     onBlockTemplateUpdate: handleBlockTemplateUpdate,
-    onSubmissionResponse: (status: MiningSubmissionStatus, message: string, maybeDifficultyUpdate: DifficultyUpdate | null, workMetadata: WorkMetadata[]) => {
-      addLog(`Mining submission response: ${message} (status: ${status})`);
-      workMetadata = workMetadata || [];
+    onSubmissionResponse: (submissionResponse: MiningSubmissionResponse) => {
+      addLog(`Mining submission response: ${JSON.stringify(submissionResponse)}`);
+
+      const workMetadata = submissionResponse.work_metadata || [];
       for (const workMetadataItem of workMetadata) {
         console.log("workMetadata", workMetadataItem);
         // Update mining stats based on submission status
-        switch (status) {
+        switch (workMetadataItem.status) {
         case MiningSubmissionStatus.ACCEPTED:
         case MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK:
           updateSubmissionStats({isAccepted: true, workMetadata: workMetadataItem});
@@ -186,6 +187,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           emit('onReceiveSubmissionResponse', { accepted: true });
           break;
         case MiningSubmissionStatus.REJECTED:
+          console.error(`Mining submission rejected: ${JSON.stringify(workMetadataItem)}`);
           updateSubmissionStats({isAccepted: false, workMetadata: workMetadataItem});
           // Emit rejected submission response event
           emit('onReceiveSubmissionResponse', { accepted: false });
@@ -194,12 +196,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           // Outdated submissions don't count towards accepted/rejected stats
           break;
         default:
-          console.warn(`Unknown submission status: ${status}`);
+          console.warn(`Unknown submission status: ${workMetadataItem.status}`);
         }
       }
 
-      if (maybeDifficultyUpdate) {
-        const newDifficulty = maybeDifficultyUpdate.new_min_leading_zero_count;
+      if (submissionResponse.maybe_difficulty_update) {
+        const newDifficulty = submissionResponse.maybe_difficulty_update.new_min_leading_zero_count;
         addLog(`Updating mining difficulty to ${newDifficulty} leading zeros`);
         workerPool.updateDifficulty(newDifficulty);
 

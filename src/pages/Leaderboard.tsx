@@ -1,5 +1,5 @@
 import { GlobalLeaderboard } from "@/components/GlobalLeaderboard";
-import { Link } from "react-router-dom";
+import { TypedLink } from "@/components/TypedLink";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
@@ -13,11 +13,11 @@ export default function Leaderboard() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Link to="/">
+            <TypedLink route="home">
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-            </Link>
+            </TypedLink>
             <h1 className="text-2xl font-bold">Global Leaderboard</h1>
           </div>
           {lastRefreshTime && (
