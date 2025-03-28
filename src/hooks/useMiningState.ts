@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { MiningStats, HashSolution, SessionMiningStats, PersistentMiningStats } from "@/types/mining";
 import { useToast } from "@/hooks/use-toast";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
-import { WorkMetadata } from "@/types/websocket";
+import { MiningSubmissionStatus, WorkMetadata } from "@/types/websocket";
 import { hexStringFromU8Array } from "@/utils/mining";
 
 const STORAGE_KEY = "bitcoin-mining-simulator";
@@ -83,7 +83,8 @@ export const useMiningState = () => {
     }));
   };
 
-  const updateSubmissionStats = ({isAccepted, workMetadata}: {isAccepted: boolean, workMetadata: WorkMetadata}) => {
+  const updateSubmissionStats = ({workMetadata}: {workMetadata: WorkMetadata}) => {
+    const isAccepted = workMetadata.status === MiningSubmissionStatus.ACCEPTED || workMetadata.status === MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK;
     console.log("updateSubmissionStats called with isAccepted", isAccepted, "workMetadata", workMetadata);
     setPersistentStats(prev => {
       const submittedHashes = prev.maybeSubmittedSolutions || [];

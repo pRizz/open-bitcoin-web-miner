@@ -8,7 +8,7 @@ import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
 import { useNetworkInfo } from "./NetworkInfoContext";
 import API_CONFIG from "@/config/api";
-import { MiningSubmission, WebSocketServerMessage, WebSocketClientMessage, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, DifficultyUpdate, WorkMetadata, MiningSubmissionResponse } from "@/types/websocket";
+import { MiningSubmission, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { u8ArrayBEToNonce } from "@/utils/nonceUtils";
 import { useMiningEvents } from "./mining/MiningEventsContext";
@@ -182,13 +182,13 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         switch (workMetadataItem.status) {
         case MiningSubmissionStatus.ACCEPTED:
         case MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK:
-          updateSubmissionStats({isAccepted: true, workMetadata: workMetadataItem});
+          updateSubmissionStats({workMetadata: workMetadataItem});
           // Emit accepted submission response event
           emit('onReceiveSubmissionResponse', { accepted: true });
           break;
         case MiningSubmissionStatus.REJECTED:
           console.error(`Mining submission rejected: ${JSON.stringify(workMetadataItem)}`);
-          updateSubmissionStats({isAccepted: false, workMetadata: workMetadataItem});
+          updateSubmissionStats({workMetadata: workMetadataItem});
           // Emit rejected submission response event
           emit('onReceiveSubmissionResponse', { accepted: false });
           break;

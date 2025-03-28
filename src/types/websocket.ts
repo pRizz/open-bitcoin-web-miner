@@ -29,6 +29,7 @@ export interface WorkMetadata {
   block_header_hash: number[];
   block_height: number;
   status: MiningSubmissionStatus;
+  maybe_rejection_reason?: string | null;
 }
 
 export interface MiningSubmissionResponse {

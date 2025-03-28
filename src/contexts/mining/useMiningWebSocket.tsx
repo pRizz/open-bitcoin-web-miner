@@ -1,4 +1,4 @@
-import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, DifficultyUpdate, MiningSubmissionStatus, WorkMetadata, MiningSubmissionResponse } from "@/types/websocket";
+import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, MiningSubmissionResponse } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback } from "react";
 import { useMinerInfo } from "./MinerInfoContext";
