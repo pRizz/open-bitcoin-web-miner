@@ -131,7 +131,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     updateMiningChallenge({
       blockHeader: blockHeader,
       maybeTargetZeros: targetZeros
-    });
+    }, false);
 
     // Update mining stats with new target zeros
     updateRequiredBinaryZeroes(targetZeros);
@@ -144,8 +144,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     addLog("New block template received");
     updateMiningChallenge({
       blockHeader: blockHeader,
-      maybeKeepExisting: true
-    });
+    }, true);
   }, [addLog, updateMiningChallenge]);
 
   const disconnectWebSocket = useCallback(() => {

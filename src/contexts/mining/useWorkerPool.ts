@@ -57,11 +57,11 @@ export const useWorkerPool = (
     }
   }, [miningMode, workerPool]);
 
-  const updateMiningChallenge = useCallback((challenge: MiningChallenge) => {
+  const updateMiningChallenge = useCallback((challenge: MiningChallenge, mergeWithExisting: boolean) => {
     console.log("Updating mining challenge:", challenge);
     console.log("Current worker pool state:", workerPool ? "exists" : "null");
     setCurrentChallenge(prev => {
-      if (challenge.maybeKeepExisting && prev) {
+      if (mergeWithExisting && prev) {
         console.log("Keeping existing challenge; updating block header");
         return {
           ...prev,

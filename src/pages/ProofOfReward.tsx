@@ -19,6 +19,7 @@ export default function ProofOfRewardPage() {
         <h2 className="text-2xl font-bold mb-4">Mining Activity</h2>
 
         <div className="space-y-4">
+
           {maybeMinerAddress && (
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Miner Address:</span>
@@ -32,46 +33,10 @@ export default function ProofOfRewardPage() {
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Hash Rate:</span>
-            <span>{formatHashRate(miningStats.maybeHashRate)}</span>
+            <span className="text-muted-foreground">Block Header:</span>
+            {/* <span>{maybeBlockHeader || "Not available"}</span> */}
           </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Cumulative Hashes:</span>
-            <span>{formatLargeNumber(miningStats.cumulativeHashes)}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground flex items-center gap-2">
-              <Binary className="w-4 h-4 text-purple-500" />
-              Total Solutions
-            </span>
-            <span>{miningStats.maybeTotalSolutions || "0"}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              Accepted Solutions
-            </span>
-            <span>{miningStats.acceptedSolutions || "0"}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground flex items-center gap-2">
-              <XCircle className="w-4 h-4 text-red-500" />
-              Rejected Solutions
-            </span>
-            <span>{miningStats.rejectedSolutions || "0"}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground flex items-center gap-2">
-              <Target className="w-4 h-4 text-yellow-500" />
-              Required Leading Binary Zeros
-            </span>
-            <span>{miningStats.maybeRequiredBinaryZeroes || "Not available"}</span>
-          </div>
         </div>
 
         <div className="mt-8 p-4 bg-muted rounded-lg">
