@@ -9,7 +9,7 @@ interface MiningPickaxeProps {
 export const MiningPickaxe = ({ className, isMining = false }: MiningPickaxeProps) => {
   return (
     <div className={cn("relative w-6 h-6", className)}>
-      <div 
+      <div
         className={cn(
           "absolute inset-0",
           isMining && "animate-mining-pickaxe"
@@ -20,4 +20,4 @@ export const MiningPickaxe = ({ className, isMining = false }: MiningPickaxeProp
       </div>
     </div>
   );
-}; 
+};

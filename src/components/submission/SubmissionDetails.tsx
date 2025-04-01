@@ -36,7 +36,7 @@ export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <TypedLink route="leaderboard">
+        <TypedLink routeKeyName="leaderboard">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>

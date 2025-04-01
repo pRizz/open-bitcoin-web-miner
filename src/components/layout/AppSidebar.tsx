@@ -34,7 +34,7 @@ export function AppSidebar() {
                     isActive={location.pathname === route.path}
                     className="px-3 py-2 w-full transition-colors duration-200"
                   >
-                    <TypedLink route={route.path === '/' ? 'home' : route.path.slice(1) as any}>
+                    <TypedLink routeKeyName={route.keyName}>
                       <route.icon className="h-4 w-4 mr-3" />
                       <span className="font-medium">{route.title}</span>
                     </TypedLink>

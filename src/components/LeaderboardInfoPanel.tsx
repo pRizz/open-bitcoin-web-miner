@@ -31,7 +31,7 @@ export function LeaderboardInfoPanel() {
       <LeaderboardForm />
       <div className="mt-6 text-center">
         <TypedLink
-          route="leaderboard"
+          routeKeyName="leaderboard"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <Trophy className="mr-2 h-4 w-4" />

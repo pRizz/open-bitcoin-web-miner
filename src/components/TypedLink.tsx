@@ -2,16 +2,16 @@ import { Link, LinkProps } from 'react-router-dom'
 import { routes, RouteName, isDynamicRoute } from '../routes'
 
 type TypedLinkProps<K extends RouteName> = {
-  route: K
+  routeKeyName: K
   params?: K extends 'submission' ? { hash: string } : never
 } & Omit<LinkProps, 'to'>
 
 export function TypedLink<K extends RouteName>({
-  route,
+  routeKeyName,
   params,
   ...rest
 }: TypedLinkProps<K>) {
-  const routeConfig = routes[route]
+  const routeConfig = routes[routeKeyName]
   const to = isDynamicRoute(routeConfig)
     ? routeConfig.path(params as any)
     : routeConfig.path

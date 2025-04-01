@@ -1,9 +1,10 @@
-import { LucideIcon, Home, Trophy, Info } from "lucide-react";
+import { LucideIcon, Home, Trophy, Info, BarChart } from "lucide-react";
 
 type BaseRoute = {
   title: string;
   routerPath: string;
   icon: LucideIcon;
+  keyName: string;
 };
 
 type StaticRoute = BaseRoute & {
@@ -26,6 +27,7 @@ export const routes = {
     routerPath: '/',
     title: 'Personal Mining',
     icon: Home,
+    keyName: 'home',
   },
   leaderboard: {
     type: 'static' as const,
@@ -33,6 +35,7 @@ export const routes = {
     routerPath: '/leaderboard',
     title: 'Global Leaderboard',
     icon: Trophy,
+    keyName: 'leaderboard',
   },
   submission: {
     type: 'dynamic' as const,
@@ -41,6 +44,7 @@ export const routes = {
     title: 'Submission',
     paramName: 'hash' as const,
     icon: Info,
+    keyName: 'submission',
   },
   about: {
     type: 'static' as const,
@@ -48,6 +52,7 @@ export const routes = {
     routerPath: '/about',
     title: 'About',
     icon: Info,
+    keyName: 'about',
   },
   proofOfReward: {
     type: 'static' as const,
@@ -55,6 +60,15 @@ export const routes = {
     routerPath: '/proof-of-reward',
     title: 'Proof of Reward',
     icon: Info,
+    keyName: 'proofOfReward',
+  },
+  miningStatistics: {
+    type: 'static' as const,
+    path: '/mining-statistics',
+    routerPath: '/mining-statistics',
+    title: 'Mining Statistics',
+    icon: BarChart,
+    keyName: 'miningStatistics',
   },
 } as const;
 
@@ -84,5 +98,6 @@ export function getPageTitle(pathname: string): string {
 export const sidebarPages = [
   routes.home,
   routes.leaderboard,
+  routes.miningStatistics,
   routes.about,
 ].filter(isStaticRoute);

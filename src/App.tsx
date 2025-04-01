@@ -11,6 +11,7 @@ import Leaderboard from "@/pages/Leaderboard";
 import SubmissionPage from "@/pages/submission/[hash]";
 import About from "@/pages/About";
 import ProofOfRewardPage from "@/pages/ProofOfReward";
+import MiningStatisticsPage from "@/pages/MiningStatistics";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: routes.proofOfReward.routerPath,
         element: <ProofOfRewardPage />,
+      },
+      {
+        path: routes.miningStatistics.routerPath,
+        element: <MiningStatisticsPage />,
       },
     ],
   },

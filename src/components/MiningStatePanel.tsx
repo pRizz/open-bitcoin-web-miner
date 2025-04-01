@@ -276,7 +276,7 @@ export const MiningStatePanel = () => {
           </div>
           {maybeMinerAddress && (
             <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
-              <TypedLink route="proofOfReward" className="text-primary hover:underline">
+              <TypedLink routeKeyName="proofOfReward" className="text-primary hover:underline">
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">Proof of Reward for Your Address</span>
                   <ChevronRight className="w-4 h-4" />
