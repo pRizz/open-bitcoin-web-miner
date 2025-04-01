@@ -57,8 +57,8 @@ export const useMiningState = () => {
     // Update persistent stats
     setPersistentStats(prev => {
       const updatedHashes = [solution, ...(prev.maybeBestSolutions || [])]
-        .sort((a, b) => b.binaryZeroes - a.binaryZeroes)
-        .slice(0, 100);
+        .sort((a, b) => b.binaryZeroes - a.binaryZeroes);
+        // .slice(0, 100);
 
       return {
         ...prev,
@@ -89,16 +89,19 @@ export const useMiningState = () => {
     setPersistentStats(prev => {
       const submittedHashes = prev.maybeSubmittedSolutions || [];
       const block_header_hash_as_hex = hexStringFromU8Array(new Uint8Array(workMetadata.block_header_hash));
-      console.log("submittedHashes", submittedHashes);
-      const updatedHashes = submittedHashes.map(h => {
-        return h.hash === block_header_hash_as_hex ? { ...h, status: isAccepted ? 'accepted' as const : 'rejected' as const } : h
-      });
+      // Find element in updatedHashes that has the same block_header_hash_as_hex
+      const foundElement = submittedHashes.find(h => h.hash === block_header_hash_as_hex);
+      if (foundElement) {
+        foundElement.status = isAccepted ? 'accepted' as const : 'rejected' as const;
+      } else {
+        console.error("Element not found in submittedHashes for status:", block_header_hash_as_hex, "workMetadata", workMetadata.status);
+      }
 
       return {
         ...prev,
         acceptedSolutions: isAccepted ? (prev.acceptedSolutions + 1) : prev.acceptedSolutions,
         rejectedSolutions: !isAccepted ? (prev.rejectedSolutions + 1) : prev.rejectedSolutions,
-        maybeSubmittedSolutions: updatedHashes,
+        maybeSubmittedSolutions: submittedHashes,
       };
     });
   };

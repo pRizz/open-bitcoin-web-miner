@@ -73,43 +73,43 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     miningSpeed,
     miningMode,
     updateHashRate,
-    (solution: MiningSolution) => {
-      const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(solution.hash);
+    (miningSolution: MiningSolution) => {
+      const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(miningSolution.hash);
 
-      if (!solution.maybeBlockHeader) {
+      if (!miningSolution.maybeBlockHeader) {
         console.error('Invalid solution received: missing blockHeader');
         return;
       }
-      console.log("Found solution", solution);
+      console.log("Found solution", miningSolution);
       console.log("leadingBinaryZeroes", leadingBinaryZeroes);
 
       const miningSubmission: MiningSubmission = {
-        nonceVecU8: Array.from(solution.nonceVecU8),
-        nonceless_block_header: solution.maybeBlockHeader
+        nonceVecU8: Array.from(miningSolution.nonceVecU8),
+        nonceless_block_header: miningSolution.maybeBlockHeader
       };
       console.log(`Submitting mining solution`);
       addLog(`Submitting mining solution`);
       console.log(`Mining submission: ${JSON.stringify(miningSubmission)}`);
       addLog(`Mining submission: ${JSON.stringify(miningSubmission)}`);
 
-      const serializedBlockHeader = serializeBlockHeader(solution.maybeBlockHeader, deserializeNonceLE(solution.nonceVecU8));
+      const serializedBlockHeader = serializeBlockHeader(miningSolution.maybeBlockHeader, deserializeNonceLE(miningSolution.nonceVecU8));
       console.log("serializedBlockHeader", serializedBlockHeader);
 
       submitSolution(miningSubmission);
 
-      const solutionStats: HashSolution = {
+      const hashSolution: HashSolution = {
         id: crypto.randomUUID(),
-        hash: solution.hash,
-        nonce: deserializeNonceLE(solution.nonceVecU8),
+        hash: miningSolution.hash,
+        nonce: deserializeNonceLE(miningSolution.nonceVecU8),
         timestamp: Date.now(),
-        merkleRoot: Array.from(new Uint8Array(solution.maybeBlockHeader.merkle_root))
+        merkleRoot: Array.from(new Uint8Array(miningSolution.maybeBlockHeader.merkle_root))
           .map(b => b.toString(16).padStart(2, '0'))
           .join(''),
-        previousBlock: Array.from(new Uint8Array(solution.maybeBlockHeader.previous_block_hash))
+        previousBlock: Array.from(new Uint8Array(miningSolution.maybeBlockHeader.previous_block_hash))
           .map(b => b.toString(16).padStart(2, '0'))
           .join(''),
-        version: getNumberFromArrayOfBytes(solution.maybeBlockHeader.version),
-        bits: Array.from(new Uint8Array(solution.maybeBlockHeader.compact_target))
+        version: getNumberFromArrayOfBytes(miningSolution.maybeBlockHeader.version),
+        bits: Array.from(new Uint8Array(miningSolution.maybeBlockHeader.compact_target))
           .map(b => b.toString(16).padStart(2, '0'))
           .join(''),
         binaryZeroes: leadingBinaryZeroes,
@@ -117,8 +117,8 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         timeToFindMs: miningStats.maybeStartTime ? Date.now() - miningStats.maybeStartTime : 0,
         status: 'pending',
       };
-      updateMiningStats(solutionStats, solution.cumulativeHashes);
-      addSubmittedHash(solutionStats);
+      updateMiningStats(hashSolution, miningSolution.cumulativeHashes);
+      addSubmittedHash(hashSolution);
     }
   );
 
@@ -178,17 +178,16 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       const workMetadata = submissionResponse.work_metadata || [];
       for (const workMetadataItem of workMetadata) {
         console.log("workMetadata", workMetadataItem);
-        // Update mining stats based on submission status
+        updateSubmissionStats({workMetadata: workMetadataItem});
+        // Emit mining events based on submission status
         switch (workMetadataItem.status) {
         case MiningSubmissionStatus.ACCEPTED:
         case MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK:
-          updateSubmissionStats({workMetadata: workMetadataItem});
           // Emit accepted submission response event
           emit('onReceiveSubmissionResponse', { accepted: true });
           break;
         case MiningSubmissionStatus.REJECTED:
           console.error(`Mining submission rejected: ${JSON.stringify(workMetadataItem)}`);
-          updateSubmissionStats({workMetadata: workMetadataItem});
           // Emit rejected submission response event
           emit('onReceiveSubmissionResponse', { accepted: false });
           break;

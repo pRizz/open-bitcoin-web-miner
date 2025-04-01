@@ -19,6 +19,8 @@ General TODO before first public release:
 -[] add leaderboard username and blockchain message to startMining websocket message and remove job id from response message
 -[] add versioning
 -[] add a settings page; allow enabling of saving to sessionStorage
+-[] have an achievements page; keep track of notable findings, like a difficulty that beats satoshi's first block, second block, all orders of magnitude of difficulty, all increments of LBZs
+-[] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated
 
 Future features:
 -[] add captcha's maybe
