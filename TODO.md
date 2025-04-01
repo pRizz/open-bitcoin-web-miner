@@ -21,6 +21,7 @@ General TODO before first public release:
 -[] add a settings page; allow enabling of saving to sessionStorage
 -[] have an achievements page; keep track of notable findings, like a difficulty that beats satoshi's first block, second block, all orders of magnitude of difficulty, all increments of LBZs
 -[] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated
+-[] treat solutions as rejected by default if there is no response after x seconds, maybe 10
 
 Future features:
 -[] add captcha's maybe

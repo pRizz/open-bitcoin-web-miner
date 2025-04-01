@@ -124,6 +124,13 @@ export default {
             color: 'hsl(var(--foreground))',
             opacity: '1'
           }
+        },
+        'mining-pickaxe': {
+          '0%': { transform: 'rotate(0deg)' },
+          '40%': { transform: 'rotate(-40deg)' },
+          '50%': { transform: 'rotate(40deg)' },
+          '70%': { transform: 'rotate(40deg)' },
+          '100%': { transform: 'rotate(0deg)' }
         }
       },
       animation: {
@@ -133,7 +140,8 @@ export default {
         "fade-up": "fade-up 3.5s ease-out infinite",
         'move-down': 'move-down 0.7s linear forwards',
         'move-up': 'move-up 0.7s linear forwards',
-        'flash': 'flash 0.2s ease-in-out'
+        'flash': 'flash 0.2s ease-in-out',
+        'mining-pickaxe': 'mining-pickaxe 1.5s linear infinite'
       },
     },
   },

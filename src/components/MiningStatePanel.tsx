@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { formatLargeNumber } from "@/utils/formatters";
 import { TypedLink } from "@/components/TypedLink";
+import { MiningPickaxe } from "./MiningPickaxe";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2 text-muted-foreground border-b border-muted-foreground/20 pb-1">
@@ -268,8 +269,10 @@ export const MiningStatePanel = () => {
         </div>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
-            <span className="text-muted-foreground">Status</span>
-            <FlashingText value={isMining ? "Active" : "Inactive"} />
+            <span className="text-muted-foreground flex items-center gap-2">
+              Status
+            </span>
+            <MiningPickaxe isMining={isMining} />
           </div>
           {maybeMinerAddress && (
             <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
