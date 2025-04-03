@@ -16,7 +16,10 @@
     "deploy-supabase-functions": "supabase functions deploy grpc-relay",
     "run-grpc-relay": "deno run -A ./supabase/functions/grpc-relay/index.ts",
     "protoc-tsproto-nicegrpc": "./node_modules/.bin/grpc_tools_node_protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./external/src --ts_proto_opt=outputServices=nice-grpc,outputServices=generic-definitions,useExactTypes=false --proto_path=./external ./external/degen_server.proto",
-    "protoc-tsproto-nicegrpc-comment": "cd external; npm init; tsc --init; npm i @bufbuild/protobuf nice-grpc-common; npx denoify; rename deno_. dir on windows without period since it breaks stuff; deno run thatFile; then deno run ./supabase/functions/grpc-relay/index.ts; then copy the ts file to the supabase/functions/grpc-relay/ directory and reference it in code"
+    "protoc-tsproto-nicegrpc-comment": "cd external; npm init; tsc --init; npm i @bufbuild/protobuf nice-grpc-common; npx denoify; rename deno_. dir on windows without period since it breaks stuff; deno run thatFile; then deno run ./supabase/functions/grpc-relay/index.ts; then copy the ts file to the supabase/functions/grpc-relay/ directory and reference it in code",
+    "build:bin": "tsc -p bin/tsconfig.json",
+    "bin": "node bin/dist/index.js",
+    "bin:dev": "tsx bin/src/index.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -53,6 +56,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
+    "commander": "^11.1.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^12.5.0",
@@ -94,6 +98,7 @@
     "tailwindcss": "^3.4.11",
     "ts-node": "^10.9.2",
     "ts-proto": "^2.6.1",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1",
