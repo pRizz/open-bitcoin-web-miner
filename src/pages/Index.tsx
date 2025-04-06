@@ -13,6 +13,7 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/PageTransition";
 import { MiningStatePanel } from "@/components/MiningStatePanel";
+import { MiningPredictionStats } from "@/components/MiningPredictionStats";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -67,6 +68,9 @@ const Index = () => {
           </div>
 
           <HashRateGauge />
+          <div className="w-1/2 mx-auto">
+            <MiningPredictionStats />
+          </div>
           <DebugLogPanel />
           <LeaderboardInfoPanel />
           <SubmittedSolutionsList />
