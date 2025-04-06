@@ -46,7 +46,6 @@ export default function ProofOfRewardPage() {
           </p>
         </div>
 
-
         <div className="mt-8 p-4">
           <h3 className="text-lg font-semibold mb-2">Step 1: Capture the Block Header You Are Mining</h3>
           <p className="text-muted-foreground">
@@ -126,6 +125,8 @@ This mechanism ensures a provable alignment between the miner and their expected
               <h4 className="font-semibold">Coinbase Transaction</h4>
               <p className="text-muted-foreground">
                 The <a href="https://developer.bitcoin.org/reference/transactions.html#coinbase-input-the-input-of-the-first-transaction-in-a-block" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">coinbase transaction</a> is the first transaction in every Bitcoin block. It creates new bitcoins and includes the block reward (newly minted bitcoins plus transaction fees) that is paid to the miner who successfully mines the block.
+
+                The transaction may be inspected by importing the transaction hex into <a href="https://bitcoincore.tech/apps/bitcoinjs-ui/index.html" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">bitcoinjs-ui</a>
               </p>
             </div>
 

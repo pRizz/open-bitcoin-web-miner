@@ -18,6 +18,16 @@ export interface MiningSubmission {
     nonceless_block_header: NoncelessBlockHeader;
   }
 
+export interface ProofOfRewardRaw {
+  block_template_url: string;
+  nonceless_block_header: NoncelessBlockHeader;
+  coinbase_transaction: string;
+}
+
+export interface ProofOfRewardParsed {
+  block_template_url: URL;
+}
+
 export enum MiningSubmissionStatus {
   ACCEPTED = 0,
   REJECTED = 1,
