@@ -13,7 +13,7 @@ interface SubmissionDetailsProps {
 
 export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
   const { submission, isLoading, error } = useSubmissionDetails(hash);
-  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
 
   if (isLoading) {
     return (

@@ -1,16 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { HashSolution, MiningMode, MiningSolution } from "@/types/mining";
-import { calculateLeadingZeroes, calculateRequiredBinaryZeroes } from "@/utils/mining";
+import { calculateLeadingZeroes } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
 import { MiningContextType } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
-import { useNetworkInfo } from "./NetworkInfoContext";
-import API_CONFIG from "@/config/api";
 import { MiningSubmission, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
-import { u8ArrayBEToNonce } from "@/utils/nonceUtils";
 import { useMiningEvents } from "./mining/MiningEventsContext";
 
 const defaultContext: MiningContextType = {
@@ -48,7 +45,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   console.log("MiningProvider constructor called");
   const { addLog } = useDebug();
   const miningWebSocket = useMiningWebSocket();
-  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
   const { emit } = useMiningEvents();
   const {
     miningStats,

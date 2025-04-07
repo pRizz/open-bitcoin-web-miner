@@ -43,7 +43,7 @@ function StatValue({ children, isLoading }: { children: React.ReactNode, isLoadi
 }
 
 export function NetworkStats() {
-  const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty } = useNetworkInfo();
   const [isLocalhost, setIsLocalhost] = useState(true);
 
   useEffect(() => {
@@ -104,8 +104,8 @@ export function NetworkStats() {
         </div>
         <div>
           <label className="text-sm text-gray-400">Network Difficulty</label>
-          <StatValue isLoading={maybeNetworkDifficulty === undefined}>
-            {maybeNetworkDifficulty !== undefined && `${(maybeNetworkDifficulty / 1e12).toFixed(2)} T`}
+          <StatValue isLoading={maybeFormattedNetworkDifficulty === undefined}>
+            {maybeFormattedNetworkDifficulty}
           </StatValue>
         </div>
         <div>

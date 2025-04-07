@@ -9,7 +9,6 @@ import { calculateRequiredLeadingBinaryZeroes } from './miningCopy';
 // Build to find typescript errors with:
 // pnpm run build:bin
 
-
 // const program = new Command();
 
 // program

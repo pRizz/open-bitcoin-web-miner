@@ -264,10 +264,26 @@ const genesisTarget = nBitsToTarget(genesisNBits);
 // Calculate how many leading zero bits are needed in a hash to satisfy a given difficulty
 export function calculateRequiredLeadingBinaryZeroes(difficulty: number): number {
   // Convert difficulty to target using the formula: new_target = genesis_target / difficulty
-  const target = genesisTarget / BigInt(difficulty);
+  if (difficulty <= 0) {
+    throw new Error("Difficulty must be greater than 0.");
+  }
+  let target;
+  // If difficulty is less than 1, or not an integer, we need to use the formula: new_target = genesis_target * floor(1 / difficulty)
+  if (difficulty < 1 || difficulty % 1 !== 0) {
+    target = genesisTarget * BigInt(Math.floor(1 / difficulty));
+  } else {
+    target = genesisTarget / BigInt(difficulty);
+  }
+  console.log(`target from difficulty ${difficulty} is ${target}`);
+  // Convert the target to a binary string
+  // const binaryString = target.toString(2).padStart(256, "0");
 
   // Convert the target to a binary string
   const binaryString = target.toString(2).padStart(256, "0");
+  console.log(`binaryString from target ${target} is ${binaryString}`);
+  // as a hex string
+  const hexString = target.toString(16).padStart(64, "0");
+  console.log(`hexString from target ${target} is ${hexString}`);
 
   // Count how many leading zeroes are in the binary string
   let leadingZeroCount = 0;

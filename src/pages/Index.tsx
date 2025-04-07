@@ -13,7 +13,8 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/PageTransition";
 import { MiningStatePanel } from "@/components/MiningStatePanel";
-import { MiningPredictionStats } from "@/components/MiningPredictionStats";
+import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
+import { MiningChancesStats } from "@/components/MiningChancesStats";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -68,9 +69,26 @@ const Index = () => {
           </div>
 
           <HashRateGauge />
-          <div className="w-1/2 mx-auto">
-            <MiningPredictionStats />
-          </div>
+
+          {/* Personal Probabilities Section */}
+          <Card className="p-6 glass-card">
+            <h2 className="text-2xl font-bold mb-4">Personal Probabilities</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <MiningTimeRequiredStats />
+              <MiningChancesStats minerCount={1} minerCountLabel="1" customPanelHeaderText="Chances of finding a block solution" showCombinedHashRate={false} />
+            </div>
+          </Card>
+
+          {/* Collective Probabilities Section */}
+          <Card className="p-6 glass-card">
+            <h2 className="text-2xl font-bold mb-4">Collective Probabilities</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <MiningChancesStats minerCount={1000} minerCountLabel={(1_000).toLocaleString()} showCombinedHashRate={true} />
+              <MiningChancesStats minerCount={1_000_000} minerCountLabel="1 million" showCombinedHashRate={true} />
+              <MiningChancesStats minerCount={1_000_000_000} minerCountLabel="1 billion" showCombinedHashRate={true} />
+            </div>
+          </Card>
+
           <DebugLogPanel />
           <LeaderboardInfoPanel />
           <SubmittedSolutionsList />

@@ -59,7 +59,7 @@ function formatSatsToBTC(sats: number) {
 export const MiningStatePanel = () => {
   const { miningStats, isMining, resetData } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
-  const { maybeBlockHeight, maybeNetworkDifficulty, maybeRequiredBinaryZeroes, maybeConnectedMinerCount, maybeServerStartingMinLeadingZeroCount, maybeBaseBlockReward, maybeMiningReward } = useNetworkInfo();
+  const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty, maybeConnectedMinerCount, maybeServerStartingMinLeadingZeroCount, maybeBaseBlockReward, maybeMiningReward } = useNetworkInfo();
   const { subscribe } = useMiningEvents();
   const isConnected = maybeConnectedMinerCount !== undefined;
 
@@ -144,7 +144,7 @@ export const MiningStatePanel = () => {
           </div>
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground">Network Difficulty</span>
-            <FlashingText value={maybeNetworkDifficulty !== undefined ? `${(maybeNetworkDifficulty / 1e12).toFixed(2)} T` : undefined} />
+            <FlashingText value={maybeFormattedNetworkDifficulty} />
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Required Binary Zeroes</span>

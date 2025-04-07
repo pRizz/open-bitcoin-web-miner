@@ -14,7 +14,7 @@ const CONFIDENCE_LEVELS = [
 ];
 
 export function ProbabilityInfo({ hashRate }: ProbabilityInfoProps) {
-  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
   return (
     <div className="text-right text-sm text-gray-400">
       <div className="font-semibold mb-1 flex items-center justify-end gap-2">

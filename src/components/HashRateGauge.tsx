@@ -48,9 +48,21 @@ const CONFIDENCE_LEVELS = [
 ];
 
 export function HashRateGauge() {
-  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
   const { miningStats } = useMining();
   const { maybeHashRate } = miningStats;
+
+  // Format number with locale-specific separators
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  };
+
+  // Example values for the help dialog
+  const exampleHashRate = 100;
+  const exampleRequiredZeroes = 10;
+  const exampleConfidence = 0.5;
+  const exampleLambda = exampleHashRate / Math.pow(2, exampleRequiredZeroes);
+  const exampleTime = -Math.log(1 - exampleConfidence) / exampleLambda;
 
   // Use logarithmic scale for better visualization of small hash rates
   const getLogScale = (value: number) => {
@@ -113,18 +125,18 @@ export function HashRateGauge() {
                     <p className="font-semibold text-green-400">Simple Example:</p>
                     <p>Let's say you have:</p>
                     <ul className="list-disc list-inside space-y-1">
-                      <li>Hash Rate: 100 H/s</li>
-                      <li>Required Zeroes: 10</li>
-                      <li>Confidence Level: 50%</li>
+                      <li>Hash Rate: {formatNumber(exampleHashRate)} H/s</li>
+                      <li>Required Zeroes: {exampleRequiredZeroes}</li>
+                      <li>Confidence Level: {formatNumber(exampleConfidence * 100)}%</li>
                     </ul>
                     <p>Then:</p>
                     <ol className="list-decimal list-inside space-y-1">
-                      <li>λ = 100 / 2^10 = 100 / 1024 ≈ 0.0977 solutions/second</li>
-                      <li>t = -ln(1 - 0.5) / 0.0977</li>
-                      <li>t ≈ 7.1 seconds</li>
+                      <li>λ = {formatNumber(exampleHashRate)} / 2^{exampleRequiredZeroes} = {formatNumber(exampleHashRate)} / {formatNumber(Math.pow(2, exampleRequiredZeroes))} ≈ {formatNumber(exampleLambda)} solutions/second</li>
+                      <li>t = -ln(1 - {formatNumber(exampleConfidence)}) / {formatNumber(exampleLambda)}</li>
+                      <li>t ≈ {formatNumber(exampleTime)} seconds</li>
                     </ol>
                     <p className="text-green-400">
-                      This means you have a 50% chance of finding a solution within 7.1 seconds.
+                      This means you have a {formatNumber(exampleConfidence * 100)}% chance of finding a solution within {formatNumber(exampleTime)} seconds.
                     </p>
                   </div>
                 </div>

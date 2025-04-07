@@ -25,7 +25,7 @@ const defaultSessionStats: SessionMiningStats = {
 export const useMiningState = () => {
   console.log("useMiningState called");
   const { toast } = useToast();
-  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
 
   const [persistentStats, setPersistentStats] = useState<PersistentMiningStats>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);

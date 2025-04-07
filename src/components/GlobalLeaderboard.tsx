@@ -28,7 +28,7 @@ type SortDirection = "asc" | "desc";
 
 export function GlobalLeaderboard() {
   const { leaderboard, isLoading, error } = useGlobalLeaderboard();
-  const { maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
   const [sortField, setSortField] = useState<SortField>("rank");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
