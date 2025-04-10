@@ -46,5 +46,5 @@ export type MiningMode = "cpu" | "webgl" | "webgpu";
 
 export interface MiningChallenge {
   blockHeader: NoncelessBlockHeader;
-  maybeTargetZeros?: number;
+  targetZeros: number;
 }

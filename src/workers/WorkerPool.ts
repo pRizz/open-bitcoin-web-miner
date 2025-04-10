@@ -278,17 +278,9 @@ export class WorkerPool {
     updateWorker(this.maybeWebGPUWorker);
   }
 
-  updateChallenge(challenge: MiningChallenge & { maybeKeepExisting?: boolean }) {
+  updateChallenge(challenge: MiningChallenge) {
     console.log("Updating challenge in worker pool:", challenge);
-    if (challenge.maybeKeepExisting && this.maybeCurrentChallenge) {
-      // Only update the block header, keep existing targetZeros
-      this.maybeCurrentChallenge = {
-        ...this.maybeCurrentChallenge,
-        blockHeader: challenge.blockHeader
-      };
-    } else {
-      this.maybeCurrentChallenge = challenge;
-    }
+    this.maybeCurrentChallenge = challenge;
 
     // Update all active workers with new challenge
     const message: WorkerMessage = {
@@ -306,7 +298,7 @@ export class WorkerPool {
     if (this.maybeCurrentChallenge) {
       this.maybeCurrentChallenge = {
         ...this.maybeCurrentChallenge,
-        maybeTargetZeros: newDifficulty
+        targetZeros: newDifficulty
       };
     }
 

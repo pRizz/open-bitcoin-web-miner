@@ -253,8 +253,8 @@ function mine() {
         .map(x => x.toString(16).padStart(2, "0"))
         .join("");
 
-      const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hash);
-      if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
+      const { leadingBinaryZeroes } = calculateLeadingZeroes(hash);
+      if (leadingBinaryZeroes >= maybeCurrentChallenge.targetZeros) {
         const solution: MiningSolution = {
           hash: hash,
           nonceVecU8: serializeNonceLE(nonce),

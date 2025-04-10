@@ -3,6 +3,7 @@ import { WorkerPool } from "@/workers/WorkerPool";
 import { useToast } from "@/hooks/use-toast";
 import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
 import { GPUCapabilities } from './types';
+import { NoncelessBlockHeader } from '@/types/websocket';
 
 export const useWorkerPool = (
   threadCount: number,
@@ -57,26 +58,43 @@ export const useWorkerPool = (
     }
   }, [miningMode, workerPool]);
 
-  const updateMiningChallenge = useCallback((challenge: MiningChallenge, mergeWithExisting: boolean) => {
+  const updateMiningChallenge = useCallback((challenge: MiningChallenge) => {
     console.log("Updating mining challenge:", challenge);
     console.log("Current worker pool state:", workerPool ? "exists" : "null");
-    setCurrentChallenge(prev => {
-      if (mergeWithExisting && prev) {
-        console.log("Keeping existing challenge; updating block header");
-        return {
-          ...prev,
-          blockHeader: challenge.blockHeader
-        };
-      }
-      return challenge;
-    });
-
+    setCurrentChallenge( challenge);
+    
     if (workerPool.current) {
       console.log("Updating challenge in worker pool");
       workerPool.current.updateChallenge(challenge);
       workerPool.current.start(challenge, miningSpeed);
     }
   }, [workerPool, miningSpeed]);
+
+  const updateBlockHeader = useCallback((blockHeader: NoncelessBlockHeader) => {
+    console.log("Updating block header:", blockHeader);
+    console.log("Current worker pool state:", workerPool ? "exists" : "null");
+    setCurrentChallenge(maybePreviousMiningChallenge => {
+      let newChallenge = maybePreviousMiningChallenge;
+      if (maybePreviousMiningChallenge) {
+        console.log("Keeping existing challenge; updating block header");
+        console.log("Previous challenge:", maybePreviousMiningChallenge);
+        console.log("New block header:", blockHeader);
+        console.log("Merging challenges");
+        newChallenge = {
+          ...maybePreviousMiningChallenge,
+          blockHeader: blockHeader
+        };
+        console.log("Merged challenge:", newChallenge);
+      }
+      if (workerPool.current) {
+        console.log("Updating challenge in worker pool");
+        workerPool.current.updateChallenge(newChallenge);
+        workerPool.current.start(newChallenge, miningSpeed);
+      }
+
+      return newChallenge;
+    });
+  }, [workerPool]);
 
   const startMining = useCallback(() => {
     try {
@@ -112,6 +130,16 @@ export const useWorkerPool = (
 
   const updateDifficulty = useCallback((newDifficulty: number) => {
     console.log("Updating difficulty:", newDifficulty);
+    setCurrentChallenge(prev => {
+      let newChallenge = prev;
+      if (prev) {
+        newChallenge = {
+          ...prev,
+          targetZeros: newDifficulty
+        };
+      }
+      return newChallenge;
+    });
     if (workerPool.current) {
       workerPool.current.updateDifficulty(newDifficulty);
     }
@@ -124,5 +152,6 @@ export const useWorkerPool = (
     updateThreadCount,
     updateMiningChallenge,
     updateDifficulty,
+    updateBlockHeader,
   };
 };

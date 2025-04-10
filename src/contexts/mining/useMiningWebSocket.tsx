@@ -5,6 +5,7 @@ import { useMinerInfo } from "./MinerInfoContext";
 import { toast } from "@/hooks/use-toast";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
 import { Trophy } from "lucide-react";
+import { MiningChallenge } from "@/types/mining";
 
 interface MiningWebSocketContextType {
   connect: () => void;
@@ -16,7 +17,7 @@ interface MiningWebSocketContextType {
 const MiningWebSocketContext = createContext<MiningWebSocketContextType | undefined>(undefined);
 
 interface MiningWebSocketCallbacks {
-  onNewChallenge: (blockHeader: NoncelessBlockHeader, targetZeros: number) => void;
+  onNewChallenge: (challenge: MiningChallenge) => void;
   onBlockTemplateUpdate: (blockHeader: NoncelessBlockHeader) => void;
   onSubmissionResponse: (submissionResponse: MiningSubmissionResponse) => void;
   onConnectionStateChange: (connected: boolean) => void;
@@ -78,8 +79,10 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
       case "ChallengeResponse": {
         const { nonceless_block_header, target_leading_zero_count } = message.data;
         maybeCallbacks.current?.onNewChallenge(
-          nonceless_block_header,
-          target_leading_zero_count
+          {
+            blockHeader: nonceless_block_header,
+            targetZeros: target_leading_zero_count
+          }
         );
         break;
       }

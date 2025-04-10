@@ -3,6 +3,7 @@ import { Share } from "lucide-react";
 import { URL_PARAMS } from "@/constants/mining";
 import { useToast } from "@/hooks/use-toast";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
+import { useCallback } from "react";
 
 interface ShareControlsProps {
   includeAutoStart: boolean;
@@ -16,7 +17,7 @@ export function ShareControls({
   const { toast } = useToast();
   const { maybeMinerAddress } = useMinerInfo();
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     const url = new URL(window.location.href);
     if (includeAutoStart) {
       url.searchParams.set(URL_PARAMS.AUTO_START, "true");
@@ -39,7 +40,7 @@ export function ShareControls({
         variant: "destructive",
       });
     }
-  };
+  }, [includeAutoStart, includeAddress, maybeMinerAddress, toast]);
 
   return (
     <Button

@@ -7,6 +7,8 @@ import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
 import { getPageTitle } from "@/routes";
+import { useMining } from "@/contexts/MiningContext";
+import { TypedLink } from "@/components/TypedLink";
 
 function MinerCountIndicator() {
   const { maybeConnectedMinerCount } = useNetworkInfo();
@@ -30,6 +32,19 @@ function MinerCountIndicator() {
   );
 }
 
+function MiningStatusIndicator() {
+  const { isMining } = useMining();
+
+  if (!isMining) return null;
+
+  return (
+    <TypedLink routeKeyName="home" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+      <span className="text-sm text-gray-300">Mining</span>
+    </TypedLink>
+  );
+}
+
 export function AppLayout() {
   const location = useLocation();
   const { includeAutoStart, includeAddress } = useShare();
@@ -46,6 +61,7 @@ export function AppLayout() {
                 <h1 className="text-4xl font-bold">{getPageTitle(location.pathname)}</h1>
               </div>
               <div className="flex items-center gap-4">
+                <MiningStatusIndicator />
                 <MinerCountIndicator />
                 {location.pathname === "/" && (
                   <ShareControls

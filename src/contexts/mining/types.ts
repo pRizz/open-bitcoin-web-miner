@@ -1,5 +1,5 @@
 import { MiningStats, MiningMode } from "@/types/mining";
-import { MiningSubmission } from "@/types/websocket";
+import { MiningSubmission, NoncelessBlockHeader } from "@/types/websocket";
 
 export interface GPUCapabilities {
   maxStorageBufferSize: string;
@@ -12,6 +12,12 @@ export interface GPUCapabilities {
   maxInvocationsPerWorkgroup: string;
   maxTextureDimension2D: string;
   adapterInfo: string;
+}
+
+export interface MiningHistoryItem {
+  blockHeader: NoncelessBlockHeader;
+  targetZeros: number;
+  timestamp: number;
 }
 
 export interface MiningContextType {
@@ -31,4 +37,5 @@ export interface MiningContextType {
   stopMining: () => void;
   resetData: () => void;
   submitSolution: (submission: MiningSubmission) => void;
+  miningHistory: MiningHistoryItem[];
 }

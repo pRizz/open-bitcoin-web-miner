@@ -10,10 +10,36 @@ export default function ProofOfRewardPage() {
   const { miningStats } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight } = useNetworkInfo();
+  const { miningHistory } = useMining();
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Proof of Reward</h1>
+      <h1 className="text-3xl font-bold mb-6 space-y-4">Proof of Reward</h1>
+
+      <Card className="p-6">
+        <h2 className="text-2xl font-bold mb-4">Mining Challenge History</h2>
+
+        <div className="space-y-4">
+          {miningHistory.map((item, index) => (
+            <div key={index}>
+              <Card className="p-4">
+                <div className="text-lg font-bold pb-4">
+                  Block Header
+                </div>
+                <Card className="p-4">
+                  <p>Version: {item.blockHeader.version.toString()}</p>
+                  <p>Previous block hash: {item.blockHeader.previous_block_hash.toString()}</p>
+                  <p>Merkle root: {item.blockHeader.merkle_root.toString()}</p>
+                  <p>Timestamp: {item.blockHeader.timestamp.toString()}</p>
+                  <p>Compact target: {item.blockHeader.compact_target.toString()}</p>
+                </Card>
+                <p>Target leading zeros: {item.targetZeros}</p>
+                <p>Time retrieved: { new Date(item.timestamp).toLocaleString()}</p>
+              </Card>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card className="p-6">
         <h2 className="text-2xl font-bold mb-4">Mining Activity</h2>

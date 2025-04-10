@@ -58,7 +58,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     console.log("Updating difficulty in worker to:", maybeNewDifficulty);
     state.maybeCurrentChallenge = {
       ...state.maybeCurrentChallenge,
-      maybeTargetZeros: maybeNewDifficulty
+      targetZeros: maybeNewDifficulty
     };
   } else {
     console.error("Unhandled message type: ", type, " with data: ", e.data);
@@ -103,8 +103,12 @@ function mine() {
         state.cumulativeHashes++;
         hashesInBatchCount++;
 
-        const { leadingBinaryZeroes: binary } = calculateLeadingZeroesU8Array(hashAsU8Array);
-        if (binary >= (state.maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
+        const { leadingBinaryZeroes } = calculateLeadingZeroesU8Array(hashAsU8Array);
+        if (!state.maybeCurrentChallenge.targetZeros) {
+          console.error("No target zeros set");
+          throw new Error("No target zeros set");
+        }
+        if (leadingBinaryZeroes >= state.maybeCurrentChallenge.targetZeros) {
           console.log("Nonce:", nonce);
           const nonceLE = serializeNonceLE(nonce);
           console.log(`nonceLE: ${nonceLE}`)

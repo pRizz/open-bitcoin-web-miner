@@ -25,7 +25,7 @@ const defaultSessionStats: SessionMiningStats = {
 export const useMiningState = () => {
   console.log("useMiningState called");
   const { toast } = useToast();
-  const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const networkInfo = useNetworkInfo();
 
   const [persistentStats, setPersistentStats] = useState<PersistentMiningStats>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -34,7 +34,7 @@ export const useMiningState = () => {
 
   const [sessionStats, setSessionStats] = useState<SessionMiningStats>(() => ({
     ...defaultSessionStats,
-    maybeRequiredBinaryZeroes,
+    maybeRequiredBinaryZeroes: networkInfo.maybeNetworkRequiredLeadingZeroes,
   }));
 
   const updateMiningStats = (solution: HashSolution, cumulativeHashes: number) => {
@@ -43,7 +43,7 @@ export const useMiningState = () => {
       const timeToFind = prev.maybeStartTime ? Date.now() - prev.maybeStartTime : 0;
       const solutionWithTime = { ...solution, timeToFind };
 
-      if (solution.binaryZeroes >= maybeRequiredBinaryZeroes) {
+      if (solution.binaryZeroes >= networkInfo.maybeNetworkRequiredLeadingZeroes) {
         toast({
           title: "Block Found!",
           description: `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`,
@@ -120,7 +120,7 @@ export const useMiningState = () => {
     setPersistentStats(defaultPersistentStats);
     setSessionStats({
       ...defaultSessionStats,
-      maybeRequiredBinaryZeroes,
+      maybeRequiredBinaryZeroes: networkInfo.maybeNetworkRequiredLeadingZeroes,
     });
     localStorage.removeItem(STORAGE_KEY);
     toast({

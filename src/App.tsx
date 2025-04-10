@@ -61,18 +61,18 @@ function App() {
         <NetworkInfoProvider>
           <MinerInfoProvider>
             <GlobalLeaderboardProvider>
-              <ShareProvider>
-                <MiningWebSocketProvider>
-                  <MiningEventsProvider>
-                    <MiningProvider>
+              <MiningWebSocketProvider>
+                <MiningEventsProvider>
+                  <MiningProvider>
+                    <ShareProvider>
                       <LeaderboardProvider>
                         <RouterProvider router={router} />
                         <Toaster />
                       </LeaderboardProvider>
-                    </MiningProvider>
-                  </MiningEventsProvider>
-                </MiningWebSocketProvider>
-              </ShareProvider>
+                    </ShareProvider>
+                  </MiningProvider>
+                </MiningEventsProvider>
+              </MiningWebSocketProvider>
             </GlobalLeaderboardProvider>
           </MinerInfoProvider>
         </NetworkInfoProvider>

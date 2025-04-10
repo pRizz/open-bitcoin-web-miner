@@ -377,9 +377,9 @@ async function mine() {
             .map(word => word.toString(16).padStart(8, '0'))
             .join('');
 
-          const { leadingBinaryZeroes: binary } = calculateLeadingZeroes(hashWords);
+          const { leadingBinaryZeroes } = calculateLeadingZeroes(hashWords);
 
-          if (binary >= (maybeCurrentChallenge.maybeTargetZeros ?? 10)) {
+          if (leadingBinaryZeroes >= maybeCurrentChallenge.targetZeros) {
             // Calculate the nonce for this solution
             // TODO: audit
             const solutionNonce = nonce[0] - batchSize + offset + i;

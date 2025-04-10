@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { HashSolution, MiningMode, MiningSolution } from "@/types/mining";
+import { HashSolution, MiningChallenge, MiningMode, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroes } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
-import { MiningContextType } from "./mining/types";
+import { MiningContextType, MiningHistoryItem } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
@@ -31,6 +31,7 @@ const defaultContext: MiningContextType = {
   stopMining: () => {},
   resetData: () => {},
   submitSolution: (submission: MiningSubmission) => {},
+  miningHistory: [],
 };
 
 const MiningContext = createContext<MiningContextType>(defaultContext);
@@ -46,29 +47,19 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const { addLog } = useDebug();
   const miningWebSocket = useMiningWebSocket();
   const { emit } = useMiningEvents();
-  const {
-    miningStats,
-    updateMiningStats,
-    updateHashRate,
-    updateRequiredBinaryZeroes,
-    updateSubmissionStats,
-    resetStats,
-    startMining: startMiningStats,
-    stopMining: stopMiningStats,
-    addSubmittedHash,
-  } = useMiningState();
+  const miningState = useMiningState();
 
   const [isMining, setIsMining] = useState(false);
   const [miningSpeed, setMiningSpeed] = useState(100);
   const [miningMode, setMiningMode] = useState<MiningMode>("cpu");
-
+  const [miningHistory, setMiningHistory] = useState<MiningHistoryItem[]>([]);
   const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useInitialThreadCount();
 
   const workerPool = useWorkerPool(
     threadCount,
     miningSpeed,
     miningMode,
-    updateHashRate,
+    miningState.updateHashRate,
     (miningSolution: MiningSolution) => {
       const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(miningSolution.hash);
 
@@ -110,42 +101,46 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
           .join(''),
         binaryZeroes: leadingBinaryZeroes,
         hexZeroes: leadingHexZeroes,
-        timeToFindMs: miningStats.maybeStartTime ? Date.now() - miningStats.maybeStartTime : 0,
+        timeToFindMs: miningState.miningStats.maybeStartTime ? Date.now() - miningState.miningStats.maybeStartTime : 0,
         status: 'pending',
       };
-      updateMiningStats(hashSolution, miningSolution.cumulativeHashes);
-      addSubmittedHash(hashSolution);
+      miningState.updateMiningStats(hashSolution, miningSolution.cumulativeHashes);
+      miningState.addSubmittedHash(hashSolution);
     }
   );
 
-  const { gpuCapabilities, startMining: startWorkerPool, stopMining: stopWorkerPool, updateThreadCount, updateMiningChallenge } = workerPool;
+  const handleNewChallenge = useCallback((challenge: MiningChallenge) => {
+    addLog(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.blockHeader)}`);
+    console.log(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.blockHeader)}`);
 
-  const handleNewChallenge = useCallback((blockHeader: NoncelessBlockHeader, targetZeros: number) => {
-    addLog(`New mining challenge received. Target zeros: ${targetZeros}, Block header: ${JSON.stringify(blockHeader)}`);
-    console.log(`New mining challenge received. Target zeros: ${targetZeros}, Block header: ${JSON.stringify(blockHeader)}`);
-
-    updateMiningChallenge({
-      blockHeader: blockHeader,
-      maybeTargetZeros: targetZeros
-    }, false);
+    const miningHistoryItem: MiningHistoryItem = {
+      blockHeader: challenge.blockHeader,
+      targetZeros: challenge.targetZeros,
+      timestamp: Date.now()
+    };
+    setMiningHistory([...miningHistory, miningHistoryItem]);
+    workerPool.updateMiningChallenge(challenge);
 
     // Update mining stats with new target zeros
-    updateRequiredBinaryZeroes(targetZeros);
-
+    miningState.updateRequiredBinaryZeroes(challenge.targetZeros);
     // Emit new challenge event
     emit('onNewChallengeReceived');
-  }, [addLog, updateMiningChallenge, updateRequiredBinaryZeroes, emit]);
+  }, [addLog, miningState, workerPool, emit, miningHistory, setMiningHistory]);
 
   const handleBlockTemplateUpdate = useCallback((blockHeader: NoncelessBlockHeader) => {
     addLog("New block template received");
-    updateMiningChallenge({
+    workerPool.updateBlockHeader(blockHeader);
+    const miningHistoryItem: MiningHistoryItem = {
       blockHeader: blockHeader,
-    }, true);
-  }, [addLog, updateMiningChallenge]);
+      targetZeros: miningState.miningStats.maybeRequiredBinaryZeroes,
+      timestamp: Date.now()
+    };
+    setMiningHistory([...miningHistory, miningHistoryItem]);
+  }, [addLog, workerPool, miningHistory, setMiningHistory, miningState]);
 
   const disconnectWebSocket = useCallback(() => {
     miningWebSocket.disconnect();
-  }, []);
+  }, [miningWebSocket]);
 
   const submitSolution = useCallback((submission: MiningSubmission) => {
     miningWebSocket.submitSolution(submission);
@@ -159,53 +154,55 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     addLog(`Stopping ${modeString} mining`);
 
     disconnectWebSocket();
-    stopWorkerPool();
+    workerPool.stopMining();
     setIsMining(false);
-    stopMiningStats();
-  }, [miningMode, addLog, disconnectWebSocket, stopWorkerPool, stopMiningStats]);
+    miningState.stopMining();
+  }, [miningMode, addLog, disconnectWebSocket, miningState, workerPool]);
+
+  const handleSubmissionResponse = useCallback((submissionResponse: MiningSubmissionResponse) => {
+    addLog(`Mining submission response: ${JSON.stringify(submissionResponse)}`);
+
+    const workMetadata = submissionResponse.work_metadata || [];
+    for (const workMetadataItem of workMetadata) {
+      console.log("workMetadata", workMetadataItem);
+      miningState.updateSubmissionStats({workMetadata: workMetadataItem});
+      // Emit mining events based on submission status
+      switch (workMetadataItem.status) {
+      case MiningSubmissionStatus.ACCEPTED:
+      case MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK:
+        // Emit accepted submission response event
+        emit('onReceiveSubmissionResponse', { accepted: true });
+        break;
+      case MiningSubmissionStatus.REJECTED:
+        console.error(`Mining submission rejected: ${JSON.stringify(workMetadataItem)}`);
+        // Emit rejected submission response event
+        emit('onReceiveSubmissionResponse', { accepted: false });
+        break;
+      case MiningSubmissionStatus.OUTDATED:
+        // Outdated submissions don't count towards accepted/rejected stats
+        break;
+      default:
+        console.warn(`Unknown submission status: ${workMetadataItem.status}`);
+      }
+    }
+
+    if (submissionResponse.maybe_difficulty_update) {
+      const newDifficulty = submissionResponse.maybe_difficulty_update.new_min_leading_zero_count;
+      addLog(`Updating mining difficulty to ${newDifficulty} leading zeros`);
+      workerPool.updateDifficulty(newDifficulty);
+
+      // Update mining stats with new difficulty
+      miningState.updateRequiredBinaryZeroes(newDifficulty);
+
+      // Emit difficulty update event
+      emit('onNewDifficultyUpdate');
+    }
+  }, [addLog, emit, miningState, workerPool]);
 
   const miningWebSocketManagerCallbacks = {
     onNewChallenge: handleNewChallenge,
     onBlockTemplateUpdate: handleBlockTemplateUpdate,
-    onSubmissionResponse: (submissionResponse: MiningSubmissionResponse) => {
-      addLog(`Mining submission response: ${JSON.stringify(submissionResponse)}`);
-
-      const workMetadata = submissionResponse.work_metadata || [];
-      for (const workMetadataItem of workMetadata) {
-        console.log("workMetadata", workMetadataItem);
-        updateSubmissionStats({workMetadata: workMetadataItem});
-        // Emit mining events based on submission status
-        switch (workMetadataItem.status) {
-        case MiningSubmissionStatus.ACCEPTED:
-        case MiningSubmissionStatus.ACCEPTED_AND_FOUND_BLOCK:
-          // Emit accepted submission response event
-          emit('onReceiveSubmissionResponse', { accepted: true });
-          break;
-        case MiningSubmissionStatus.REJECTED:
-          console.error(`Mining submission rejected: ${JSON.stringify(workMetadataItem)}`);
-          // Emit rejected submission response event
-          emit('onReceiveSubmissionResponse', { accepted: false });
-          break;
-        case MiningSubmissionStatus.OUTDATED:
-          // Outdated submissions don't count towards accepted/rejected stats
-          break;
-        default:
-          console.warn(`Unknown submission status: ${workMetadataItem.status}`);
-        }
-      }
-
-      if (submissionResponse.maybe_difficulty_update) {
-        const newDifficulty = submissionResponse.maybe_difficulty_update.new_min_leading_zero_count;
-        addLog(`Updating mining difficulty to ${newDifficulty} leading zeros`);
-        workerPool.updateDifficulty(newDifficulty);
-
-        // Update mining stats with new difficulty
-        updateRequiredBinaryZeroes(newDifficulty);
-
-        // Emit difficulty update event
-        emit('onNewDifficultyUpdate');
-      }
-    },
+    onSubmissionResponse: handleSubmissionResponse,
     onConnectionStateChange: (connected) => {
       addLog(connected ? 'WebSocket connection established' : 'WebSocket connection closed');
       if (!connected) {
@@ -231,18 +228,18 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     addLog(`Starting ${modeString} mining${threadInfo} at ${miningSpeed}% speed`);
 
     connectWebSocket();
-    startWorkerPool();
+    workerPool.startMining();
     setIsMining(true);
-    startMiningStats();
-  }, [miningMode, threadCount, miningSpeed, addLog, connectWebSocket, startWorkerPool, startMiningStats]);
+    miningState.startMining();
+  }, [miningMode, threadCount, miningSpeed, addLog, connectWebSocket, miningState, workerPool]);
 
   const setThreadCount = useCallback((count: number) => {
-    updateThreadCount(count);
+    workerPool.updateThreadCount(count);
     setThreadCountState(count);
     if (isMining) {
       addLog(`Updating CPU mining thread count to ${count}`);
     }
-  }, [updateThreadCount, setThreadCountState, isMining, addLog]);
+  }, [workerPool, setThreadCountState, isMining, addLog]);
 
   const handleSetMiningSpeed = useCallback((speed: number) => {
     const statusText = isMining ? "Mining speed updated to" : "Mining speed set to";
@@ -260,20 +257,20 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   return (
     <MiningContext.Provider
       value={{
-        miningStats,
+        miningStats: miningState.miningStats,
         isMining,
         miningSpeed,
         threadCount,
         maxThreads,
         miningMode,
-        gpuCapabilities,
         setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
         setMiningMode,
         startMining,
         stopMining,
-        resetData: resetStats,
+        resetData: miningState.resetStats,
         submitSolution,
+        miningHistory,
       }}
     >
       {children}
