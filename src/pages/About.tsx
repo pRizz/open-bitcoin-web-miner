@@ -12,7 +12,7 @@ export default function About() {
         <CardContent className="space-y-4">
           <p>
             Bitcoin mining is the process of validating and adding new transactions to the Bitcoin blockchain.
-            Miners compete to solve complex mathematical puzzles, and the first one to find a solution gets to
+            Miners compete to solve a mathematical puzzle, and the first one to find a solution gets to
             add a new block of transactions to the blockchain and is rewarded with newly created bitcoins.
           </p>
           <p>
@@ -35,7 +35,7 @@ export default function About() {
             that is numerically less than a target value set by the network's difficulty.
           </p>
           <p>
-            The formula is simple but computationally intensive:
+            The formula is simple but computationally non-trivial:
           </p>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm">
             SHA256(SHA256(block_header + nonce)) &lt; target
@@ -45,7 +45,7 @@ export default function About() {
           </p>
           <ul className="list-disc pl-6 space-y-2">
             <li>Previous block's hash (linking blocks together)</li>
-            <li>Merkle root hash of all transactions in the block</li>
+            <li>Merkle root hash of all transactions in the block. This acts as a cryptographic summary of all transactions in the block. Any small change to the transactions in the block will drastically change the Merkle root.</li>
             <li>Timestamp</li>
             <li>Current difficulty target</li>
             <li>Nonce (the value miners modify to find a valid hash)</li>
@@ -74,7 +74,10 @@ export default function About() {
             <li>Demonstrate the fundamental concepts of Bitcoin mining</li>
             <li>Show how mining difficulty works and adjusts</li>
             <li>Help users understand the relationship between computational power and mining success</li>
+            <li>Gain an intuitive understanding of the relative mining power of different hardware</li>
             <li>Provide hands-on experience with real Bitcoin mining on consumer hardware</li>
+            <li>Engage with other users via a mining leaderboard</li>
+            <li>Provide a fun way to participate in "lottery mining"</li>
           </ul>
         </CardContent>
       </Card>

@@ -62,7 +62,7 @@ export const useWorkerPool = (
     console.log("Updating mining challenge:", challenge);
     console.log("Current worker pool state:", workerPool ? "exists" : "null");
     setCurrentChallenge( challenge);
-    
+
     if (workerPool.current) {
       console.log("Updating challenge in worker pool");
       workerPool.current.updateChallenge(challenge);
