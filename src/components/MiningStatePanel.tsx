@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { formatLargeNumber } from "@/utils/formatters";
 import { TypedLink } from "@/components/TypedLink";
 import { MiningPickaxe } from "./MiningPickaxe";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { OddsExplanation } from "./OddsExplanation";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2 text-muted-foreground border-b border-muted-foreground/20 pb-1">
@@ -141,16 +141,32 @@ export const MiningStatePanel = () => {
           </div>
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground">Block Height</span>
-            <FlashingText value={maybeBlockHeight?.toLocaleString()} />
+            {maybeBlockHeight && (
+              <a
+                href={`https://bitcoinexplorer.org/block-height/${maybeBlockHeight}`}
+                target="_blank"
+                rel="noopener"
+                className="text-blue-500 hover:text-blue-600 underline"
+              >
+                {maybeBlockHeight?.toLocaleString()}
+              </a>
+            ) || "N/A"}
           </div>
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
-            <span className="text-muted-foreground">Network Difficulty</span>
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-yellow-500" />
+              <span className="text-muted-foreground">Network Difficulty</span>
+            </div>
             <FlashingText value={maybeFormattedNetworkDifficulty} />
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Required Binary Zeroes</span>
+          <div className="flex justify-between items-center border-b border-muted-foreground/20 pb-1">
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-yellow-500" />
+              <span className="text-muted-foreground">Equivalent Required Leading Binary Zeros</span>
+            </div>
             <FlashingText value={maybeRequiredBinaryZeroes?.toLocaleString()} />
           </div>
+          <OddsExplanation maybeServerStartingMinLeadingZeroCount={maybeRequiredBinaryZeroes} />
         </div>
       </div>
 
@@ -188,7 +204,7 @@ export const MiningStatePanel = () => {
       <div className="mb-2 p-4 border rounded-lg relative z-10 bg-background">
         <h3 className="text-lg font-semibold mb-2 flex gap-2">
           <Database className="w-8 h-8 text-muted-foreground" />
-          Mining Backend
+          WinABitco.in Backend
         </h3>
         <div className="space-y-2 text-sm">
           <StatusIndicator isConnected={isConnected} />
@@ -205,61 +221,7 @@ export const MiningStatePanel = () => {
             </span>
             <FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} />
           </div>
-          <p className="text-muted-foreground text-xs">
-                The odds any random hash has
-            <FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" /> leading zeros are 1 in 2^
-            <FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" />
-            {maybeServerStartingMinLeadingZeroCount && <span > or 1 in {Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0).toLocaleString()}
-            </span>}
-            <Dialog>
-              <DialogTrigger>
-                <HelpCircle className="h-4 w-4 inline ml-1 cursor-help text-muted-foreground hover:text-foreground" />
-              </DialogTrigger>
-              <DialogContent className="max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Understanding the Odds of Leading Zeros</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 text-sm">
-                  <p>
-                      The probability of finding a hash with a specific number of leading zeros can be understood using a simple coin flip analogy.
-                  </p>
-
-                  <div className="space-y-2">
-                    <p className="font-semibold">Coin Flip Analogy:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Each bit in a hash has a 50/50 chance of being 0 or 1, just like a coin flip</li>
-                      <li>For one leading zero, the probability is 50% (1/2)</li>
-                      <li>For two leading zeros, the probability is 25% (1/4)</li>
-                      <li>For three leading zeros, the probability is 12.5% (1/8)</li>
-                      <li>And so on...</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="font-semibold">Mathematical Proof:</p>
-                    <p>For n leading zeros, the probability is (1/2)^n, which equals 1/2^n</p>
-                    <p>This means the odds are 1 in 2^n</p>
-                    {maybeServerStartingMinLeadingZeroCount &&
-                      <>
-                        <p>For example, with {maybeServerStartingMinLeadingZeroCount} leading zeros:</p>
-                        <ul className="list-disc list-inside space-y-1">
-                          <li>Probability = 1/2^{maybeServerStartingMinLeadingZeroCount}</li>
-                          <li>Odds = 1 in 2^{maybeServerStartingMinLeadingZeroCount} = 1 in {Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0).toLocaleString()}</li>
-                        </ul>
-                      </>
-                    }
-                  </div>
-
-                  <div className="mt-4 p-4 bg-gray-900 rounded-md space-y-3">
-                    <p className="font-semibold text-green-400">Why This Matters for Mining:</p>
-                    <p>
-                        Bitcoin mining requires finding a hash with a specific number of leading zeros. The more zeros required, the harder it is to find a valid hash. This is what makes Bitcoin mining a competitive process - miners must perform many hash calculations to find one that meets the difficulty requirement.
-                    </p>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </p>
+          <OddsExplanation maybeServerStartingMinLeadingZeroCount={maybeServerStartingMinLeadingZeroCount} />
         </div>
       </div>
 

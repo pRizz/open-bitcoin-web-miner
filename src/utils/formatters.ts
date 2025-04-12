@@ -7,7 +7,7 @@ export const formatDuration = (ms: number) => {
   return `${minutes}m ${remainingSeconds}s`;
 };
 
-export const formatLargeNumber = (num: number): string => {
+export const formatLargeNumber = (num: number, decimals: number = 2): string => {
   const magnitudes = [
     { value: 1e24, name: 'septillion' },
     { value: 1e21, name: 'sextillion' },
@@ -21,7 +21,7 @@ export const formatLargeNumber = (num: number): string => {
 
   for (const { value, name } of magnitudes) {
     if (num >= value) {
-      return `${(num / value).toFixed(2)} ${name}`;
+      return `${(num / value).toFixed(decimals)} ${name}`;
     }
   }
 

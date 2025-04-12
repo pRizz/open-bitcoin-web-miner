@@ -8,8 +8,7 @@ export interface NoncelessBlockHeader {
     compact_target: number[]; // 4 bytes
   }
 
-export interface MiningChallengeResponse {
-    nonceless_block_header: NoncelessBlockHeader;
+export interface MiningChallengeResponse extends HasFullProofOfReward {
     target_leading_zero_count: number;
   }
 
@@ -18,14 +17,10 @@ export interface MiningSubmission {
     nonceless_block_header: NoncelessBlockHeader;
   }
 
-export interface ProofOfRewardRaw {
-  block_template_url: string;
-  nonceless_block_header: NoncelessBlockHeader;
-  coinbase_transaction: string;
-}
-
-export interface ProofOfRewardParsed {
-  block_template_url: URL;
+export interface ProofOfReward {
+  public_block_template_download_link: string;
+  block_template_fetch_time_unix_seconds: number;
+  coinbase_transaction_hex: string;
 }
 
 export enum MiningSubmissionStatus {
@@ -51,9 +46,12 @@ export interface DifficultyUpdate {
     new_min_leading_zero_count: number;
   }
 
-export interface BlockTemplateUpdate {
-    nonceless_block_header: NoncelessBlockHeader;
-  }
+export interface BlockTemplateUpdate extends HasFullProofOfReward {}
+
+export interface HasFullProofOfReward {
+  nonceless_block_header: NoncelessBlockHeader;
+  proof_of_reward: ProofOfReward;
+}
 
 export interface LeaderboardAddSuccess {
   block_hash_hex: string;

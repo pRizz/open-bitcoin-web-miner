@@ -96,7 +96,7 @@ export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
                   <a
                     href={`https://bitcoinexplorer.org/block-height/${submission.blockHeight}`}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener"
                     className="text-blue-500 hover:text-blue-600 underline"
                   >
                     {submission.blockHeight.toLocaleString()}
