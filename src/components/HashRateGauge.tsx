@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { formatHashRate, calculateSecondsToFindBlock, formatTime } from "@/utils/mining";
+import { formatHashRateWithShortSIUnits, calculateSecondsToFindBlock, formatTime, formatHashRateWithNumericUnits, formatHashRateWithLongSIUnits } from "@/utils/mining";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
@@ -79,8 +79,16 @@ export function HashRateGauge() {
 
   // Helper function to format hash rate without decimals
   const formatHashRateWithoutDecimals = (value: number) => {
-    const formatted = formatHashRate(value);
+    const formatted = formatHashRateWithShortSIUnits(value);
     return formatted.replace(/\.00/g, '');
+  };
+
+  const formatHashRateWithLongSIAndNumericUnitsWithoutDecimals = (value: number) => {
+    let formatted_programmer_units = formatHashRateWithLongSIUnits(value);
+    formatted_programmer_units = formatted_programmer_units.replace(/\.00/g, '');
+    let formatted_numeric_units = formatHashRateWithNumericUnits(value);
+    formatted_numeric_units = formatted_numeric_units.replace(/\.00/g, '');
+    return `${formatted_programmer_units} (${formatted_numeric_units})`;
   };
 
   return (
@@ -220,7 +228,7 @@ export function HashRateGauge() {
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="top" align="center">
-                        {formatHashRateWithoutDecimals(value)}
+                        {formatHashRateWithLongSIAndNumericUnitsWithoutDecimals(value)}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

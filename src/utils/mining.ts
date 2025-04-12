@@ -84,7 +84,7 @@ export function hex2bin(hex: string): string {
   return bin;
 }
 
-export function formatHashRate(hashRate: number): string {
+export function formatHashRateWithShortSIUnits(hashRate: number): string {
   if (hashRate >= 1e18) {
     return `${(hashRate / 1e18).toFixed(2)} EH/s`;
   } else if (hashRate >= 1e15) {
@@ -97,6 +97,40 @@ export function formatHashRate(hashRate: number): string {
     return `${(hashRate / 1e6).toFixed(2)} MH/s`;
   } else if (hashRate >= 1e3) {
     return `${(hashRate / 1e3).toFixed(2)} KH/s`;
+  }
+  return `${hashRate.toFixed(2)} H/s`;
+}
+
+export function formatHashRateWithLongSIUnits(hashRate: number): string {
+  if (hashRate >= 1e18) {
+    return `${(hashRate / 1e18).toFixed(2)} ExaH/s`;
+  } else if (hashRate >= 1e15) {
+    return `${(hashRate / 1e15).toFixed(2)} PetaH/s`;
+  } else if (hashRate >= 1e12) {
+    return `${(hashRate / 1e12).toFixed(2)} TeraH/s`;
+  } else if (hashRate >= 1e9) {
+    return `${(hashRate / 1e9).toFixed(2)} GigaH/s`;
+  } else if (hashRate >= 1e6) {
+    return `${(hashRate / 1e6).toFixed(2)} MegaH/s`;
+  } else if (hashRate >= 1e3) {
+    return `${(hashRate / 1e3).toFixed(2)} KiloH/s`;
+  }
+  return `${hashRate.toFixed(2)} H/s`;
+}
+
+export function formatHashRateWithNumericUnits(hashRate: number): string {
+  if (hashRate >= 1e18) {
+    return `${(hashRate / 1e18).toFixed(2)} Quintillion H/s`;
+  } else if (hashRate >= 1e15) {
+    return `${(hashRate / 1e15).toFixed(2)} Quadrillion H/s`;
+  } else if (hashRate >= 1e12) {
+    return `${(hashRate / 1e12).toFixed(2)} Trillion H/s`;
+  } else if (hashRate >= 1e9) {
+    return `${(hashRate / 1e9).toFixed(2)} Billion H/s`;
+  } else if (hashRate >= 1e6) {
+    return `${(hashRate / 1e6).toFixed(2)} Million H/s`;
+  } else if (hashRate >= 1e3) {
+    return `${(hashRate / 1e3).toFixed(2)} Thousand H/s`;
   }
   return `${hashRate.toFixed(2)} H/s`;
 }

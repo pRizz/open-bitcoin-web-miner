@@ -1,4 +1,4 @@
-import { formatHashRate } from "@/utils/mining";
+import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 
 interface GaugeBarProps {
   percentage: number;
@@ -7,7 +7,7 @@ interface GaugeBarProps {
 
 // Helper function to format hash rate without decimals
 const formatHashRateWithoutDecimals = (value: number) => {
-  const formatted = formatHashRate(value);
+  const formatted = formatHashRateWithShortSIUnits(value);
   return formatted.replace(/\.00/g, '');
 };
 

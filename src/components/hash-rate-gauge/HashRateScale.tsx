@@ -1,4 +1,4 @@
-import { formatHashRate } from "@/utils/mining";
+import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 
 interface MinerReference {
   hashRate: number;
@@ -15,7 +15,7 @@ const MAGNITUDE_TICKS = Array.from({ length: 15 }, (_, i) => Math.pow(10, i));
 
 // Helper function to format hash rate without decimals
 const formatHashRateWithoutDecimals = (value: number) => {
-  const formatted = formatHashRate(value);
+  const formatted = formatHashRateWithShortSIUnits(value);
   return formatted.replace(/\.00/g, '');
 };
 

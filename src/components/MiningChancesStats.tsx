@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { HelpCircle } from "lucide-react";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { useMining } from "@/contexts/MiningContext";
-import { calculateSecondsToFindBlock, formatHashRate, formatTime } from "@/utils/mining";
+import { calculateSecondsToFindBlock, formatHashRateWithShortSIUnits, formatTime } from "@/utils/mining";
 import { Card } from "@/components/ui/card";
 
 const CONFIDENCE_LEVELS = [
@@ -159,7 +159,7 @@ export function MiningChancesStats({ minerCount, minerCountLabel, showCombinedHa
               <div className="flex gap-2">
                 <span className="text-gray-500">Combined Hash Rate:</span>
                 <span>
-                  {formatHashRate(combinedHashRate)}
+                  {formatHashRateWithShortSIUnits(combinedHashRate)}
                 </span>
               </div>
             ) : null}

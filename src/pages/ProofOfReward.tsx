@@ -9,7 +9,7 @@ import {
 import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
-import { formatHashRate } from "@/utils/mining";
+import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { formatLargeNumber } from "@/utils/formatters";
 import { Database, Target, Binary, CheckCircle2, XCircle } from "lucide-react";
 

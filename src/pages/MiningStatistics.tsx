@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
-import { formatHashRate } from "@/utils/mining";
+import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { formatLargeNumber } from "@/utils/formatters";
 import { Database, Target, Binary, CheckCircle2, XCircle } from "lucide-react";
 
@@ -33,7 +33,7 @@ export default function MiningStatisticsPage() {
 
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Hash Rate:</span>
-            <span>{formatHashRate(miningStats.maybeHashRate)}</span>
+            <span>{formatHashRateWithShortSIUnits(miningStats.maybeHashRate)}</span>
           </div>
 
           <div className="flex justify-between items-center">
