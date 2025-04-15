@@ -5,12 +5,12 @@
   }
   to {
     /* transform: translateX(200px); */
-    transform: translateX(0px);
+    transform: translateX(20px);
   }
 }
 
 .rightwards-linear-div {
-  animation: move-right 5s linear forwards;
+  animation: move-right 1s ease-out forwards;
   position: absolute;
   pointer-events: none;
   z-index: 1000;
@@ -21,12 +21,13 @@
     transform: translateY(0);
   }
   to { 
-    transform: translateY(-20px);
+    /* transform: translateY(-20px); */
+    transform: translateY(0);
   }
 }
 
 .upwards-linear-div {
-  animation: move-up 5s linear forwards;
+  animation: move-up 1s linear forwards;
   position: absolute;
   pointer-events: none;
   z-index: 1000;
@@ -37,7 +38,8 @@
     transform: translateY(0);
   }
   to { 
-    transform: translateY(-20px);
+    /* transform: translateY(-20px); */
+    transform: translateY(0);
   }
 }
 
