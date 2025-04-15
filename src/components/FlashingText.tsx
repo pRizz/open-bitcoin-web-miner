@@ -7,9 +7,10 @@ interface FlashingTextProps {
   className?: string;
   disableFlash?: boolean;
   defaultValue?: string | number | undefined | null;
+  enableGreenDelta?: boolean;
 }
 
-export const FlashingText = ({ value, className, defaultValue = 'N/A', disableFlash = false }: FlashingTextProps) => {
+export const FlashingText = ({ value, className, defaultValue = 'N/A', disableFlash = false, enableGreenDelta = false }: FlashingTextProps) => {
   const [isFlashing, setIsFlashing] = useState(false);
   const [prevValue, setPrevValue] = useState(value);
   const timeoutRef = useRef<NodeJS.Timeout>();
@@ -59,6 +60,7 @@ export const FlashingText = ({ value, className, defaultValue = 'N/A', disableFl
         <FloatingDeltaText
           value={value}
           prevValue={prevValue}
+          enableGreenDelta={enableGreenDelta}
         />
       </span>
     </div>

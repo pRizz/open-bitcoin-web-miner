@@ -83,7 +83,7 @@ export function NetworkStats() {
   const comparison = probability ? findClosestComparison(probability) : undefined;
 
   return (
-    <Card className="p-6 glass-card">
+    <Card className="p-6 glass-card" style={{ zIndex: 9 }}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Network Stats</h2>
         <div className="flex items-center gap-2">

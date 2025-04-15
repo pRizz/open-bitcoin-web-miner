@@ -318,7 +318,7 @@ export const MiningStatePanel = () => {
               <CheckCircle2 className="w-4 h-4 text-green-500" />
               Accepted Solutions
             </span>
-            <FlashingText value={miningStats.acceptedSolutions || "0"} />
+            <FlashingText value={miningStats.acceptedSolutions || "0"} enableGreenDelta />
           </div>
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">

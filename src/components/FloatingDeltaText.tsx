@@ -6,6 +6,7 @@ interface FloatingDeltaTextProps {
   value: string | number | undefined | null;
   prevValue: string | number | undefined | null;
   className?: string;
+  enableGreenDelta?: boolean;
 }
 
 interface FloatingText {
@@ -17,7 +18,7 @@ interface FloatingText {
 
 const RightwardsLinearDiv = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="rightwards-linear-div">
+    <div className="rightwards-linear-div" style={{ zIndex: 1000 }}>
       {children}
     </div>
   )
@@ -25,7 +26,7 @@ const RightwardsLinearDiv = ({ children }: { children: React.ReactNode }) => {
 
 const VerticalSineWaveDiv = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="vertical-sine-wave-div">
+    <div className="vertical-sine-wave-div" style={{ zIndex: 1000 }}>
       {children}
     </div>
   )
@@ -33,14 +34,17 @@ const VerticalSineWaveDiv = ({ children }: { children: React.ReactNode }) => {
 
 const UpwardsLinearDiv = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="upwards-linear-div">
+    <div className="upwards-linear-div" style={{ zIndex: 1000 }}>
       {children}
     </div>
   )
 }
 
-export const FloatingDeltaText = ({ value, prevValue, className }: FloatingDeltaTextProps) => {
+export const FloatingDeltaText = ({ value, prevValue, className, enableGreenDelta = false }: FloatingDeltaTextProps) => {
   const [activeTexts, setActiveTexts] = useState<FloatingText[]>([]);
+  if (!enableGreenDelta) {
+    return null;
+  }
 
   useEffect(() => {
     // Early return if values are the same or either is undefined/null
@@ -66,8 +70,10 @@ export const FloatingDeltaText = ({ value, prevValue, className }: FloatingDelta
     }
     
     // Generate base position with slight randomization
-    const randomX = (Math.random() - 0.5) * 40; // -20 to +20 pixels
-    const randomY = -30 - Math.random() * 30; // -30 to -60 pixels
+    // const randomX = (Math.random() - 0.5) * 40; // -20 to +20 pixels
+    // const randomY = -30 - Math.random() * 30; // -30 to -60 pixels
+    const randomX = 0;
+    const randomY = 0;
     
     const newText: FloatingText = {
       id: `${Date.now()}-${Math.random()}`,
@@ -101,6 +107,7 @@ export const FloatingDeltaText = ({ value, prevValue, className }: FloatingDelta
             position: 'absolute',
             left: `${text.basePosition.x}px`,
             top: `${text.basePosition.y}px`,
+            zIndex: 1000
           }}
         >
           <RightwardsLinearDiv>

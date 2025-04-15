@@ -4,7 +4,8 @@
     transform: translateX(0);
   }
   to {
-    transform: translateX(100px);
+    /* transform: translateX(200px); */
+    transform: translateX(0px);
   }
 }
 
@@ -32,7 +33,12 @@
 }
 
 @keyframes upDown {
-  to { transform: translatey(20px);}
+  from {
+    transform: translateY(0);
+  }
+  to { 
+    transform: translateY(-20px);
+  }
 }
 
 .vertical-sine-wave-div {
