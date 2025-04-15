@@ -5,8 +5,7 @@ import { formatLargeNumber } from "@/utils/formatters";
 
 export const OddsExplanation = ({ maybeServerStartingMinLeadingZeroCount }: { maybeServerStartingMinLeadingZeroCount: number | undefined }) => (
   <div className="text-muted-foreground text-xs">
-                  The odds any random hash has <FlashingText value={" " + maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" /> leading zeros are 1 in 2^
-    <FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" />
+    The odds any random hash has {maybeServerStartingMinLeadingZeroCount?.toLocaleString() ?? "n"} leading zeros are 1 in 2^{maybeServerStartingMinLeadingZeroCount?.toLocaleString() ?? "n"}
     {maybeServerStartingMinLeadingZeroCount && <span className="text-muted-foreground"> or ~ 1 in {formatLargeNumber(Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0), 0)}</span>}
     <Dialog>
       <DialogTrigger>
