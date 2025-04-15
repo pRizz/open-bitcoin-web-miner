@@ -1,4 +1,4 @@
-import { NoncelessBlockHeader } from "./websocket";
+import { NoncelessBlockHeader, ProofOfReward } from "./websocket";
 
 export interface SessionMiningStats {
   maybeHashRate?: number;
@@ -47,4 +47,5 @@ export type MiningMode = "cpu" | "webgl" | "webgpu";
 export interface MiningChallenge {
   blockHeader: NoncelessBlockHeader;
   targetZeros: number;
+  proofOfReward: ProofOfReward;
 }

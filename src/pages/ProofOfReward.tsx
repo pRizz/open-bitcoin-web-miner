@@ -11,7 +11,119 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { formatLargeNumber } from "@/utils/formatters";
-import { Database, Target, Binary, CheckCircle2, XCircle } from "lucide-react";
+import { Database, Target, Binary, CheckCircle2, XCircle, Copy } from "lucide-react";
+import { MiningHistoryItem } from "@/contexts/mining/types";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+
+const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem, index: number, key: string }) => {
+  const { toast } = useToast();
+
+  const handleCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: "Transaction hex copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div key={key}>
+      <Card className="p-4">
+        <CardHeader>
+          <CardTitle>Mining Challenge {index + 1}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Target leading zeros: {item.targetZeros}</p>
+          <p>Time retrieved: { new Date(item.timestamp).toLocaleString()}</p>
+          <br/>
+          <Card className="p-4">
+            <CardHeader className="text-lg font-bold pb-4">
+              <CardTitle>Block Header</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Version: {item.blockHeader.version.toString()}</p>
+              <p>Previous block hash: {item.blockHeader.previous_block_hash.toString()}</p>
+              <p>Merkle root: {item.blockHeader.merkle_root.toString()}</p>
+              <p>Timestamp: {item.blockHeader.timestamp.toString()}</p>
+              <p>Compact target: {item.blockHeader.compact_target.toString()}</p>
+            </CardContent>
+          </Card>
+          <Card className="p-4">
+            <CardHeader>
+              <CardTitle>Coinbase Transaction</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }} className="font-mono">{item.proofOfReward.coinbase_transaction_hex}</div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopy(item.proofOfReward.coinbase_transaction_hex)}
+                    title="Copy transaction hex"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                Copy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('https://bitcoincore.tech/apps/bitcoinjs-ui/index.html', '_blank')}
+                    title="Verify transaction in Bitcoin JS UI"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                Verify Transaction
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-4">
+            <CardHeader>
+              <CardTitle>Block Template</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }} className="font-mono">{item.proofOfReward.public_block_template_download_link}</div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopy(item.proofOfReward.public_block_template_download_link)}
+                    title="Copy block template URL"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                Copy URL
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(item.proofOfReward.public_block_template_download_link, '_blank')}
+                    title="Download block template"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                Download Template
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 export default function ProofOfRewardPage() {
   const { miningStats } = useMining();
@@ -30,24 +142,11 @@ export default function ProofOfRewardPage() {
 
         <CardContent>
           <div className="space-y-4">
-            {miningHistory.map((item, index) => (
-              <div key={index}>
-                <Card className="p-4">
-                  <div className="text-lg font-bold pb-4">
-                  Block Header
-                  </div>
-                  <Card className="p-4">
-                    <p>Version: {item.blockHeader.version.toString()}</p>
-                    <p>Previous block hash: {item.blockHeader.previous_block_hash.toString()}</p>
-                    <p>Merkle root: {item.blockHeader.merkle_root.toString()}</p>
-                    <p>Timestamp: {item.blockHeader.timestamp.toString()}</p>
-                    <p>Compact target: {item.blockHeader.compact_target.toString()}</p>
-                  </Card>
-                  <p>Target leading zeros: {item.targetZeros}</p>
-                  <p>Time retrieved: { new Date(item.timestamp).toLocaleString()}</p>
-                </Card>
-              </div>
-            ))}
+            {miningHistory.length > 0 && miningHistory.map((item, index) => (
+              <MiningChallengeElement key={index.toString()} item={item} index={index} />
+            )) || (
+              <p className="text-muted-foreground">No mining challenges found. Start mining to see your mining challenges.</p>
+            )}
           </div>
         </CardContent>
       </Card>

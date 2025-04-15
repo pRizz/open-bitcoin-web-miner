@@ -48,47 +48,47 @@ export const FloatingDeltaText = ({ value, prevValue, className, enableGreenDelt
 
   useEffect(() => {
     // Early return if values are the same or either is undefined/null
-    if (value === prevValue || value === undefined || value === null || 
+    if (value === prevValue || value === undefined || value === null ||
         prevValue === undefined || prevValue === null) {
       return;
     }
-    
+
     // Extract numeric values from strings if needed
     const currentNum = typeof value === 'string' ? parseFloat(value) : value;
     const prevNum = typeof prevValue === 'string' ? parseFloat(prevValue) : prevValue;
-    
+
     // Early return if values are not valid numbers
     if (isNaN(currentNum) || isNaN(prevNum)) {
       return;
     }
-    
+
     const newDelta = currentNum - prevNum;
-    
+
     // Early return if delta is zero
     if (newDelta === 0) {
       return;
     }
-    
+
     // Generate base position with slight randomization
     // const randomX = (Math.random() - 0.5) * 40; // -20 to +20 pixels
     // const randomY = -30 - Math.random() * 30; // -30 to -60 pixels
     const randomX = 0;
     const randomY = 0;
-    
+
     const newText: FloatingText = {
       id: `${Date.now()}-${Math.random()}`,
       delta: newDelta,
       startTime: Date.now(),
       basePosition: { x: randomX, y: randomY }
     };
-    
+
     setActiveTexts(prev => [...prev, newText]);
-    
+
     // Remove this specific text after animation
     const timeout = setTimeout(() => {
       setActiveTexts(prev => prev.filter(text => text.id !== newText.id));
     }, 5000);
-    
+
     return () => clearTimeout(timeout);
   }, [value, prevValue]);
 

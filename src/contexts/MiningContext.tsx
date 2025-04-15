@@ -6,7 +6,7 @@ import { MiningContextType, MiningHistoryItem } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
-import { MiningSubmission, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse } from "@/types/websocket";
+import { MiningSubmission, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse, BlockTemplateUpdate } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { useMiningEvents } from "./mining/MiningEventsContext";
 
@@ -116,7 +116,8 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     const miningHistoryItem: MiningHistoryItem = {
       blockHeader: challenge.blockHeader,
       targetZeros: challenge.targetZeros,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      proofOfReward: challenge.proofOfReward
     };
     setMiningHistory([...miningHistory, miningHistoryItem]);
     workerPool.updateMiningChallenge(challenge);
@@ -127,13 +128,14 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     emit('onNewChallengeReceived');
   }, [addLog, miningState, workerPool, emit, miningHistory, setMiningHistory]);
 
-  const handleBlockTemplateUpdate = useCallback((blockHeader: NoncelessBlockHeader) => {
+  const handleBlockTemplateUpdate = useCallback((blockTemplateUpdate: BlockTemplateUpdate) => {
     addLog("New block template received");
-    workerPool.updateBlockHeader(blockHeader);
+    workerPool.updateBlockHeader(blockTemplateUpdate.nonceless_block_header);
     const miningHistoryItem: MiningHistoryItem = {
-      blockHeader: blockHeader,
+      blockHeader: blockTemplateUpdate.nonceless_block_header,
       targetZeros: miningState.miningStats.maybeRequiredBinaryZeroes,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      proofOfReward: blockTemplateUpdate.proof_of_reward
     };
     setMiningHistory([...miningHistory, miningHistoryItem]);
   }, [addLog, workerPool, miningHistory, setMiningHistory, miningState]);

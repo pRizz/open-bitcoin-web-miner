@@ -1,4 +1,4 @@
-import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, MiningSubmissionResponse } from "@/types/websocket";
+import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, MiningSubmissionResponse, BlockTemplateUpdate } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback } from "react";
 import { useMinerInfo } from "./MinerInfoContext";
@@ -18,7 +18,7 @@ const MiningWebSocketContext = createContext<MiningWebSocketContextType | undefi
 
 interface MiningWebSocketCallbacks {
   onNewChallenge: (challenge: MiningChallenge) => void;
-  onBlockTemplateUpdate: (blockHeader: NoncelessBlockHeader) => void;
+  onBlockTemplateUpdate: (blockTemplateUpdate: BlockTemplateUpdate) => void;
   onSubmissionResponse: (submissionResponse: MiningSubmissionResponse) => void;
   onConnectionStateChange: (connected: boolean) => void;
   onError: (error: string) => void;
@@ -77,11 +77,12 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
 
       switch (message.type) {
       case "ChallengeResponse": {
-        const { nonceless_block_header, target_leading_zero_count } = message.data;
+        const { nonceless_block_header, target_leading_zero_count, proof_of_reward } = message.data;
         maybeCallbacks.current?.onNewChallenge(
           {
             blockHeader: nonceless_block_header,
-            targetZeros: target_leading_zero_count
+            targetZeros: target_leading_zero_count,
+            proofOfReward: proof_of_reward
           }
         );
         break;
@@ -96,8 +97,13 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
         break;
       }
       case "BlockTemplateUpdate": {
-        const { nonceless_block_header } = message.data;
-        maybeCallbacks.current?.onBlockTemplateUpdate(nonceless_block_header);
+        const { nonceless_block_header, proof_of_reward } = message.data;
+        maybeCallbacks.current?.onBlockTemplateUpdate(
+          {
+            nonceless_block_header,
+            proof_of_reward
+          }
+        );
         break;
       }
       case "LeaderboardAddSuccess": {
