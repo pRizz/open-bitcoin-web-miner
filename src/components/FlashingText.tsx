@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { FloatingDeltaText } from './FloatingDeltaText';
 
 interface FlashingTextProps {
   value: string | number | undefined | null;
@@ -43,15 +44,23 @@ export const FlashingText = ({ value, className, defaultValue = 'N/A', disableFl
   }, [value, prevValue, disableFlash]);
 
   return (
-    <span
-      key={disableFlash ? 0 : animationKeyRef.current}
-      className={cn(
-        "font-mono text-xs transition-all",
-        !disableFlash && isFlashing && "animate-flash",
-        className
-      )}
-    >
-      {value || defaultValue}
-    </span>
+    <div className="relative">
+      <span
+        key={disableFlash ? 0 : animationKeyRef.current}
+        className={cn(
+          "font-mono text-xs transition-all relative",
+          !disableFlash && isFlashing && "animate-flash",
+          className
+        )}
+      >
+        {value || defaultValue}
+      </span>
+      <span className="relative inset-0 pointer-events-none">
+        <FloatingDeltaText
+          value={value}
+          prevValue={prevValue}
+        />
+      </span>
+    </div>
   );
 };

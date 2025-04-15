@@ -1,0 +1,43 @@
+
+@keyframes move-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100px);
+  }
+}
+
+.rightwards-linear-div {
+  animation: move-right 5s linear forwards;
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+@keyframes move-up {
+  from {
+    transform: translateY(0);
+  }
+  to { 
+    transform: translateY(-20px);
+  }
+}
+
+.upwards-linear-div {
+  animation: move-up 5s linear forwards;
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+@keyframes upDown {
+  to { transform: translatey(20px);}
+}
+
+.vertical-sine-wave-div {
+  animation: upDown 0.5s alternate infinite ease-in-out forwards;
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+}

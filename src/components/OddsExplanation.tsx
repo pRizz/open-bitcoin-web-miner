@@ -4,7 +4,7 @@ import { FlashingText } from "./FlashingText";
 import { formatLargeNumber } from "@/utils/formatters";
 
 export const OddsExplanation = ({ maybeServerStartingMinLeadingZeroCount }: { maybeServerStartingMinLeadingZeroCount: number | undefined }) => (
-  <p className="text-muted-foreground text-xs">
+  <div className="text-muted-foreground text-xs">
                   The odds any random hash has <FlashingText value={" " + maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" /> leading zeros are 1 in 2^
     <FlashingText value={maybeServerStartingMinLeadingZeroCount?.toLocaleString()} defaultValue="n" />
     {maybeServerStartingMinLeadingZeroCount && <span className="text-muted-foreground"> or ~ 1 in {formatLargeNumber(Math.pow(2, maybeServerStartingMinLeadingZeroCount || 0), 0)}</span>}
@@ -56,5 +56,5 @@ export const OddsExplanation = ({ maybeServerStartingMinLeadingZeroCount }: { ma
         </div>
       </DialogContent>
     </Dialog>
-  </p>
+  </div>
 );
