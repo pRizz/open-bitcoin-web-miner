@@ -1,0 +1,63 @@
+Block Header
+Version: 0,0,0,32
+
+Previous block hash: 194,245,143,192,92,196,24,120,26,214,104,248,148,205,132,130,217,222,2,51,88,40,241,129,54,102,181,38,17,13,0,0
+
+Merkle root: 149,49,220,154,36,51,165,24,196,128,164,187,159,131,221,34,142,119,118,44,104,46,200,249,0,32,85,90,224,253,183,178
+'9531dc9a2433a518c480a4bb9f83dd228e77762c682ec8f90020555ae0fdb7b2'
+Timestamp: 188,54,0,104
+
+Compact target: 255,255,127,32
+
+
+generated block from block template and coinbase tx:
+block, Block {
+  version: 536870912,
+  prevHash: <Buffer c2 f5 8f c0 5c c4 18 78 1a d6 68 f8 94 cd 84 82 d9 de 02 33 58 28 f1 81 36 66 b5 26 11 0d 00 00>,
+  merkleRoot: [
+    <Buffer b2 b7 fd e0 5a 55 20 00 f9 c8 2e 68 2c 76 77 8e 22 dd 83 9f bb a4 80 c4 18 a5 33 24 9a dc 31 95>
+  ],
+  timestamp: 1744844476,
+  witnessCommit: undefined,
+  bits: 545259519,
+  nonce: 0,
+  transactions: [
+    Transaction {
+      version: 2,
+      locktime: 0,
+      ins: [Array],
+      outs: [Array]
+    }
+  ]
+}
+
+From proof of reward, block header merkle root:
+Merkle root: 149,49,220,154,36,51,165,24,196,128,164,187,159,131,221,34,142,119,118,44,104,46,200,249,0,32,85,90,224,253,183,178
+'9531dc9a2433a518c480a4bb9f83dd228e77762c682ec8f90020555ae0fdb7b2'
+
+Merkle root from generated block header:
+> const input2 = "b2 b7 fd e0 5a 55 20 00 f9 c8 2e 68 2c 76 77 8e 22 dd 83 9f bb a4 80 c4 18 a5 33 24 9a dc 31 95 ";
+undefined
+> const result = reverseAndCompactHex(input2);
+Uncaught SyntaxError: Identifier 'result' has already been declared
+> const result2 = reverseAndCompactHex(input2);
+'9531dc9a2433a518c480a4bb9f83dd228e77762c682ec8f90020555ae0fdb7b2'
+9531dc9a2433a518c480a4bb9f83dd228e77762c682ec8f90020555ae0fdb7b2
+
+This proves that the merkle root in the generated block header is the same as the one in the proof of reward.
+
+> function reverseAndCompactHex(hexStr) {
+    return hexStr
+        .trim()                     // remove any trailing space
+        .split(' ')                 // split into array of hex bytes
+        .reverse()                  // reverse the array
+        .join('');                  // join into a single string with no spaces
+}
+
+> function toHexString(byteArray) {  
+    return byteArray.map(num => {      
+        if (num < 0 || num > 255 || !Number.isInteger(num)) {        
+            throw new Error(`Invalid byte value: ${num}`);   
+               }      
+        return num.toString(16).padStart(2, '0');    
+    }).join('');}
