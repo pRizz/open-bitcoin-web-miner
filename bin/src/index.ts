@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { bytesToBuffer, doubleSha256 } from './RewardVerifier';
+import { bytesToBuffer, doubleSha256, createBlockFromTemplate } from './RewardVerifier';
 import { calculateRequiredLeadingBinaryZeroes } from './miningCopy';
+import { readFileSync } from 'fs';
 
 // Run with:
 // pnpm run bin:dev
@@ -51,3 +52,23 @@ console.log(`calculateRequiredLeadingBinaryZeroes(1_000_000_000_000_000) (1 PHas
 // calculateRequiredLeadingBinaryZeroes(1_000_000_000) (1 GHashes): 61
 // calculateRequiredLeadingBinaryZeroes(1_000_000_000_000) (1 THashes): 71
 // calculateRequiredLeadingBinaryZeroes(1_000_000_000_000_000) (1 PHashes): 81
+
+// Print pwd
+console.log(`pwd: ${process.cwd()}`);
+
+const blockTemplateJSON = readFileSync('./bin/test-data/2025-04-16_23-01-16_block_template.json', 'utf8');
+const blockTemplate = JSON.parse(blockTemplateJSON);
+console.log(`blockTemplate: ${blockTemplate}`);
+console.log(`blockTemplate,`, blockTemplate);
+
+const coinbaseHex = readFileSync('./bin/test-data/2025-04-16_23-01-16_coinbaseHex.txt', 'utf8');
+console.log(`coinbaseHex: ${coinbaseHex}`);
+const coinbaseTxBuffer = Buffer.from(coinbaseHex, 'hex');
+console.log(`coinbaseTxBuffer: ${coinbaseTxBuffer}`);
+
+// as hex string
+// const coinbaseTxHex = coinbaseTxBuffer.toString('hex');
+// console.log(`coinbaseTxHex: ${coinbaseTxHex}`);
+
+const block = createBlockFromTemplate(blockTemplate, coinbaseHex);
+// console.log(`block: ${block}`);
