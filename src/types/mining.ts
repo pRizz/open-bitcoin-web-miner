@@ -23,12 +23,12 @@ export interface MiningStats extends SessionMiningStats, PersistentMiningStats {
 export interface HashSolution {
   id: string;
   hash: string;
-  nonce: number;
+  nonceNumber: number;
   timestamp: number;
-  merkleRoot: string;
-  previousBlock: string;
-  version: number;
-  bits: string;
+  merkleRootHex: string;
+  previousBlockHex: string;
+  versionNumber: number;
+  bitsHex: string;
   binaryZeroes: number;
   hexZeroes: number;
   timeToFindMs: number;

@@ -50,11 +50,11 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
               <CardTitle>Block Header</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Version: {item.blockHeader.version.toString()}</p>
-              <p>Previous block hash: {item.blockHeader.previous_block_hash.toString()}</p>
-              <p>Merkle root: {item.blockHeader.merkle_root.toString()}</p>
-              <p>Timestamp: {item.blockHeader.timestamp.toString()}</p>
-              <p>Compact target: {item.blockHeader.compact_target.toString()}</p>
+              <p>Version as hexadecimal: {item.blockHeader.version_hex}</p>
+              <p>Previous block hash as hexadecimal: {item.blockHeader.previous_block_hash_hex}</p>
+              <p>Merkle root as hexadecimal: {item.blockHeader.merkle_root_hex}</p>
+              <p>Timestamp as hexadecimal: {item.blockHeader.timestamp_hex}</p>
+              <p>Compact target as hexadecimal: {item.blockHeader.compact_target_hex}</p>
             </CardContent>
           </Card>
           <Card className="p-4">

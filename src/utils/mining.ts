@@ -149,12 +149,12 @@ export function validateBitcoinAddress(address: string): boolean {
 
 export function generateMockBlockHeader(): Partial<HashSolution> {
   return {
-    version: 0x20000000,
-    previousBlock: "00000000000000000007c31205989f6743ccfe4266b0dbe340a0b825c7795296",
-    merkleRoot: "b14bef53a7c4cc091005c70e5a3aff49ad8c5df4f785c5ddd5e5be2b9c627b68",
+    versionNumber: 0x20000000,
+    previousBlockHex: "00000000000000000007c31205989f6743ccfe4266b0dbe340a0b825c7795296",
+    merkleRootHex: "b14bef53a7c4cc091005c70e5a3aff49ad8c5df4f785c5ddd5e5be2b9c627b68",
     timestamp: Math.floor(Date.now() / 1000),
-    bits: "170c1f55",
-    nonce: Math.floor(Math.random() * 0xFFFFFFFF),
+    bitsHex: "170c1f55",
+    nonceNumber: Math.floor(Math.random() * 0xFFFFFFFF),
   };
 }
 

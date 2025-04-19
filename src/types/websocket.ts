@@ -1,11 +1,11 @@
 /// Types that mirror the Rust WebSocket protocol
 /// Bitcoin block headers use little-endian encoding for the version, timestamp, target, and nonce. <- Verify this.
 export interface NoncelessBlockHeader {
-    version: number[]; // 4 bytes
-    previous_block_hash: number[]; // 32 bytes
-    merkle_root: number[]; // 32 bytes
-    timestamp: number[]; // 4 bytes
-    compact_target: number[]; // 4 bytes
+    version_hex: string; // 4 underlying bytes, 8 character hex string
+    previous_block_hash_hex: string; // 32 underlying bytes, 64 character hex string
+    merkle_root_hex: string; // 32 underlying bytes, 64 character hex string
+    timestamp_hex: string; // 4 underlying bytes, 8 character hex string
+    compact_target_hex: string; // 4 underlying bytes, 8 character hex string
   }
 
 export interface MiningChallengeResponse extends HasFullProofOfReward {
@@ -13,7 +13,7 @@ export interface MiningChallengeResponse extends HasFullProofOfReward {
   }
 
 export interface MiningSubmission {
-    nonceVecU8: number[];
+    nonceHex: string; // 4 underlying bytes, 8 character hex string
     nonceless_block_header: NoncelessBlockHeader;
   }
 
@@ -31,7 +31,7 @@ export enum MiningSubmissionStatus {
 }
 
 export interface WorkMetadata {
-  block_header_hash: number[];
+  block_header_hash_hex: string; // 32 underlying bytes, 64 character hex string
   block_height: number;
   status: MiningSubmissionStatus;
   maybe_rejection_reason?: string | null;
@@ -76,14 +76,20 @@ export type WebSocketClientMessage =
 
 export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number): Uint8Array {
   if (
-    header.version.length !== 4 ||
-        header.previous_block_hash.length !== 32 ||
-        header.merkle_root.length !== 32 ||
-        header.timestamp.length !== 4 ||
-        header.compact_target.length !== 4
+    header.version_hex.length !== 8 ||
+        header.previous_block_hash_hex.length !== 64 ||
+        header.merkle_root_hex.length !== 64 ||
+        header.timestamp_hex.length !== 8 ||
+        header.compact_target_hex.length !== 8
   ) {
     throw new Error("Invalid block header field lengths");
   }
+
+  const version_bytes = header.version_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const previous_block_hash_bytes = header.previous_block_hash_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const merkle_root_bytes = header.merkle_root_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const timestamp_bytes = header.timestamp_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const compact_target_bytes = header.compact_target_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
 
   // Create an 80-byte buffer
   const buffer = new Uint8Array(80);
@@ -97,11 +103,11 @@ export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number
   }
 
   // Copy fields in order
-  copyToBuffer(header.version, 4);
-  copyToBuffer(header.previous_block_hash, 32);
-  copyToBuffer(header.merkle_root, 32);
-  copyToBuffer(header.timestamp, 4);
-  copyToBuffer(header.compact_target, 4);
+  copyToBuffer(version_bytes, 4);
+  copyToBuffer(previous_block_hash_bytes, 32);
+  copyToBuffer(merkle_root_bytes, 32);
+  copyToBuffer(timestamp_bytes, 4);
+  copyToBuffer(compact_target_bytes, 4);
 
   // Convert nonce (number) to 4-byte little-endian array
   buffer.set(serializeNonceLE(nonce), offset);

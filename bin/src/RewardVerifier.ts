@@ -33,17 +33,17 @@ export function doubleSha256(data: Buffer): Buffer {
 
 // --- Compute merkle root from coinbase hash and merkle branch ---
 // export function computeMerkleRoot(coinbaseTx: Buffer, merkleBranch: string[]): Buffer {
-  // let hash = doubleSha256(coinbaseTx); // Hash of coinbase transaction
+// let hash = doubleSha256(coinbaseTx); // Hash of coinbase transaction
 
-  // for (const branchHex of merkleBranch) {
-  //   const branchHash = Buffer.from(branchHex, 'hex');
+// for (const branchHex of merkleBranch) {
+//   const branchHash = Buffer.from(branchHex, 'hex');
 
-  //   // Mining usually assumes the coinbase is always on the left
-  //   // so hash = double_sha256( hash || branchHash )
-  //   hash = doubleSha256(Buffer.concat([hash, branchHash]));
-  // }
+//   // Mining usually assumes the coinbase is always on the left
+//   // so hash = double_sha256( hash || branchHash )
+//   hash = doubleSha256(Buffer.concat([hash, branchHash]));
+// }
 
-  // return hash;
+// return hash;
 // }
 
 // FIXME: audit: --- Verify merkle root matches header ---

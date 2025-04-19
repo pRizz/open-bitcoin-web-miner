@@ -6,11 +6,14 @@ describe('Block Header Serialization and Hashing', () => {
   it('should correctly serialize and hash a known block header', async () => {
     // Arrange
     const blockHeader: NoncelessBlockHeader = {
-      version: [1, 0, 0, 0],  // Version 1 in little-endian
-      previous_block_hash: Array.from(Buffer.from("1234000000000000000000000000000000000000000000000000000000000000", 'hex')).reverse(),
-      merkle_root: Array.from(Buffer.from("abcd000000000000000000000000000000000000000000000000000000000000", 'hex')).reverse(),
-      timestamp: [0x65, 0xeb, 0xd0, 0xb0].reverse(),  // 1709953200 in little-endian; need to verify this
-      compact_target: [0xff, 0xff, 0x00, 0x1d],  // 0x1d00ffff in little-endian
+      version_hex: "01000000",
+      previous_block_hash_hex: "0000000000000000000000000000000000000000000000000000000000003412",
+      merkle_root_hex: "000000000000000000000000000000000000000000000000000000000000cdab",
+      // timestamp: [0x65, 0xeb, 0xd0, 0xb0].reverse(),  // 1709953200 in little-endian; need to verify this
+      timestamp_hex: "b0d0eb65",  // 1709953200 in little-endian; need to verify this
+      // timestamp_hex: "65ebd0b0",  // 1709953200 in little-endian; need to verify this
+      // compact_target_hex: "1d00ffff", // [0xff, 0xff, 0x00, 0x1d] is 0x1d00ffff in little-endian
+      compact_target_hex: "ffff001d", // [0xff, 0xff, 0x00, 0x1d] is 0x1d00ffff in little-endian
     };
     const nonce = 12345;
 
@@ -54,11 +57,13 @@ describe('Block Header Serialization and Hashing', () => {
   it('should handle different nonce values correctly', async () => {
     // Arrange
     const blockHeader: NoncelessBlockHeader = {
-      version: [1, 0, 0, 0],
-      previous_block_hash: new Array(32).fill(0),
-      merkle_root: new Array(32).fill(0),
-      timestamp: [0x00, 0x72, 0xf5, 0x65],  // 1709953200 in little-endian
-      compact_target: [0xff, 0xff, 0x00, 0x1d],  // 0x1d00ffff in little-endian
+      version_hex: "01000000",
+      previous_block_hash_hex: "0000000000000000000000000000000000000000000000000000000000000000",
+      merkle_root_hex: "0000000000000000000000000000000000000000000000000000000000000000",
+      // timestamp: [0x00, 0x72, 0xf5, 0x65],  // 1709953200 in little-endian
+      timestamp_hex: "65f57200",  // 1709953200 in little-endian
+      // compact_target: [0xff, 0xff, 0x00, 0x1d],  // 0x1d00ffff in little-endian
+      compact_target_hex: "1d00ffff",  // 0x1d00ffff in little-endian
     };
 
     // Act & Assert
@@ -82,11 +87,15 @@ describe('Block Header Serialization and Hashing', () => {
   it('should handle different timestamps correctly', async () => {
     // Arrange
     const blockHeader: NoncelessBlockHeader = {
-      version: [1, 0, 0, 0],
-      previous_block_hash: new Array(32).fill(0),
-      merkle_root: new Array(32).fill(0),
-      timestamp: [0x00, 0x72, 0xf5, 0x65],  // 1709953200 in little-endian
-      compact_target: [0xff, 0xff, 0x00, 0x1d],  // 0x1d00ffff in little-endian
+      version_hex: "01000000",
+      previous_block_hash_hex: "0000000000000000000000000000000000000000000000000000000000000000",
+      merkle_root_hex: "0000000000000000000000000000000000000000000000000000000000000000",
+      // timestamp: [0x00, 0x72, 0xf5, 0x65],  // 1709953200 in little-endian
+      // timestamp_hex: "65f57200",  // 1709953200 in little-endian
+      timestamp_hex: "0072f565",  // 1709953200 in little-endian
+      // compact_target: [0xff, 0xff, 0x00, 0x1d],  // 0x1d00ffff in little-endian
+      // compact_target_hex: "1d00ffff",  // 0x1d00ffff in little-endian
+      compact_target_hex: "ffff001d",  // 0x1d00ffff in little-endian
     };
     const nonce = 0;
 

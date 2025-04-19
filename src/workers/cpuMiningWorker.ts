@@ -1,8 +1,8 @@
-import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
-import { deserializeNonceLE, NoncelessBlockHeader, serializeBlockHeader, serializeNonceLE } from "@/types/websocket";
-import { calculateLeadingZeroes, calculateLeadingZeroesU8Array, hexStringFromU8Array } from "@/utils/mining";
+import { MiningChallenge, MiningSolution } from "@/types/mining";
+import { serializeNonceLE } from "@/types/websocket";
+import { calculateLeadingZeroesU8Array, hexStringFromU8Array } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
-import { doubleSha256BlockHeaderU8Array, performHash } from "./cpuMiningUtils";
+import { doubleSha256BlockHeaderU8Array } from "./cpuMiningUtils";
 import { WorkerMessage } from "./WorkerPool";
 
 interface MiningState {

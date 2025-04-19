@@ -3,7 +3,6 @@ import { MiningStats, HashSolution, SessionMiningStats, PersistentMiningStats } 
 import { useToast } from "@/hooks/use-toast";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { MiningSubmissionStatus, WorkMetadata } from "@/types/websocket";
-import { hexStringFromU8Array } from "@/utils/mining";
 
 const STORAGE_KEY = "bitcoin-mining-simulator";
 
@@ -88,7 +87,7 @@ export const useMiningState = () => {
     console.log("updateSubmissionStats called with isAccepted", isAccepted, "workMetadata", workMetadata);
     setPersistentStats(prev => {
       const submittedHashes = prev.maybeSubmittedSolutions || [];
-      const block_header_hash_as_hex = hexStringFromU8Array(new Uint8Array(workMetadata.block_header_hash));
+      const block_header_hash_as_hex = workMetadata.block_header_hash_hex;
       // Find element in updatedHashes that has the same block_header_hash_as_hex
       const foundElement = submittedHashes.find(h => h.hash === block_header_hash_as_hex);
       if (foundElement) {

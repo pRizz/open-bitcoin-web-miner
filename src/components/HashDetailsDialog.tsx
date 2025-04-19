@@ -47,15 +47,15 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
       const jsonData = {
         hash: hash.hash,
         timeToFind: formatDuration(hash.timeToFindMs),
-        nonce: hash.nonce,
-        previousBlock: hash.previousBlock,
-        merkleRoot: hash.merkleRoot,
+        nonce: hash.nonceNumber,
+        previousBlock: hash.previousBlockHex,
+        merkleRoot: hash.merkleRootHex,
         timestamp: {
           unix: hash.timestamp,
           formatted: new Date(hash.timestamp * 1000).toLocaleString()
         },
-        version: hash.version,
-        bits: hash.bits
+        version: hash.versionNumber,
+        bits: hash.bitsHex
       };
       await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
       toast({
@@ -112,12 +112,12 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
           <div>
             <div className="text-gray-400">Nonce</div>
             <div className="flex items-center gap-2">
-              <div>{hash.nonce}</div>
+              <div>{hash.nonceNumber}</div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => handleCopy(hash.nonce.toString(), "Nonce")}
+                onClick={() => handleCopy(hash.nonceNumber.toString(), "Nonce")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -126,12 +126,12 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
           <div>
             <div className="text-gray-400">Previous Block</div>
             <div className="flex items-center gap-2">
-              <div className="break-all">{hash.previousBlock}</div>
+              <div className="break-all">{hash.previousBlockHex}</div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => handleCopy(hash.previousBlock, "Previous Block")}
+                onClick={() => handleCopy(hash.previousBlockHex, "Previous Block")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -140,12 +140,12 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
           <div>
             <div className="text-gray-400">Merkle Root</div>
             <div className="flex items-center gap-2">
-              <div className="break-all">{hash.merkleRoot}</div>
+              <div className="break-all">{hash.merkleRootHex}</div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => handleCopy(hash.merkleRoot, "Merkle Root")}
+                onClick={() => handleCopy(hash.merkleRootHex, "Merkle Root")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -168,12 +168,12 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
           <div>
             <div className="text-gray-400">Version</div>
             <div className="flex items-center gap-2">
-              <div>{hash.version}</div>
+              <div>{hash.versionNumber}</div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => handleCopy(hash.version.toString(), "Version")}
+                onClick={() => handleCopy(hash.versionNumber.toString(), "Version")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -182,12 +182,12 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
           <div>
             <div className="text-gray-400">Bits</div>
             <div className="flex items-center gap-2">
-              <div>{hash.bits}</div>
+              <div>{hash.bitsHex}</div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => handleCopy(hash.bits.toString(), "Bits")}
+                onClick={() => handleCopy(hash.bitsHex.toString(), "Bits")}
               >
                 <Copy className="h-4 w-4" />
               </Button>

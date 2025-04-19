@@ -69,9 +69,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       }
       console.log("Found solution", miningSolution);
       console.log("leadingBinaryZeroes", leadingBinaryZeroes);
+      const nonceAsHex = Array.from(miningSolution.nonceVecU8).map(byteNumber => byteNumber.toString(16).padStart(2, '0')).join('');
+      // console.log("nonceAsHex", nonceAsHex);
 
       const miningSubmission: MiningSubmission = {
-        nonceVecU8: Array.from(miningSolution.nonceVecU8),
+        nonceHex: nonceAsHex,
         nonceless_block_header: miningSolution.maybeBlockHeader
       };
       console.log(`Submitting mining solution`);
@@ -87,18 +89,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       const hashSolution: HashSolution = {
         id: crypto.randomUUID(),
         hash: miningSolution.hash,
-        nonce: deserializeNonceLE(miningSolution.nonceVecU8),
+        nonceNumber: deserializeNonceLE(miningSolution.nonceVecU8),
         timestamp: Date.now(),
-        merkleRoot: Array.from(new Uint8Array(miningSolution.maybeBlockHeader.merkle_root))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join(''),
-        previousBlock: Array.from(new Uint8Array(miningSolution.maybeBlockHeader.previous_block_hash))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join(''),
-        version: getNumberFromArrayOfBytes(miningSolution.maybeBlockHeader.version),
-        bits: Array.from(new Uint8Array(miningSolution.maybeBlockHeader.compact_target))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join(''),
+        merkleRootHex: miningSolution.maybeBlockHeader.merkle_root_hex,
+        previousBlockHex: miningSolution.maybeBlockHeader.previous_block_hash_hex,
+        versionNumber: parseInt(miningSolution.maybeBlockHeader.version_hex, 16),
+        bitsHex: miningSolution.maybeBlockHeader.compact_target_hex,
         binaryZeroes: leadingBinaryZeroes,
         hexZeroes: leadingHexZeroes,
         timeToFindMs: miningState.miningStats.maybeStartTime ? Date.now() - miningState.miningStats.maybeStartTime : 0,

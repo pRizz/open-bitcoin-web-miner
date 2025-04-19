@@ -82,7 +82,7 @@ export function HashTableRow({ hash }: HashTableRowProps) {
       </TableCell>
       <TableCell className="text-center">
         <span className="font-mono text-xs text-muted-foreground">
-          {hash.nonce}
+          {hash.nonceNumber}
         </span>
       </TableCell>
       <TableCell className="text-center">
