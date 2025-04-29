@@ -1,7 +1,7 @@
 /// <reference types="@webgpu/types" />
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { serializeNonceLE } from "@/types/websocket";
-import { calculateLeadingZeroes } from "@/utils/mining";
+import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 
 let running = false;
@@ -377,7 +377,7 @@ async function mine() {
             .map(word => word.toString(16).padStart(8, '0'))
             .join('');
 
-          const { leadingBinaryZeroes } = calculateLeadingZeroes(hashWords);
+          const { leadingBinaryZeroes } = calculateLeadingZeroesFromHexString(hashWords);
 
           if (leadingBinaryZeroes >= maybeCurrentChallenge.targetZeros) {
             // Calculate the nonce for this solution

@@ -93,13 +93,13 @@ export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number
 
   // Create an 80-byte buffer
   const buffer = new Uint8Array(80);
-  let offset = 0;
+  let accumulatedOffset = 0;
 
   // Helper function to copy arrays into the buffer
-  function copyToBuffer(source: number[], length: number) {
+  function copyToBuffer(source: ArrayLike<number>, length: number) {
     if (source.length !== length) throw new Error("Invalid field length");
-    buffer.set(source, offset);
-    offset += length;
+    buffer.set(source, accumulatedOffset);
+    accumulatedOffset += length;
   }
 
   // Copy fields in order
@@ -108,9 +108,9 @@ export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number
   copyToBuffer(merkle_root_bytes, 32);
   copyToBuffer(timestamp_bytes, 4);
   copyToBuffer(compact_target_bytes, 4);
-
   // Convert nonce (number) to 4-byte little-endian array
-  buffer.set(serializeNonceLE(nonce), offset);
+  // Nonce gets added at offset 4 + 32 + 32 + 4 + 4 = 76
+  copyToBuffer(serializeNonceLE(nonce), 4);
 
   return buffer;
 }

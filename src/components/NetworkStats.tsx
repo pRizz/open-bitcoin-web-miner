@@ -43,7 +43,7 @@ function StatValue({ children, isLoading }: { children: React.ReactNode, isLoadi
 }
 
 export function NetworkStats() {
-  const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty } = useNetworkInfo();
+  const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty, maybeLatestBlockHashHex, maybeLatestBlockHashBinary, maybeLeadingZeroesInLatestBlockHash } = useNetworkInfo();
   const [isLocalhost, setIsLocalhost] = useState(true);
 
   useEffect(() => {
@@ -84,6 +84,7 @@ export function NetworkStats() {
 
   return (
     <Card className="p-6 glass-card" style={{ zIndex: 9 }}>
+
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Network Stats</h2>
         <div className="flex items-center gap-2">
@@ -95,19 +96,44 @@ export function NetworkStats() {
           <span className="text-sm text-gray-400">Localhost</span>
         </div>
       </div>
+
       <div className="space-y-4">
+
         <div>
           <label className="text-sm text-gray-400">Block Height</label>
           <StatValue isLoading={maybeBlockHeight === undefined}>
             {maybeBlockHeight?.toLocaleString()}
           </StatValue>
         </div>
+
+        <div>
+          <label className="text-sm text-gray-400">Latest Block Hash As Hexadecimal</label>
+          <StatValue isLoading={maybeLatestBlockHashHex === undefined}>
+            {maybeLatestBlockHashHex}
+          </StatValue>
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-400">Latest Block Hash As Binary</label>
+          <StatValue isLoading={maybeLatestBlockHashBinary === undefined}>
+            {maybeLatestBlockHashBinary}
+          </StatValue>
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-400">Leading Zeroes In Latest Block Hash</label>
+          <StatValue isLoading={maybeLeadingZeroesInLatestBlockHash === undefined}>
+            {maybeLeadingZeroesInLatestBlockHash}
+          </StatValue>
+        </div>
+
         <div>
           <label className="text-sm text-gray-400">Network Difficulty</label>
           <StatValue isLoading={maybeFormattedNetworkDifficulty === undefined}>
             {maybeFormattedNetworkDifficulty}
           </StatValue>
         </div>
+
         <div>
           <label className="text-sm text-gray-400 flex items-center gap-2">
             Equivalent Required Leading Binary Zeroes In a BlockHash To Mine a Bitcoin Block
@@ -122,18 +148,21 @@ export function NetworkStats() {
             {maybeRequiredBinaryZeroes}
           </StatValue>
         </div>
+
         <div>
           <label className="text-sm text-gray-400">The Odds Any Random Hash Will Mine a Bitcoin Block</label>
           <StatValue isLoading={maybeRequiredBinaryZeroes === undefined}>
             {maybeRequiredBinaryZeroes !== undefined && `1 in ${formatLargeNumber(Math.pow(2, maybeRequiredBinaryZeroes))}`}
           </StatValue>
         </div>
+
         <div>
           <label className="text-sm text-gray-400">To Put That In Perspective...</label>
           <StatValue isLoading={!comparison}>
             {comparison && `That's similar to ${comparison.description}`}
           </StatValue>
         </div>
+
       </div>
     </Card>
   );

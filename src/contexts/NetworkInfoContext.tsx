@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import API_CONFIG from "@/config/api";
-import { calculateRequiredLeadingBinaryZeroes } from "@/utils/mining";
+import { calculateLeadingZeroesFromHexString, calculateRequiredLeadingBinaryZeroes, hexToBinary } from "@/utils/mining";
 
 interface NetworkInfoResponse {
   data: {
@@ -9,6 +9,7 @@ interface NetworkInfoResponse {
     server_starting_min_leading_zero_count: number;
     base_block_reward_sats: number;
     miner_reward_sats: number;
+    latest_block_hash_hex: string;
   };
   status: string;
 }
@@ -30,9 +31,16 @@ export interface NetworkInfoContextType {
   maybeServerStartingMinLeadingZeroCount: number | undefined;
   maybeBaseBlockReward: number | undefined;
   maybeMiningReward: number | undefined;
+  maybeLatestBlockHashHex: string | undefined;
+  maybeLatestBlockHashBinary: string | undefined;
+  maybeLeadingZeroesInLatestBlockHash: number | undefined;
 }
 
 const NetworkInfoContext = createContext<NetworkInfoContextType | undefined>(undefined);
+
+function calculateLeadingZeroesInLatestBlockHash(latest_block_hash_hex: string): number {
+  return calculateLeadingZeroesFromHexString(latest_block_hash_hex).leadingBinaryZeroes;
+}
 
 export function NetworkInfoProvider({ children }: { children: React.ReactNode }) {
   const [networkInfo, setNetworkInfo] = useState<NetworkInfoContextType>({
@@ -43,7 +51,10 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
     maybeConnectedMinerCount: undefined,
     maybeServerStartingMinLeadingZeroCount: undefined,
     maybeBaseBlockReward: undefined,
-    maybeMiningReward: undefined
+    maybeMiningReward: undefined,
+    maybeLatestBlockHashHex: undefined,
+    maybeLatestBlockHashBinary: undefined,
+    maybeLeadingZeroesInLatestBlockHash: undefined
   });
 
   useEffect(() => {
@@ -69,12 +80,19 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
           return;
         }
 
-        const { block_height, network_difficulty, server_starting_min_leading_zero_count, base_block_reward_sats: base_block_reward, miner_reward_sats: mining_reward } = networkData.data;
+        const { block_height, network_difficulty, server_starting_min_leading_zero_count, base_block_reward_sats: base_block_reward, miner_reward_sats: mining_reward, latest_block_hash_hex } = networkData.data;
         const { connected_websocket_count, connected_miner_count } = websocketData.data;
         console.log('Connected websocket count:', connected_websocket_count);
         console.log('Connected miners count:', connected_miner_count);
         console.log('Network difficulty:', network_difficulty);
         console.log('Block height:', block_height);
+        console.log('Latest block hash hex:', latest_block_hash_hex);
+
+        const leading_zeroes_in_latest_block_hash = calculateLeadingZeroesInLatestBlockHash(latest_block_hash_hex);
+        console.log('Leading zeroes in latest block hash:', leading_zeroes_in_latest_block_hash);
+
+        const latest_block_hash_binary = hexToBinary(latest_block_hash_hex);
+        console.log('Latest block hash binary:', latest_block_hash_binary);
 
         // Only update if values are different
         if (block_height !== networkInfo.maybeBlockHeight ||
@@ -82,7 +100,10 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
             connected_miner_count !== networkInfo.maybeConnectedMinerCount ||
             server_starting_min_leading_zero_count !== networkInfo.maybeServerStartingMinLeadingZeroCount ||
             base_block_reward !== networkInfo.maybeBaseBlockReward ||
-            mining_reward !== networkInfo.maybeMiningReward) {
+            mining_reward !== networkInfo.maybeMiningReward ||
+            latest_block_hash_hex !== networkInfo.maybeLatestBlockHashHex ||
+            latest_block_hash_binary !== networkInfo.maybeLatestBlockHashBinary ||
+            leading_zeroes_in_latest_block_hash !== networkInfo.maybeLeadingZeroesInLatestBlockHash) {
           console.log('network_difficulty', network_difficulty);
           const requiredZeroes = calculateRequiredLeadingBinaryZeroes(network_difficulty);
           console.log('requiredZeroes', requiredZeroes);
@@ -101,7 +122,10 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
             maybeConnectedMinerCount: connected_miner_count,
             maybeServerStartingMinLeadingZeroCount: server_starting_min_leading_zero_count,
             maybeBaseBlockReward: base_block_reward,
-            maybeMiningReward: mining_reward
+            maybeMiningReward: mining_reward,
+            maybeLatestBlockHashHex: latest_block_hash_hex,
+            maybeLatestBlockHashBinary: latest_block_hash_binary,
+            maybeLeadingZeroesInLatestBlockHash: leading_zeroes_in_latest_block_hash
           });
         }
 

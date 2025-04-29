@@ -17,11 +17,11 @@ export function compareHashes(a: string, b: string): number {
 }
 
 // Deprecated; use calculateLeadingZeroesU8Array instead
-export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
+export function calculateLeadingZeroesFromHexString(hexString: string): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
   // Calculate hex zeroes
   let hexZeroes = 0;
-  for (let i = 0; i < hash.length; i++) {
-    if (hash[i] === '0') {
+  for (let i = 0; i < hexString.length; i++) {
+    if (hexString[i] === '0') {
       hexZeroes++;
     } else {
       break;
@@ -29,7 +29,7 @@ export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: num
   }
 
   // Convert to binary and calculate binary zeroes
-  const binary = hex2bin(hash);
+  const binary = hexToBinary(hexString);
   let binaryZeroes = 0;
   for (let i = 0; i < binary.length; i++) {
     if (binary[i] === '0') {
@@ -42,7 +42,7 @@ export function calculateLeadingZeroes(hash: string): { leadingBinaryZeroes: num
   return { leadingBinaryZeroes: binaryZeroes, leadingHexZeroes: hexZeroes };
 }
 
-export function calculateLeadingZeroesU8Array(hash: Uint8Array): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
+export function calculateLeadingZeroesFromU8Array(hash: Uint8Array): { leadingBinaryZeroes: number; leadingHexZeroes: number } {
   let leadingBinaryZeroes = 0;
 
   for (const byte of hash) {
@@ -69,6 +69,11 @@ export function hexStringFromU8Array(u8Array: Uint8Array): string {
   return Array.from(u8Array).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+export function hexToBinary(hex: string): string {
+  return hex.split('').map(c => parseInt(c, 16).toString(2).padStart(4, '0')).join('');
+}
+
+// Deprecated; use hexToBinary instead
 export function hex2bin(hex: string): string {
   const binLookup: { [key: string]: string } = {
     '0': '0000', '1': '0001', '2': '0010', '3': '0011',

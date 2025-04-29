@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { HashSolution, MiningChallenge, MiningMode, MiningSolution } from "@/types/mining";
-import { calculateLeadingZeroes } from "@/utils/mining";
+import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
 import { MiningContextType, MiningHistoryItem } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
@@ -61,7 +61,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     miningMode,
     miningState.updateHashRate,
     (miningSolution: MiningSolution) => {
-      const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroes(miningSolution.hash);
+      const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroesFromHexString(miningSolution.hash);
 
       if (!miningSolution.maybeBlockHeader) {
         console.error('Invalid solution received: missing blockHeader');

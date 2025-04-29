@@ -1,6 +1,6 @@
 import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { serializeNonceLE } from "@/types/websocket";
-import { calculateLeadingZeroes } from "@/utils/mining";
+import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 
 let running = false;
@@ -253,7 +253,7 @@ function mine() {
         .map(x => x.toString(16).padStart(2, "0"))
         .join("");
 
-      const { leadingBinaryZeroes } = calculateLeadingZeroes(hash);
+      const { leadingBinaryZeroes } = calculateLeadingZeroesFromHexString(hash);
       if (leadingBinaryZeroes >= maybeCurrentChallenge.targetZeros) {
         const solution: MiningSolution = {
           hash: hash,

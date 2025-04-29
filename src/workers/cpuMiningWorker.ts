@@ -1,8 +1,8 @@
 import { MiningChallenge, MiningSolution } from "@/types/mining";
 import { serializeNonceLE } from "@/types/websocket";
-import { calculateLeadingZeroesU8Array, hexStringFromU8Array } from "@/utils/mining";
+import { calculateLeadingZeroesFromU8Array, hexStringFromU8Array } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
-import { doubleSha256BlockHeaderU8Array } from "./cpuMiningUtils";
+import { doubleSha256BlockHeaderReturningU8Array } from "./cpuMiningUtils";
 import { WorkerMessage } from "./WorkerPool";
 
 interface MiningState {
@@ -98,12 +98,13 @@ function mine() {
         }
 
         // const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
-        const hashAsU8Array = await doubleSha256BlockHeaderU8Array(state.maybeCurrentChallenge.blockHeader, nonce);
+        // FIXME: serializeBlockHeader is expensive; we should modify an existing serialized block header instead of serializing it again every time
+        const hashAsU8Array = await doubleSha256BlockHeaderReturningU8Array(state.maybeCurrentChallenge.blockHeader, nonce);
         state.hashCount++;
         state.cumulativeHashes++;
         hashesInBatchCount++;
 
-        const { leadingBinaryZeroes } = calculateLeadingZeroesU8Array(hashAsU8Array);
+        const { leadingBinaryZeroes } = calculateLeadingZeroesFromU8Array(hashAsU8Array);
         if (!state.maybeCurrentChallenge.targetZeros) {
           console.error("No target zeros set");
           throw new Error("No target zeros set");
