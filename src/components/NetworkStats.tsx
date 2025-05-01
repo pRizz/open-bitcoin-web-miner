@@ -9,7 +9,11 @@ import API_CONFIG from "@/config/api";
 import { toast } from "sonner";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 
-function formatStringValueEvery8Chars(value: string): string {
+function formatStringValueEvery8Chars(value: string | undefined): string {
+  if (!value) {
+    return '';
+  }
+
   // This function formats a string value every 8 characters with a space
   // It uses a regular expression to find every 8 characters and replace them with the same 8 characters followed by a space
   // The result is a string with spaces every 8 characters
