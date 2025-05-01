@@ -9,6 +9,50 @@ import API_CONFIG from "@/config/api";
 import { toast } from "sonner";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 
+function formatStringValueEvery8Chars(value: string): string {
+  // This function formats a string value every 8 characters with a space
+  // It uses a regular expression to find every 8 characters and replace them with the same 8 characters followed by a space
+  // The result is a string with spaces every 8 characters
+  return value.replace(/(\w{8})(?=\w)/g, '$1 ');
+}
+
+interface HighlightedBinaryHashProps {
+  binaryHash: string | undefined;
+  leadingZeroes: number | undefined;
+  isHighlighted: boolean;
+}
+
+function HighlightedBinaryHash({ binaryHash, leadingZeroes, isHighlighted }: HighlightedBinaryHashProps) {
+  if (!binaryHash || leadingZeroes === undefined) {
+    return <span>{formatStringValueEvery8Chars(binaryHash || '')}</span>;
+  }
+
+  const formattedHash = formatStringValueEvery8Chars(binaryHash);
+  const spacesToSkip = Math.floor(leadingZeroes / 8);
+  let highlightLength = leadingZeroes + spacesToSkip;
+
+  // If the last character to be highlighted is a space, don't include it
+  if (formattedHash[highlightLength - 1] === ' ') {
+    highlightLength--;
+  }
+
+  const highlightedPart = formattedHash.substring(0, highlightLength);
+  const restOfHash = formattedHash.substring(highlightLength);
+
+  return (
+    <span>
+      {isHighlighted ? (
+        <>
+          <span className="bg-yellow-600">{highlightedPart}</span>
+          <span>{restOfHash}</span>
+        </>
+      ) : (
+        formattedHash
+      )}
+    </span>
+  );
+}
+
 const RANDOM_SELECTION_PROBABILITIES = [
   { odds: "1 in 1 million", value: 1e6, description: "picking the correct resident of San Francisco (~1M people)" },
   { odds: "1 in 1 billion", value: 1e9, description: "picking the correct person on Earth (~8B people)" },
@@ -45,6 +89,7 @@ function StatValue({ children, isLoading }: { children: React.ReactNode, isLoadi
 export function NetworkStats() {
   const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty, maybeLatestBlockHashHex, maybeLatestBlockHashBinary, maybeLeadingZeroesInLatestBlockHash } = useNetworkInfo();
   const [isLocalhost, setIsLocalhost] = useState(true);
+  const [isHighlighted, setIsHighlighted] = useState(false);
 
   useEffect(() => {
     const currentUrl = API_CONFIG.baseUrl;
@@ -109,21 +154,31 @@ export function NetworkStats() {
         <div>
           <label className="text-sm text-gray-400">Latest Block Hash As Hexadecimal</label>
           <StatValue isLoading={maybeLatestBlockHashHex === undefined}>
-            {maybeLatestBlockHashHex}
+            {formatStringValueEvery8Chars(maybeLatestBlockHashHex)}
           </StatValue>
         </div>
 
         <div>
           <label className="text-sm text-gray-400">Latest Block Hash As Binary</label>
           <StatValue isLoading={maybeLatestBlockHashBinary === undefined}>
-            {maybeLatestBlockHashBinary}
+            <HighlightedBinaryHash
+              binaryHash={maybeLatestBlockHashBinary}
+              leadingZeroes={maybeLeadingZeroesInLatestBlockHash}
+              isHighlighted={isHighlighted}
+            />
           </StatValue>
         </div>
 
         <div>
           <label className="text-sm text-gray-400">Leading Zeroes In Latest Block Hash</label>
           <StatValue isLoading={maybeLeadingZeroesInLatestBlockHash === undefined}>
-            {maybeLeadingZeroesInLatestBlockHash}
+            <span
+              onMouseEnter={() => setIsHighlighted(true)}
+              onMouseLeave={() => setIsHighlighted(false)}
+              className="cursor-help"
+            >
+              {maybeLeadingZeroesInLatestBlockHash}
+            </span>
           </StatValue>
         </div>
 
