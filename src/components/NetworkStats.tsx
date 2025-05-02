@@ -149,16 +149,30 @@ export function NetworkStats() {
       <div className="space-y-4">
 
         <div>
-          <label className="text-sm text-gray-400">Block Height</label>
+          <label className="text-sm text-gray-400">Latest Block Height</label>
           <StatValue isLoading={maybeBlockHeight === undefined}>
-            {maybeBlockHeight?.toLocaleString()}
+            <a 
+              href={`https://bitcoinexplorer.org/block-height/${maybeBlockHeight}`}
+              target="_blank"
+              rel="noopener"
+              className="text-blue-400 hover:text-blue-300"
+            >
+              {maybeBlockHeight?.toLocaleString()}
+            </a>
           </StatValue>
         </div>
 
         <div>
           <label className="text-sm text-gray-400">Latest Block Hash As Hexadecimal</label>
           <StatValue isLoading={maybeLatestBlockHashHex === undefined}>
-            {formatStringValueEvery8Chars(maybeLatestBlockHashHex)}
+            <a 
+              href={`https://bitcoinexplorer.org/block/${maybeLatestBlockHashHex}`}
+              target="_blank"
+              rel="noopener"
+              className="text-blue-400 hover:text-blue-300"
+            >
+              {formatStringValueEvery8Chars(maybeLatestBlockHashHex)}
+            </a>
           </StatValue>
         </div>
 

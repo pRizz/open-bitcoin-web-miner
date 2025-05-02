@@ -11,10 +11,11 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { formatLargeNumber } from "@/utils/formatters";
-import { Database, Target, Binary, CheckCircle2, XCircle, Copy } from "lucide-react";
+import { Database, Target, Binary, CheckCircle2, XCircle, Copy, ArrowLeft } from "lucide-react";
 import { MiningHistoryItem } from "@/contexts/mining/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { TypedLink } from "@/components/TypedLink";
 
 const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem, index: number, key: string }) => {
   const { toast } = useToast();
@@ -50,11 +51,20 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
               <CardTitle>Block Header</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Version as hexadecimal: {item.blockHeader.version_hex}</p>
-              <p>Previous block hash as hexadecimal: {item.blockHeader.previous_block_hash_hex}</p>
-              <p>Merkle root as hexadecimal: {item.blockHeader.merkle_root_hex}</p>
-              <p>Timestamp as hexadecimal: {item.blockHeader.timestamp_hex}</p>
-              <p>Compact target as hexadecimal: {item.blockHeader.compact_target_hex}</p>
+              <p>Version as hexadecimal: <span className="font-mono">{item.blockHeader.version_hex}</span></p>
+              <p>Previous block hash as hexadecimal:&nbsp;
+                <a 
+                  href={`https://bitcoinexplorer.org/block/${item.blockHeader.previous_block_hash_hex}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="text-blue-400 hover:text-blue-300 font-mono"
+                >
+                  {item.blockHeader.previous_block_hash_hex}
+                </a>
+              </p>
+              <p>Merkle root as hexadecimal: <span className="font-mono">{item.blockHeader.merkle_root_hex}</span></p>
+              <p>Timestamp as hexadecimal: <span className="font-mono">{item.blockHeader.timestamp_hex}</span></p>
+              <p>Compact target as hexadecimal: <span className="font-mono">{item.blockHeader.compact_target_hex}</span></p>
             </CardContent>
           </Card>
           <Card className="p-4">
@@ -94,7 +104,16 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }} className="font-mono">{item.proofOfReward.public_block_template_download_link}</div>
+                <div style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }} className="font-mono">
+                  <a 
+                    href={item.proofOfReward.public_block_template_download_link}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    {item.proofOfReward.public_block_template_download_link}
+                  </a>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -133,7 +152,14 @@ export default function ProofOfRewardPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 space-y-4">Proof of Reward</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <TypedLink routeKeyName="home">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </TypedLink>
+        <h1 className="text-3xl font-bold">Proof of Reward</h1>
+      </div>
 
       <Card className="p-6">
         <CardHeader>
