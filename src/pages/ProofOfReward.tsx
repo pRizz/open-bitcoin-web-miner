@@ -56,7 +56,7 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
             <CardContent>
               <p>Version as hexadecimal: <span className="font-mono">{item.blockHeader.version_hex}</span></p>
               <p>Previous block hash as hexadecimal:&nbsp;
-                <a 
+                <a
                   href={`https://bitcoinexplorer.org/block/${previousBlockHashHexReverseEndian}`}
                   target="_blank"
                   rel="noopener"
@@ -108,7 +108,7 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
             <CardContent>
               <div className="space-y-2">
                 <div style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }} className="font-mono">
-                  <a 
+                  <a
                     href={item.proofOfReward.public_block_template_download_link}
                     target="_blank"
                     rel="noopener"
@@ -287,7 +287,7 @@ export default function ProofOfRewardPage() {
               <li><a href="https://codepen.io" target="_blank" rel="noopener" className="text-blue-500 hover:underline">CodePen</a></li>
               <li><a href="https://jsbin.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">JSBin</a></li> */}
             </ul>
-            
+
           </div>
 
           <div className="mt-8">

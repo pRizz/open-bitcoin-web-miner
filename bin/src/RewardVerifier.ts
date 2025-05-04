@@ -97,13 +97,12 @@ export function verifyReward(proof: ProofOfRewardRaw, expectedAddress: string, n
 
 // console.log(block.toHex());
 
-
 function computeMerkleRoot(txHashes: Buffer[]): Buffer {
   // console.log(`computeMerkleRoot: txHashes: ${txHashes}`);
   // console.log(`merkleLib,`, merkleLib);
   // console.log(`merkleLib.merkle,`, merkleLib.default);
-  let merkleRoot = merkleLib.default(txHashes, doubleSha256);
-  let reversedMerkleRootForDisplay = Buffer.from(merkleRoot[0]);
+  const merkleRoot = merkleLib.default(txHashes, doubleSha256);
+  const reversedMerkleRootForDisplay = Buffer.from(merkleRoot[0]);
   reversedMerkleRootForDisplay.reverse();
   // console.log(`computed merkle root: `, reversedMerkleRootForDisplay);
   console.log(

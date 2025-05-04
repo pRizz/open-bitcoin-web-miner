@@ -151,7 +151,7 @@ export function NetworkStats() {
         <div>
           <label className="text-sm text-gray-400">Latest Block Height</label>
           <StatValue isLoading={maybeBlockHeight === undefined}>
-            <a 
+            <a
               href={`https://bitcoinexplorer.org/block-height/${maybeBlockHeight}`}
               target="_blank"
               rel="noopener"
@@ -165,7 +165,7 @@ export function NetworkStats() {
         <div>
           <label className="text-sm text-gray-400">Latest Block Hash As Hexadecimal</label>
           <StatValue isLoading={maybeLatestBlockHashHex === undefined}>
-            <a 
+            <a
               href={`https://bitcoinexplorer.org/block/${maybeLatestBlockHashHex}`}
               target="_blank"
               rel="noopener"
