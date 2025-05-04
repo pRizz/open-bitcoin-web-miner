@@ -36,6 +36,9 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
     }
   };
 
+  // Every 2 characters is reversed in the previous_block_hash_hex
+  const previousBlockHashHexReverseEndian = item.blockHeader.previous_block_hash_hex.match(/.{1,2}/g)?.reverse().join('') || '';
+
   return (
     <div key={key}>
       <Card className="p-4">
@@ -54,12 +57,12 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
               <p>Version as hexadecimal: <span className="font-mono">{item.blockHeader.version_hex}</span></p>
               <p>Previous block hash as hexadecimal:&nbsp;
                 <a 
-                  href={`https://bitcoinexplorer.org/block/${item.blockHeader.previous_block_hash_hex}`}
+                  href={`https://bitcoinexplorer.org/block/${previousBlockHashHexReverseEndian}`}
                   target="_blank"
                   rel="noopener"
                   className="text-blue-400 hover:text-blue-300 font-mono"
                 >
-                  {item.blockHeader.previous_block_hash_hex}
+                  {previousBlockHashHexReverseEndian}
                 </a>
               </p>
               <p>Merkle root as hexadecimal: <span className="font-mono">{item.blockHeader.merkle_root_hex}</span></p>
@@ -91,7 +94,7 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
                     title="Verify transaction in Bitcoin JS UI"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                Verify Transaction
+                Decode/Verify Transaction
                   </Button>
                 </div>
               </div>
@@ -185,29 +188,28 @@ export default function ProofOfRewardPage() {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            When participating in mining with our service, you are fully empowered to independently verify that the block you are working on will reward your Bitcoin address if successfully mined. This is a fundamental transparency feature of our system. Here's exactly how you can perform this verification without needing to trust us blindly.
+            When participating in mining with our service, you are able to independently verify that the block you are working on will reward 1 Bitcoin to your Bitcoin address if successfully mined. Here's exactly how you can perform this verification trustlessly.
           </p>
 
-          <div className="mt-8 p-4">
+          <div className="mt-8">
             <h3 className="text-lg font-semibold mb-2">Step 1: Capture the Block Header You Are Mining</h3>
             <p className="text-muted-foreground">
             During mining, your frontend (or mining device) receives a block header. You can inspect this directly, whether by monitoring network traffic or logging it from the mining software. You can find this information by inspecting the websocket messages on this site. This block header includes, among other fields, a value called the merkle root.
             </p>
           </div>
 
-          <div className="mt-8 p-4">
+          <div className="mt-8">
             <h3 className="text-lg font-semibold mb-2">Step 2: Download the Block Template and Coinbase Transaction</h3>
             <p className="text-muted-foreground">
-            In addition to the block header, you are also given a block template URL and a coinbase transaction. The block template URL allows you to download the block template, which contains:
-              <ul className="list-disc pl-6 space-y-2">
-                <li>All non-coinbase transactions (the "transaction set").</li>
-                <li>The list of merkle branches (also called the merkle path or merkle branch).</li>
+            In addition to the block header, you are also given a block template URL and a coinbase transaction. The block template URL allows you to download the full block template which was used to generate the block header you are mining. The block template contains:
+              <ul className="list-disc pl-6 space-y-2 mt-4">
+                <li>All non-coinbase transactions.</li>
+                <li>Other fields which become part of the block header, such as the block version, previous block hash, and compact target.</li>
               </ul>
-
             </p>
           </div>
 
-          <div className="mt-8 p-4" >
+          <div className="mt-8" >
             <h3 className="text-lg font-semibold mb-2">Step 3: Verify the Coinbase Transaction contains the correct reward</h3>
 
             <p className="mt-4 text-muted-foreground">
@@ -215,8 +217,8 @@ export default function ProofOfRewardPage() {
             </p>
 
             <p className="mt-4 text-muted-foreground">
-            You may inspect the coinbase transaction using various tools. For a simple, high level view, you can import the transaction hex into <a href="https://bitcoincore.tech/apps/bitcoinjs-ui/index.html" target="_blank" rel="noopener" className="text-blue-500 hover:underline">bitcoinjs-ui</a>. On the web page, you should see:
-              <ul className="list-disc pl-6 space-y-2">
+            You may inspect the coinbase transaction using various tools. For a simple, high level view, you can import the transaction hex into <a href="https://bitcoincore.tech/apps/bitcoinjs-ui/index.html" target="_blank" rel="noopener" className="text-blue-500 hover:underline">bitcoinjs-ui</a>, which is free and open source. On the web page:
+              <ul className="list-disc pl-6 space-y-2 mt-4">
                 <li>In the Network Selector on the top right, select "Main" instead of "Test"</li>
                 <li>Go to the Transaction Tab</li>
                 <li>At the bottom, click "Import"</li>
@@ -227,64 +229,69 @@ export default function ProofOfRewardPage() {
             </p>
 
             <p className="mt-4 text-muted-foreground">
-            Other tools you may use include:
-              <ul className="list-disc pl-6 space-y-2">
+              Other tools you may use include:
+              <ul className="list-disc pl-6 space-y-2 mt-4">
                 <li><a href="https://github.com/bitcoinjs/bitcoinjs-lib" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">bitcoinjs-lib</a></li>
                 <li>any Bitcoin wallet's decoder</li>
               </ul>
             </p>
 
-            <p className="mt-4 text-muted-foreground">
-              For a more controlled view, you can import the bitcoinjs-lib package and use:
-              <ul className="list-disc pl-6 space-y-2">
-                <li><a href="https://stackblitz.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">StackBlitz</a></li>
-                <li><a href="https://codesandbox.io" target="_blank" rel="noopener" className="text-blue-500 hover:underline">CodeSandbox</a></li>
-                <li><a href="https://runkit.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">RunKit</a></li>
-                <li><a href="https://jsfiddle.net" target="_blank" rel="noopener" className="text-blue-500 hover:underline">JSFiddle</a></li>
-                <li><a href="https://codepen.io" target="_blank" rel="noopener" className="text-blue-500 hover:underline">CodePen</a></li>
-                <li><a href="https://jsbin.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">JSBin</a></li>
-              </ul>
-            </p>
-
           </div>
 
-          <div className="mt-8 p-4">
+          <div className="mt-8">
             <h3 className="text-lg font-semibold mb-2">Step 3: Reconstruct and Verify the Merkle Root</h3>
             <p className="text-muted-foreground">
             You can now independently reconstruct the merkle root:
-
-Hash the coinbase transaction.
-
-Combine this hash with the merkle branches obtained from the block template using the standard Bitcoin Merkle Tree calculation.
-
-The result will be the calculated merkle root. FIXME: add example
             </p>
+
+            <ul className="list-disc pl-6 space-y-2 mt-4 text-muted-foreground">
+              <li>Double SHA-256 hash the coinbase transaction.</li>
+              <li>Combine this hash with the merkle branches obtained from the block template using the standard <a href="https://learnmeabitcoin.com/technical/block/merkle-root/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Bitcoin Merkle Tree calculation</a>.</li>
+            </ul>
+
+            <p className="mt-4 text-muted-foreground">
+            The result will be the calculated merkle root. You can now verify that this matches the merkle root in the block header.
+            </p>
+
           </div>
 
-          <div className="mt-8 p-4">
+          <div className="mt-8">
             <h3 className="text-lg font-semibold mb-2">Step 4: Verify the Calculated Merkle Root Matches the Merkle Root in the Block Header</h3>
             <p className="text-muted-foreground">
             The final step is to compare the calculated merkle root you just computed against the merkle root provided in the block header you are mining. If they match exactly, you have cryptographic proof that:
-
-              <ul className="list-disc pl-6 space-y-2">
-                <li>The block you are mining includes the coinbase transaction you inspected.</li>
-                <li>The block will reward the exact Bitcoin address you confirmed earlier.</li>
-                <li>There is no hidden replacement of your reward address behind the scenes.</li>
-                <li>There is no hidden replacement of your reward address behind the scenes.</li>
-              </ul>
-
-              <p className="mt-4 text-muted-foreground">
-              This verification process is entirely local and does not rely on trusting the backend beyond the transparency of the provided data. Even if you are using an untrusted network or intermediary, you can confirm independently that you are mining for your own reward.
-              </p>
-
-              <p className="mt-4 text-muted-foreground">
-              This mechanism ensures a provable alignment between the miner and their expected payout.
-              </p>
             </p>
+
+            <ul className="list-disc pl-6 space-y-2 mt-4 text-muted-foreground">
+              <li>The block you are mining includes the coinbase transaction you inspected.</li>
+              <li>The block will reward the exact Bitcoin address you confirmed earlier.</li>
+              <li>There is no hidden replacement of your reward address behind the scenes.</li>
+            </ul>
+
+            <p className="mt-4 text-muted-foreground">
+            This verification process is entirely local and does not rely on trusting the backend beyond the transparency of the provided data. Even if you are using an untrusted network or intermediary, you can confirm independently that you are mining for your own reward.
+            </p>
+
+            <p className="mt-4 text-muted-foreground">
+            This mechanism ensures a provable alignment between our claim and your reward.
+            </p>
+
+            <p className="mt-4 text-muted-foreground mb-4">
+              If you understand coding, you can use this CodeSandbox example to import your block template and coinbase transaction and verify the reward. This code utilizes open source bitcoin libraries to verify the reward:
+            </p>
+
+            <ul className="list-disc pl-6 space-y-2">
+              {/* <li><a href="https://stackblitz.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">StackBlitz</a></li> */}
+              <li><a href="https://codesandbox.io/p/devbox/nycrjr" target="_blank" rel="noopener" className="text-blue-500 hover:underline">CodeSandbox</a></li>
+              {/* <li><a href="https://runkit.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">RunKit</a></li>
+              <li><a href="https://jsfiddle.net" target="_blank" rel="noopener" className="text-blue-500 hover:underline">JSFiddle</a></li>
+              <li><a href="https://codepen.io" target="_blank" rel="noopener" className="text-blue-500 hover:underline">CodePen</a></li>
+              <li><a href="https://jsbin.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">JSBin</a></li> */}
+            </ul>
+            
           </div>
 
-          <div className="mt-8 p-4">
-            <h3 className="text-lg font-semibold mb-2">Definitions</h3>
+          <div className="mt-8">
+            <h3 className="text-2xl font-semibold mb-2">Definitions</h3>
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold">Merkle Root</h4>

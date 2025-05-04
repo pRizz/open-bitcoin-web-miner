@@ -2,7 +2,7 @@
 /// Bitcoin block headers use little-endian encoding for the version, timestamp, target, and nonce. <- Verify this.
 export interface NoncelessBlockHeader {
     version_hex: string; // 4 underlying bytes, 8 character hex string
-    previous_block_hash_hex: string; // 32 underlying bytes, 64 character hex string
+    previous_block_hash_hex: string; // 32 underlying bytes, 64 character hex string; ends with the zeros; need to reverse when displaying
     merkle_root_hex: string; // 32 underlying bytes, 64 character hex string
     timestamp_hex: string; // 4 underlying bytes, 8 character hex string
     compact_target_hex: string; // 4 underlying bytes, 8 character hex string

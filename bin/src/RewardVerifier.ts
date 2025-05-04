@@ -4,6 +4,8 @@ import * as crypto from 'crypto';
 import * as merkleLib from 'merkle-lib';
 import * as bitcore from 'bitcore-lib';
 
+// Example sandbox: https://codesandbox.io/p/devbox/nycrjr
+
 export interface ProofOfRewardRaw {
     block_template_url: string;
     nonceless_block_header: NoncelessBlockHeader;
@@ -95,12 +97,19 @@ export function verifyReward(proof: ProofOfRewardRaw, expectedAddress: string, n
 
 // console.log(block.toHex());
 
+
 function computeMerkleRoot(txHashes: Buffer[]): Buffer {
-  console.log(`computeMerkleRoot: txHashes: ${txHashes}`);
-  console.log(`merkleLib,`, merkleLib);
-  console.log(`merkleLib.merkle,`, merkleLib.default);
-  const merkleRoot = merkleLib.default(txHashes, doubleSha256);
-  console.log(`computeMerkleRoot: merkleRoot: ${merkleRoot}`);
+  // console.log(`computeMerkleRoot: txHashes: ${txHashes}`);
+  // console.log(`merkleLib,`, merkleLib);
+  // console.log(`merkleLib.merkle,`, merkleLib.default);
+  let merkleRoot = merkleLib.default(txHashes, doubleSha256);
+  let reversedMerkleRootForDisplay = Buffer.from(merkleRoot[0]);
+  reversedMerkleRootForDisplay.reverse();
+  // console.log(`computed merkle root: `, reversedMerkleRootForDisplay);
+  console.log(
+    `reversedMerkleRootForDisplay: `,
+    reversedMerkleRootForDisplay.toString("hex")
+  );
   return merkleRoot;
 }
 
@@ -112,6 +121,7 @@ export function createBlockFromTemplate(
 
   // 1. Add coinbase
   const coinbaseTx = bitcoin.Transaction.fromHex(coinbaseTxHex);
+  console.log(`coinbaseTx: `, coinbaseTx);
   txs.push(coinbaseTx);
 
   // 2. Add other transactions from the template
@@ -120,9 +130,9 @@ export function createBlockFromTemplate(
     txs.push(txObj);
   }
 
-  // 3. Compute Merkle Root
+  // 3. Compute Merkle Root; reverse the tx hashes first
   const txHashes = txs.map(tx =>
-    Buffer.from(tx.getHash()).reverse() // LE
+    Buffer.from(tx.getHash()).reverse()
   );
 
   const merkleRoot = computeMerkleRoot(txHashes);
