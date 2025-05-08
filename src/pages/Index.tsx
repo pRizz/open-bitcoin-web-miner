@@ -89,9 +89,9 @@ const Index = () => {
             </div>
           </Card>
 
-          <DebugLogPanel />
           <LeaderboardInfoPanel />
           <SubmittedSolutionsList />
+          <DebugLogPanel />
         </div>
       </div>
     </PageTransition>
