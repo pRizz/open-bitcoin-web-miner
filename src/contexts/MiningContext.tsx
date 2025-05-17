@@ -63,10 +63,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     (miningSolution: MiningSolution) => {
       const { leadingBinaryZeroes, leadingHexZeroes } = calculateLeadingZeroesFromHexString(miningSolution.hash);
 
-      if (!miningSolution.maybeBlockHeader) {
-        console.error('Invalid solution received: missing blockHeader');
-        return;
-      }
       console.log("Found solution", miningSolution);
       console.log("leadingBinaryZeroes", leadingBinaryZeroes);
       const nonceAsHex = Array.from(miningSolution.nonceVecU8).map(byteNumber => byteNumber.toString(16).padStart(2, '0')).join('');
@@ -74,27 +70,27 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
       const miningSubmission: MiningSubmission = {
         nonceHex: nonceAsHex,
-        nonceless_block_header: miningSolution.maybeBlockHeader
+        nonceless_block_header: miningSolution.noncelessBlockHeader
       };
       console.log(`Submitting mining solution`);
       addLog(`Submitting mining solution`);
       console.log(`Mining submission: ${JSON.stringify(miningSubmission)}`);
       addLog(`Mining submission: ${JSON.stringify(miningSubmission)}`);
 
-      const serializedBlockHeader = serializeBlockHeader(miningSolution.maybeBlockHeader, deserializeNonceLE(miningSolution.nonceVecU8));
+      const serializedBlockHeader = serializeBlockHeader(miningSolution.noncelessBlockHeader, deserializeNonceLE(miningSolution.nonceVecU8));
       console.log("serializedBlockHeader", serializedBlockHeader);
 
-      submitSolution(miningSubmission);
+      submitSolutionToWebSocket(miningSubmission);
 
       const hashSolution: HashSolution = {
         id: crypto.randomUUID(),
         hash: miningSolution.hash,
         nonceNumber: deserializeNonceLE(miningSolution.nonceVecU8),
         timestamp: Date.now(),
-        merkleRootHex: miningSolution.maybeBlockHeader.merkle_root_hex,
-        previousBlockHex: miningSolution.maybeBlockHeader.previous_block_hash_hex,
-        versionNumber: parseInt(miningSolution.maybeBlockHeader.version_hex, 16),
-        bitsHex: miningSolution.maybeBlockHeader.compact_target_hex,
+        merkleRootHex: miningSolution.noncelessBlockHeader.merkle_root_hex,
+        previousBlockHex: miningSolution.noncelessBlockHeader.previous_block_hash_hex,
+        versionNumber: parseInt(miningSolution.noncelessBlockHeader.version_hex, 16),
+        bitsHex: miningSolution.noncelessBlockHeader.compact_target_hex,
         binaryZeroes: leadingBinaryZeroes,
         hexZeroes: leadingHexZeroes,
         timeToFindMs: miningState.miningStats.maybeStartTime ? Date.now() - miningState.miningStats.maybeStartTime : 0,
@@ -106,11 +102,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleNewChallenge = useCallback((challenge: MiningChallenge) => {
-    addLog(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.blockHeader)}`);
-    console.log(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.blockHeader)}`);
+    addLog(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.noncelessBlockHeader)}`);
+    console.log(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.noncelessBlockHeader)}`);
 
     const miningHistoryItem: MiningHistoryItem = {
-      blockHeader: challenge.blockHeader,
+      blockHeader: challenge.noncelessBlockHeader,
       targetZeros: challenge.targetZeros,
       timestamp: Date.now(),
       proofOfReward: challenge.proofOfReward
@@ -140,7 +136,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     miningWebSocket.disconnect();
   }, [miningWebSocket]);
 
-  const submitSolution = useCallback((submission: MiningSubmission) => {
+  const submitSolutionToWebSocket = useCallback((submission: MiningSubmission) => {
     miningWebSocket.submitSolution(submission);
     addLog(`Submitted mining solution`);
     // Emit solution submission event
@@ -267,7 +263,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         startMining,
         stopMining,
         resetData: miningState.resetStats,
-        submitSolution,
+        submitSolution: submitSolutionToWebSocket,
         miningHistory,
       }}
     >

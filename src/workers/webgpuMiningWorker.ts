@@ -387,7 +387,7 @@ async function mine() {
             const solution: MiningSolution = {
               hash: hashWords,
               nonceVecU8: serializeNonceLE(solutionNonce),
-              maybeBlockHeader: maybeCurrentChallenge.blockHeader,
+              noncelessBlockHeader: maybeCurrentChallenge.noncelessBlockHeader,
               cumulativeHashes: cumulativeHashes
             };
             self.postMessage({

@@ -38,14 +38,14 @@ export interface HashSolution {
 export interface MiningSolution {
   hash: string;
   nonceVecU8: Uint8Array;
-  maybeBlockHeader?: NoncelessBlockHeader;
+  noncelessBlockHeader: NoncelessBlockHeader;
   cumulativeHashes: number;
 }
 
 export type MiningMode = "cpu" | "webgl" | "webgpu";
 
 export interface MiningChallenge {
-  blockHeader: NoncelessBlockHeader;
+  noncelessBlockHeader: NoncelessBlockHeader;
   targetZeros: number;
   proofOfReward: ProofOfReward;
 }

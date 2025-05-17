@@ -5,6 +5,7 @@ General TODO before first public release:
 -[x] determine payout structure and rules for leaderboard; user wins 1 btc
 -[x] connect to degen server backend
 -[x] save the miner address and blockchain message to localStorage if they are valid
+-[] add some cards about the hash power of the network if all American households had 1 Bitaxe; and a card for if there was a bitaxe in every house in the world
 -[] create terms and conditions and privacy policy
 -[] create dumb cookie consent popup
 -[] implement leaderboard

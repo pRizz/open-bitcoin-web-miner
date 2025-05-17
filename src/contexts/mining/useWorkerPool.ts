@@ -82,7 +82,7 @@ export const useWorkerPool = (
         console.log("Merging challenges");
         newChallenge = {
           ...maybePreviousMiningChallenge,
-          blockHeader: blockHeader
+          noncelessBlockHeader: blockHeader
         };
         console.log("Merged challenge:", newChallenge);
       }

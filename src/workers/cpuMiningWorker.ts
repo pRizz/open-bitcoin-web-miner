@@ -12,7 +12,7 @@ interface MiningState {
   miningSpeed: number;
   maybeCurrentChallenge: MiningChallenge | null;
   cumulativeHashes: number;
-}
+  }
 
 const state: MiningState = {
   running: false,
@@ -71,14 +71,14 @@ function mine() {
   let nonce = Math.floor(Math.random() * 0xFFFFFF);
 
   const maybeUpdateHashRate = () => {
-    const now = Date.now();
-    const elapsedMs = now - state.lastHashRateUpdateMs;
+    const nowMs = Date.now();
+    const elapsedMs = nowMs - state.lastHashRateUpdateMs;
     if (elapsedMs >= HASH_RATE_UPDATE_INTERVAL) {
       const msPerSecond = 1000;
       const hashRatePerSecond = state.hashCount / elapsedMs * msPerSecond;
       self.postMessage({ type: 'hashRate', data: hashRatePerSecond });
       state.hashCount = 0;
-      state.lastHashRateUpdateMs = now;
+      state.lastHashRateUpdateMs = nowMs;
     }
   };
 
@@ -90,16 +90,19 @@ function mine() {
       let hashesInBatchCount = 0;
 
       while (state.running && hashesInBatchCount < BATCH_SIZE) {
-        // TODO: clamp nonce to 0xFFFFFFFF, and change header if needed
         nonce++;
         if (nonce > 0xFFFFFFFF) {
-          console.error("Nonce overflowed, resetting to 0");
-          nonce = 0;
+          console.log("Nonce overflowed, requesting new timestamp");
+          // Notify main thread about nonce rollover
+          self.postMessage({
+            type: 'nonceRollover'
+          });
+          // Wait for new challenge with updated timestamp
+          return;
         }
 
-        // const hash = await performHash(state.maybeCurrentChallenge.blockHeader, nonce);
         // FIXME: serializeBlockHeader is expensive; we should modify an existing serialized block header instead of serializing it again every time
-        const hashAsU8Array = await doubleSha256BlockHeaderReturningU8Array(state.maybeCurrentChallenge.blockHeader, nonce);
+        const hashAsU8Array = await doubleSha256BlockHeaderReturningU8Array(state.maybeCurrentChallenge.noncelessBlockHeader, nonce);
         state.hashCount++;
         state.cumulativeHashes++;
         hashesInBatchCount++;
@@ -110,18 +113,18 @@ function mine() {
           throw new Error("No target zeros set");
         }
         if (leadingBinaryZeroes >= state.maybeCurrentChallenge.targetZeros) {
-          console.log("Nonce:", nonce);
+          console.log("Found solution with nonce:", nonce);
           const nonceLE = serializeNonceLE(nonce);
-          console.log(`nonceLE: ${nonceLE}`)
           const nonceBE = nonceToU8ArrayBE(nonce);
-          console.log(`nonceBE: ${nonceBE}`)
           const hashHex = hexStringFromU8Array(hashAsU8Array);
+          console.log(`nonceLE: ${nonceLE}`);
+          console.log(`nonceBE: ${nonceBE}`);
           console.log(`hashHex: ${hashHex}`);
 
           const solution: MiningSolution = {
             hash: hashHex,
             nonceVecU8: serializeNonceLE(nonce),
-            maybeBlockHeader: state.maybeCurrentChallenge.blockHeader,
+            noncelessBlockHeader: state.maybeCurrentChallenge.noncelessBlockHeader,
             cumulativeHashes: state.cumulativeHashes
           };
           self.postMessage({

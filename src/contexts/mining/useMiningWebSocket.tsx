@@ -80,7 +80,7 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
         const { nonceless_block_header, target_leading_zero_count, proof_of_reward } = message.data;
         maybeCallbacks.current?.onNewChallenge(
           {
-            blockHeader: nonceless_block_header,
+            noncelessBlockHeader: nonceless_block_header,
             targetZeros: target_leading_zero_count,
             proofOfReward: proof_of_reward
           }

@@ -17,6 +17,9 @@ export class WorkerPool {
   private hashRateSamples: number[] = [];
   private sampleWindowSize: number = 1; // FIXME
   private maybeCurrentChallenge: MiningChallenge | null = null;
+  // Every worker should get a unique timestamp so that the hashes are unique in each worker, so we need to increment this for each worker.
+  private nextTimestampSeconds: number = Math.floor(Date.now() / 1000); // Current time in seconds
+
   private currentMiningSpeed: number;
   private currentMode: MiningMode = "cpu";
   private threadCount: number = 1; // FIXME
@@ -92,6 +95,7 @@ export class WorkerPool {
     this.hashRateSamples = [];
     this.maybeCurrentChallenge = challenge;
     this.currentMiningSpeed = miningSpeed;
+    this.nextTimestampSeconds = Math.floor(Date.now() / 1000); // Reset to current time in seconds
 
     switch (this.currentMode) {
     case "cpu":
@@ -135,6 +139,22 @@ export class WorkerPool {
     }
   }
 
+  private getNextTimestampSeconds(): number {
+    const timestamp = this.nextTimestampSeconds;
+    this.nextTimestampSeconds++;
+    return timestamp;
+  }
+
+  private timestampSecondsToHex(timestampSeconds: number): string {
+    // Convert to 4 bytes (32 bits) little-endian hex string
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+    view.setUint32(0, timestampSeconds, true); // true for little-endian
+    return Array.from(new Uint8Array(buffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
   private createCPUWorkers() {
     try {
       console.log("Creating CPU workers", this.threadCount);
@@ -144,7 +164,7 @@ export class WorkerPool {
         );
 
         this.setupWorkerOnMessageHandler(worker);
-        this.startWorker(worker, i);
+        this.updateTimestampAndStartWorker(worker, i);
 
         this.cpuWorkers.push(worker);
       }
@@ -161,7 +181,7 @@ export class WorkerPool {
         new URL('./webglMiningWorker.ts', import.meta.url)
       );
       this.setupWorkerOnMessageHandler(this.maybeWebGLWorker);
-      this.startWorker(this.maybeWebGLWorker);
+      this.updateTimestampAndStartWorker(this.maybeWebGLWorker, -1); // Use -1 as ID for WebGL worker
     } catch (error) {
       if (this.onError) {
         this.onError(`Failed to initialize WebGL worker: ${error instanceof Error ? error.message : String(error)}`);
@@ -175,7 +195,7 @@ export class WorkerPool {
         new URL('./webgpuMiningWorker.ts', import.meta.url)
       );
       this.setupWorkerOnMessageHandler(this.maybeWebGPUWorker);
-      this.startWorker(this.maybeWebGPUWorker);
+      this.updateTimestampAndStartWorker(this.maybeWebGPUWorker, -2); // Use -2 as ID for WebGPU worker
     } catch (error) {
       if (this.onError) {
         this.onError(`Failed to initialize WebGPU worker: ${error instanceof Error ? error.message : String(error)}`);
@@ -191,7 +211,7 @@ export class WorkerPool {
         const solution: MiningSolution = {
           hash: miningSolution.hash,
           nonceVecU8: miningSolution.nonceVecU8,
-          maybeBlockHeader: this.maybeCurrentChallenge?.blockHeader,
+          noncelessBlockHeader: miningSolution.noncelessBlockHeader,
           cumulativeHashes: miningSolution.cumulativeHashes
         };
         this.onSolution(solution);
@@ -202,16 +222,51 @@ export class WorkerPool {
         this.onError(data);
       } else if (type === "gpuCapabilities" && this.onGPUCapabilities) {
         this.onGPUCapabilities(data);
+      } else if (type === "nonceRollover") {
+        // Send updated challenge with new timestamp
+        this.updateTimestampAndWorkerChallenge(worker);
       }
     };
   }
 
-  private startWorker(worker: Worker, workerId?: number) {
+  private updateTimestampAndWorkerChallenge(worker: Worker) {
+    if (!this.maybeCurrentChallenge) return;
+    const currentChallenge = this.maybeCurrentChallenge;
+
+    const timestamp = this.getNextTimestampSeconds();
+    const updatedChallenge: MiningChallenge = {
+      ...currentChallenge,
+      noncelessBlockHeader: {
+        ...currentChallenge.noncelessBlockHeader,
+        timestamp_hex: this.timestampSecondsToHex(timestamp)
+      }
+    };
+
+    const message: WorkerMessage = {
+      type: "updateChallenge",
+      maybeChallenge: updatedChallenge
+    };
+    worker.postMessage(message);
+  }
+
+  private updateTimestampAndStartWorker(worker: Worker, workerId: number) {
+    if (!this.maybeCurrentChallenge) return;
+    const currentChallenge = this.maybeCurrentChallenge;
+
+    const timestamp = this.getNextTimestampSeconds();
+    const challengeWithTimestamp: MiningChallenge = {
+      ...currentChallenge,
+      noncelessBlockHeader: {
+        ...currentChallenge.noncelessBlockHeader,
+        timestamp_hex: this.timestampSecondsToHex(timestamp)
+      }
+    };
+
     const message: WorkerMessage = {
       type: "start",
-      maybeChallenge: this.maybeCurrentChallenge,
+      maybeChallenge: challengeWithTimestamp,
       maybeMiningSpeed: this.currentMiningSpeed,
-      maybeWorkerId: workerId,
+      maybeWorkerId: workerId
     };
     worker.postMessage(message);
   }
