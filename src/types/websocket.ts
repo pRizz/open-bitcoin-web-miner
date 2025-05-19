@@ -74,22 +74,23 @@ export type WebSocketClientMessage =
         maybeLeaderboardMessage?: string | null
       } };
 
-export function serializeBlockHeader(header: NoncelessBlockHeader, nonce: number): Uint8Array {
+// TODO: wrap the Uint8Array in a more type safe object.
+export function serializeNoncelessBlockHeader(noncelessBlockHeader: NoncelessBlockHeader, nonce: number): Uint8Array {
   if (
-    header.version_hex.length !== 8 ||
-        header.previous_block_hash_hex.length !== 64 ||
-        header.merkle_root_hex.length !== 64 ||
-        header.timestamp_hex.length !== 8 ||
-        header.compact_target_hex.length !== 8
+    noncelessBlockHeader.version_hex.length !== 8 ||
+        noncelessBlockHeader.previous_block_hash_hex.length !== 64 ||
+        noncelessBlockHeader.merkle_root_hex.length !== 64 ||
+        noncelessBlockHeader.timestamp_hex.length !== 8 ||
+        noncelessBlockHeader.compact_target_hex.length !== 8
   ) {
     throw new Error("Invalid block header field lengths");
   }
 
-  const version_bytes = header.version_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
-  const previous_block_hash_bytes = header.previous_block_hash_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
-  const merkle_root_bytes = header.merkle_root_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
-  const timestamp_bytes = header.timestamp_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
-  const compact_target_bytes = header.compact_target_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const version_bytes = noncelessBlockHeader.version_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const previous_block_hash_bytes = noncelessBlockHeader.previous_block_hash_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const merkle_root_bytes = noncelessBlockHeader.merkle_root_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const timestamp_bytes = noncelessBlockHeader.timestamp_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
+  const compact_target_bytes = noncelessBlockHeader.compact_target_hex.match(/.{1,2}/g)?.map(byteString => parseInt(byteString, 16)) ?? [];
 
   // Create an 80-byte buffer
   const buffer = new Uint8Array(80);

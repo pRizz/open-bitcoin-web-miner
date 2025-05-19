@@ -6,7 +6,7 @@ import { MiningContextType, MiningHistoryItem } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
-import { MiningSubmission, NoncelessBlockHeader, serializeBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse, BlockTemplateUpdate } from "@/types/websocket";
+import { MiningSubmission, NoncelessBlockHeader, serializeNoncelessBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse, BlockTemplateUpdate } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { useMiningEvents } from "./mining/MiningEventsContext";
 
@@ -77,7 +77,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
       console.log(`Mining submission: ${JSON.stringify(miningSubmission)}`);
       addLog(`Mining submission: ${JSON.stringify(miningSubmission)}`);
 
-      const serializedBlockHeader = serializeBlockHeader(miningSolution.noncelessBlockHeader, deserializeNonceLE(miningSolution.nonceVecU8));
+      const serializedBlockHeader = serializeNoncelessBlockHeader(miningSolution.noncelessBlockHeader, deserializeNonceLE(miningSolution.nonceVecU8));
       console.log("serializedBlockHeader", serializedBlockHeader);
 
       submitSolutionToWebSocket(miningSubmission);

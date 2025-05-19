@@ -1,4 +1,4 @@
-import { NoncelessBlockHeader, serializeBlockHeader, serializeNonceLE } from "@/types/websocket";
+import { NoncelessBlockHeader, serializeNoncelessBlockHeader, serializeNonceLE } from "@/types/websocket";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 
 // Deprecated; use doubleSha256BlockHeaderU8Array instead
@@ -16,7 +16,7 @@ async function sha256(message: string): Promise<string> {
 
 // Deprecated; use doubleSha256BlockHeaderU8Array instead
 export async function doubleSha256BlockHeader(blockHeader: NoncelessBlockHeader, nonce: number): Promise<string> {
-  const dataUint8Array = serializeBlockHeader(blockHeader, nonce);
+  const dataUint8Array = serializeNoncelessBlockHeader(blockHeader, nonce);
   const hashArrayBuffer = await crypto.subtle.digest('SHA-256', dataUint8Array);
   const hashArrayBuffer2 = await crypto.subtle.digest('SHA-256', hashArrayBuffer);
 
@@ -33,21 +33,20 @@ export async function performHash(blockHeader: NoncelessBlockHeader, nonce: numb
 
 // FIXME: serializeBlockHeader is expensive; we should modify an existing serialized block header instead of serializing it again every time
 // Deprecated; use doubleSha256BlockHeaderU8Array instead
-export async function doubleSha256BlockHeaderReturningU8Array(blockHeader: NoncelessBlockHeader, nonce: number): Promise<Uint8Array> {
-  const dataUint8Array = serializeBlockHeader(blockHeader, nonce);
+// This method ran at about 40kH/s on my M4 Macbook Pro on 1 thread
+async function _doubleSha256BlockHeaderReturningU8Array(blockHeader: NoncelessBlockHeader, nonce: number): Promise<Uint8Array> {
+  const dataUint8Array = serializeNoncelessBlockHeader(blockHeader, nonce);
   const hashArrayBuffer = await crypto.subtle.digest('SHA-256', dataUint8Array);
   const hashArrayBuffer2 = await crypto.subtle.digest('SHA-256', hashArrayBuffer);
 
   return new Uint8Array(hashArrayBuffer2).reverse();
 }
 
-// Potentially not type safe, but it's a hack to avoid serializing the block header again
+// Potentially not type safe, but it's a hack to avoid serializing the block header every time we hash. TODO: wrap the Uint8Array in a more type safe object.
 // Assumes blockHeaderAsU8Array is already 80 bytes long
+// This runs at about 48kH/s on my M4 Macbook Pro on 1 thread; improves performance by about 20% over doubleSha256BlockHeaderReturningU8Array
 export async function doubleSha256BlockHeaderU8Array(blockHeaderAsU8Array: Uint8Array, nonce: number): Promise<Uint8Array> {
   blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
-  // const hashArrayBuffer = await crypto.subtle.digest('SHA-256', blockHeaderAsU8Array);
-  // const hashArrayBuffer2 = await crypto.subtle.digest('SHA-256', hashArrayBuffer);
-
   return new Uint8Array(await doubleSha256(blockHeaderAsU8Array)).reverse();
 }
 

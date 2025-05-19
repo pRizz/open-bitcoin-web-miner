@@ -1,8 +1,8 @@
 import { MiningChallenge, MiningSolution } from "@/types/mining";
-import { serializeNonceLE } from "@/types/websocket";
+import { serializeNoncelessBlockHeader, serializeNonceLE } from "@/types/websocket";
 import { calculateLeadingZeroesFromU8Array, hexStringFromU8Array } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
-import { doubleSha256BlockHeaderReturningU8Array } from "./cpuMiningUtils";
+import { doubleSha256BlockHeaderU8Array } from "./cpuMiningUtils";
 import { WorkerMessage } from "./WorkerPool";
 
 interface MiningState {
@@ -68,8 +68,8 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
 function mine() {
   if (!state.maybeCurrentChallenge) return;
 
-  let nonce = Math.floor(Math.random() * 0xFFFFFF);
-
+  // let nonce = Math.floor(Math.random() * 0xFFFFFF);
+  let nonce = 0;
   const maybeUpdateHashRate = () => {
     const nowMs = Date.now();
     const elapsedMs = nowMs - state.lastHashRateUpdateMs;
@@ -88,6 +88,7 @@ function mine() {
     try {
       const startTime = Date.now();
       let hashesInBatchCount = 0;
+      let blockHeaderAsU8Array = serializeNoncelessBlockHeader(state.maybeCurrentChallenge.noncelessBlockHeader, nonce);
 
       while (state.running && hashesInBatchCount < BATCH_SIZE) {
         nonce++;
@@ -101,8 +102,8 @@ function mine() {
           return;
         }
 
-        // FIXME: serializeBlockHeader is expensive; we should modify an existing serialized block header instead of serializing it again every time
-        const hashAsU8Array = await doubleSha256BlockHeaderReturningU8Array(state.maybeCurrentChallenge.noncelessBlockHeader, nonce);
+        blockHeaderAsU8Array = setNonceOnBlockHeaderAsU8Array(blockHeaderAsU8Array, nonce);
+        const hashAsU8Array = await doubleSha256BlockHeaderU8Array(blockHeaderAsU8Array, nonce);
         state.hashCount++;
         state.cumulativeHashes++;
         hashesInBatchCount++;
@@ -157,4 +158,9 @@ function mine() {
   };
 
   miningLoop();
+}
+
+function setNonceOnBlockHeaderAsU8Array(blockHeaderAsU8Array: Uint8Array<ArrayBufferLike>, nonce: number): Uint8Array<ArrayBufferLike> {
+  blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
+  return blockHeaderAsU8Array;
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NoncelessBlockHeader, serializeBlockHeader } from '@/types/websocket';
+import { NoncelessBlockHeader, serializeNoncelessBlockHeader } from '@/types/websocket';
 import { doubleSha256BlockHeader } from '@/workers/cpuMiningUtils';
 
 describe('Block Header Serialization and Hashing', () => {
@@ -46,7 +46,7 @@ describe('Block Header Serialization and Hashing', () => {
     ]);
 
     // Act
-    const serialized = serializeBlockHeader(blockHeader, nonce);
+    const serialized = serializeNoncelessBlockHeader(blockHeader, nonce);
     const hash = await doubleSha256BlockHeader(blockHeader, nonce);
 
     // Assert
@@ -70,7 +70,7 @@ describe('Block Header Serialization and Hashing', () => {
     // Test with different nonce values
     const nonces = [0, 1, 0xFFFFFFFF, 12345];
     for (const nonce of nonces) {
-      const serialized = serializeBlockHeader(blockHeader, nonce);
+      const serialized = serializeNoncelessBlockHeader(blockHeader, nonce);
 
       // Check that the nonce appears in the last 4 bytes in little-endian order
       const expectedNonceBytes = new Uint8Array([
@@ -100,7 +100,7 @@ describe('Block Header Serialization and Hashing', () => {
     const nonce = 0;
 
     // Act
-    const serialized = serializeBlockHeader(blockHeader, nonce);
+    const serialized = serializeNoncelessBlockHeader(blockHeader, nonce);
 
     // Assert
     // Check that timestamp appears in bytes 68-71 in little-endian order
