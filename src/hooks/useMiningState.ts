@@ -44,7 +44,7 @@ export const useMiningState = () => {
 
       if (solution.binaryZeroes >= networkInfo.maybeNetworkRequiredLeadingZeroes) {
         toast({
-          title: "Block Found!",
+          title: "Partial Solution Found!",
           description: `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`,
           variant: "default",
         });
