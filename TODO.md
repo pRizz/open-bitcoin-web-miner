@@ -8,14 +8,13 @@ General TODO before first public release:
 -[x] add some cards about the hash power of the network if all American households had 1 Bitaxe; and a card for if there was a bitaxe in every house in the world
 -[x] implement leaderboard
 -[x] implement global hash rate display and graph and gauge and update live; about every second; kinda done; link to global hashrate website elsewhere
+-[x] add leaderboard username and blockchain message to startMining websocket message and remove job id from response message
+-[x] add versioning; shown in bottom of sidebar
+-[x] add a settings page; allow enabling of saving to sessionStorage; nah
+-[x] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated; made a timeout mitigation so they are shown as rejected after 10 seconds
+-[x] treat solutions as rejected by default if there is no response after x seconds, maybe 10
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
--[] add leaderboard username and blockchain message to startMining websocket message and remove job id from response message
--[] add versioning
--[] add a settings page; allow enabling of saving to sessionStorage
--[] have an achievements page; keep track of notable findings, like a difficulty that beats satoshi's first block, second block, all orders of magnitude of difficulty, all increments of LBZs
--[] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated
--[] treat solutions as rejected by default if there is no response after x seconds, maybe 10
 -[] pass different timestamps to each worker, and somehow increment stuff safely if nonce runs out
 -[] verify the bitaxe probabilities and other probabilities in production mainnet
 -[] add a link to global hashrate graph website
@@ -33,3 +32,4 @@ Future features:
 -[] host over tor; show onion link
 -[] have a feed of the hash rate that the bright builds website can listen to; maybe zmq or make this a separate project?
 -[] link to lightning network node in AWS
+-[] have an achievements page; keep track of notable findings, like a difficulty that beats satoshi's first block, second block, all orders of magnitude of difficulty, all increments of LBZs
