@@ -2,13 +2,22 @@ import React, { createContext, useContext, useState, useEffect, useRef, useMemo,
 import { HashSolution, MiningChallenge, MiningMode, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
-import { MiningContextType, MiningHistoryItem } from "./mining/types";
+import { MiningContextMiningState, MiningContextType, MiningHistoryItem } from "./mining/types";
 import { useWorkerPool } from "./mining/useWorkerPool";
 import { useInitialThreadCount } from "./mining/useThreadCount";
 import { useDebug } from "./DebugContext";
-import { MiningSubmission, NoncelessBlockHeader, serializeNoncelessBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse, BlockTemplateUpdate } from "@/types/websocket";
+import { MiningSubmission, serializeNoncelessBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse, BlockTemplateUpdate, WebSocketMiningState } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { useMiningEvents } from "./mining/MiningEventsContext";
+
+function getMiningContextMiningStateFromWebSocketMiningState(webSocketMiningState: WebSocketMiningState): MiningContextMiningState {
+  switch (webSocketMiningState) {
+  case WebSocketMiningState.MINING:
+    return MiningContextMiningState.MINING;
+  case WebSocketMiningState.BEHAVIOR_CHECK:
+    return MiningContextMiningState.BEHAVIOR_CHECK;
+  }
+}
 
 const defaultContext: MiningContextType = {
   miningStats: {
@@ -24,6 +33,7 @@ const defaultContext: MiningContextType = {
   threadCount: 1,
   maxThreads: 1,
   miningMode: "cpu",
+  miningContextMiningState: MiningContextMiningState.NOT_MINING,
   setMiningSpeed: () => {},
   setThreadCount: () => {},
   setMiningMode: () => {},
@@ -48,6 +58,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const miningWebSocket = useMiningWebSocket();
   const { emit } = useMiningEvents();
   const miningState = useMiningState();
+  const [miningContextMiningState, setMiningContextMiningState] = useState<MiningContextMiningState>(MiningContextMiningState.NOT_MINING);
 
   const [isMining, setIsMining] = useState(false);
   const [miningSpeed, setMiningSpeed] = useState(100);
@@ -104,12 +115,16 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const handleNewChallenge = useCallback((challenge: MiningChallenge) => {
     addLog(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.noncelessBlockHeader)}`);
     console.log(`New mining challenge received. Target zeros: ${challenge.targetZeros}, Block header: ${JSON.stringify(challenge.noncelessBlockHeader)}`);
+    const webSocketMiningState = challenge.webSocketMiningState;
+    const miningContextMiningState = getMiningContextMiningStateFromWebSocketMiningState(webSocketMiningState);
+    setMiningContextMiningState(miningContextMiningState);
 
     const miningHistoryItem: MiningHistoryItem = {
       blockHeader: challenge.noncelessBlockHeader,
       targetZeros: challenge.targetZeros,
       timestamp: Date.now(),
-      proofOfReward: challenge.proofOfReward
+      maybeProofOfReward: challenge.maybeProofOfReward,
+      miningState: miningContextMiningState,
     };
     setMiningHistory([...miningHistory, miningHistoryItem]);
     workerPool.updateMiningChallenge(challenge);
@@ -118,19 +133,23 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     miningState.updateRequiredBinaryZeroes(challenge.targetZeros);
     // Emit new challenge event
     emit('onNewChallengeReceived');
-  }, [addLog, miningState, workerPool, emit, miningHistory, setMiningHistory]);
+  }, [addLog, miningState, workerPool, emit, miningHistory, setMiningHistory, miningContextMiningState]);
 
   const handleBlockTemplateUpdate = useCallback((blockTemplateUpdate: BlockTemplateUpdate) => {
     addLog("New block template received");
+    const miningContextMiningState = getMiningContextMiningStateFromWebSocketMiningState(blockTemplateUpdate.mining_mode);
+    setMiningContextMiningState(miningContextMiningState);
     workerPool.updateBlockHeader(blockTemplateUpdate.nonceless_block_header);
+
     const miningHistoryItem: MiningHistoryItem = {
       blockHeader: blockTemplateUpdate.nonceless_block_header,
       targetZeros: miningState.miningStats.maybeRequiredBinaryZeroes,
       timestamp: Date.now(),
-      proofOfReward: blockTemplateUpdate.proof_of_reward
+      maybeProofOfReward: blockTemplateUpdate.maybe_proof_of_reward,
+      miningState: miningContextMiningState,
     };
     setMiningHistory([...miningHistory, miningHistoryItem]);
-  }, [addLog, workerPool, miningHistory, setMiningHistory, miningState]);
+  }, [addLog, workerPool, miningHistory, setMiningHistory, miningState, miningContextMiningState]);
 
   const disconnectWebSocket = useCallback(() => {
     miningWebSocket.disconnect();
@@ -257,6 +276,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         threadCount,
         maxThreads,
         miningMode,
+        miningContextMiningState,
         setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
         setMiningMode,

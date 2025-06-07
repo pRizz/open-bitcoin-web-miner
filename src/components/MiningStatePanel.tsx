@@ -15,6 +15,7 @@ import { formatLargeNumber } from "@/utils/formatters";
 import { TypedLink } from "@/components/TypedLink";
 import { MiningPickaxe } from "./MiningPickaxe";
 import { OddsExplanation } from "./OddsExplanation";
+import { MiningContextMiningState } from "@/contexts/mining/types";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2 text-muted-foreground border-b border-muted-foreground/20 pb-1">
@@ -58,7 +59,7 @@ function formatSatsToBTC(sats: number) {
 }
 
 export const MiningStatePanel = () => {
-  const { miningStats, isMining, resetData } = useMining();
+  const { miningStats, isMining, resetData, miningContextMiningState } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty, maybeConnectedMinerCount, maybeServerStartingMinLeadingZeroCount, maybeBaseBlockReward, maybeMiningReward } = useNetworkInfo();
   const { subscribe } = useMiningEvents();
@@ -123,6 +124,22 @@ export const MiningStatePanel = () => {
       unsubscribeResponse();
     };
   }, [subscribe]);
+
+  let miningStateText = "";
+  switch (miningContextMiningState) {
+  case MiningContextMiningState.MINING:
+    miningStateText = "Mining";
+    break;
+  case MiningContextMiningState.BEHAVIOR_CHECK:
+    miningStateText = "Behavior Check";
+    break;
+  case MiningContextMiningState.NOT_MINING:
+    miningStateText = "Not Mining";
+    break;
+  }
+  if (!isMining) {
+    miningStateText = "Not Mining";
+  }
 
   return (
     <Card className="p-6 glass-card">
@@ -285,8 +302,26 @@ export const MiningStatePanel = () => {
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               Status
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[300px]">
+                    <p>Possible mining states:</p>
+                    <ul className="list-disc pl-4 mt-1 space-y-1">
+                      <li><strong>Not Mining:</strong> The miner is inactive</li>
+                      <li><strong>Behavior Check:</strong> The miner is verifying compliant behavior before mining with your BTC address. This is done in order to mitigate misbehaving clients.</li>
+                      <li><strong>Mining:</strong> The miner is actively searching for solutions using your BTC address. If a block is found, your address will be rewarded with 1 Bitcoin!</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </span>
-            <MiningPickaxe isMining={isMining} />
+            <span className="text-muted-foreground flex items-center gap-2">
+              {miningStateText}
+              <MiningPickaxe isMining={isMining} />
+            </span>
           </div>
           {maybeMinerAddress && (
             <div className="flex justify-between border-b border-muted-foreground/20 pb-1">

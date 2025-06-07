@@ -12,12 +12,13 @@ import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { formatLargeNumber } from "@/utils/formatters";
 import { Database, Target, Binary, CheckCircle2, XCircle, Copy, ArrowLeft } from "lucide-react";
-import { MiningHistoryItem } from "@/contexts/mining/types";
+import { MiningContextMiningState, MiningHistoryItem } from "@/contexts/mining/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TypedLink } from "@/components/TypedLink";
+import { NoncelessBlockHeader, ProofOfReward } from "@/types/websocket";
 
-const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem, index: number, key: string }) => {
+const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemWithProofOfReward, index: number, key: string }) => {
   const { toast } = useToast();
 
   const handleCopy = async (text: string) => {
@@ -147,11 +148,32 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItem,
   );
 };
 
+function filterMiningHistoryItemsWithProofOfReward(miningHistory: MiningHistoryItem[]): MiningHistoryItemWithProofOfReward[] {
+  return miningHistory
+    .filter((item) => item.maybeProofOfReward !== null)
+    .map((item) => ({
+      blockHeader: item.blockHeader,
+      targetZeros: item.targetZeros,
+      timestamp: item.timestamp,
+      proofOfReward: item.maybeProofOfReward!,
+      miningState: item.miningState,
+    }));
+}
+
+interface MiningHistoryItemWithProofOfReward {
+  blockHeader: NoncelessBlockHeader;
+  targetZeros: number;
+  timestamp: number;
+  proofOfReward: ProofOfReward;
+  miningState: MiningContextMiningState;
+}
+
 export default function ProofOfRewardPage() {
   const { miningStats } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight } = useNetworkInfo();
-  const { miningHistory } = useMining();
+  const { miningHistory: miningHistoryWithoutProofOfReward } = useMining();
+  const miningHistoryWithProofOfReward = filterMiningHistoryItemsWithProofOfReward(miningHistoryWithoutProofOfReward);
 
   return (
     <div className="container mx-auto p-6">
@@ -171,7 +193,7 @@ export default function ProofOfRewardPage() {
 
         <CardContent>
           <div className="space-y-4">
-            {miningHistory.length > 0 && miningHistory.map((item, index) => (
+            {miningHistoryWithProofOfReward.length > 0 && miningHistoryWithProofOfReward.map((item, index) => (
               <MiningChallengeElement key={index.toString()} item={item} index={index} />
             )) || (
               <p className="text-muted-foreground">No mining challenges found. Start mining to see your mining challenges.</p>

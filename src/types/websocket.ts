@@ -8,8 +8,10 @@ export interface NoncelessBlockHeader {
     compact_target_hex: string; // 4 underlying bytes, 8 character hex string
   }
 
-export interface MiningChallengeResponse extends HasFullProofOfReward {
-    target_leading_zero_count: number;
+export interface MiningChallengeResponse {
+  nonceless_block_header: NoncelessBlockHeader;
+  target_leading_zero_count: number;
+  mining_mode: WebSocketMiningState;
   }
 
 export interface MiningSubmission {
@@ -30,6 +32,11 @@ export enum MiningSubmissionStatus {
   ACCEPTED_AND_FOUND_BLOCK = 3,
 }
 
+export enum WebSocketMiningState {
+  BEHAVIOR_CHECK = 0,
+  MINING = 1,
+}
+
 export interface WorkMetadata {
   block_header_hash_hex: string; // 32 underlying bytes, 64 character hex string
   block_height: number;
@@ -46,7 +53,11 @@ export interface DifficultyUpdate {
     new_min_leading_zero_count: number;
   }
 
-export interface BlockTemplateUpdate extends HasFullProofOfReward {}
+export interface BlockTemplateUpdate {
+  mining_mode: WebSocketMiningState;
+  nonceless_block_header: NoncelessBlockHeader;
+  maybe_proof_of_reward: ProofOfReward | null;
+}
 
 export interface HasFullProofOfReward {
   nonceless_block_header: NoncelessBlockHeader;
