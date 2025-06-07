@@ -10,17 +10,31 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+const PENDING_TIMEOUT_MS = 10_000; // 10 seconds
+
 interface HashTableRowProps {
-  hash: HashSolution;
+  hashSolution: HashSolution;
 }
 
-export function HashTableRow({ hash }: HashTableRowProps) {
+export function HashTableRow({ hashSolution }: HashTableRowProps) {
   const formatTimestamp = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString();
   };
 
+  const getEffectiveStatus = () => {
+    if (hashSolution.status === 'pending') {
+      const pendingDurationMs = Date.now() - hashSolution.timestamp;
+      if (pendingDurationMs > PENDING_TIMEOUT_MS) {
+        return 'rejected';
+      }
+    }
+    return hashSolution.status;
+  };
+
+  const effectiveStatus = getEffectiveStatus();
+
   const getStatusIcon = () => {
-    switch (hash.status) {
+    switch (effectiveStatus) {
     case 'accepted':
       return <CheckCircle2 className="w-4 h-4 text-green-500" />;
     case 'rejected':
@@ -35,11 +49,11 @@ export function HashTableRow({ hash }: HashTableRowProps) {
   };
 
   const getStatusText = () => {
-    switch (hash.status) {
+    switch (effectiveStatus) {
     case 'accepted':
       return 'Accepted';
     case 'rejected':
-      return 'Rejected';
+      return effectiveStatus === hashSolution.status ? 'Rejected' : 'Rejected (Timeout)';
     case 'outdated':
       return 'Outdated';
     case 'pending':
@@ -52,22 +66,22 @@ export function HashTableRow({ hash }: HashTableRowProps) {
   return (
     <TableRow>
       <TableCell className="text-center font-mono">
-        {formatTimestamp(hash.timestamp)}
+        {formatTimestamp(hashSolution.timestamp)}
       </TableCell>
       <TableCell className="text-center font-mono">
-        {hash.binaryZeroes}
+        {hashSolution.binaryZeroes}
       </TableCell>
       <TableCell className="text-center font-mono">
-        {hash.hexZeroes}
+        {hashSolution.hexZeroes}
       </TableCell>
       <TableCell className="text-center font-mono">
-        {hash.hash.slice(0, 20)}...
+        {hashSolution.hash.slice(0, 20)}...
       </TableCell>
       <TableCell className="text-center font-mono">
-        {formatDuration(hash.timeToFindMs)}
+        {formatDuration(hashSolution.timeToFindMs)}
       </TableCell>
       <TableCell className="text-center">
-        {hash.status && (
+        {hashSolution.status && (
           <TooltipProvider>
             <Tooltip delayDuration={0}>
               <TooltipTrigger>
@@ -82,11 +96,11 @@ export function HashTableRow({ hash }: HashTableRowProps) {
       </TableCell>
       <TableCell className="text-center">
         <span className="font-mono text-xs text-muted-foreground">
-          {hash.nonceNumber}
+          {hashSolution.nonceNumber}
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <HashDetailsDialog hash={hash} />
+        <HashDetailsDialog hash={hashSolution} />
       </TableCell>
     </TableRow>
   );

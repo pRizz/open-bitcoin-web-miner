@@ -100,8 +100,8 @@ export function SubmittedSolutionsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedHashes.map((hash) => (
-                <HashTableRow key={hash.id} hash={hash} />
+              {sortedHashes.map((hashSolution) => (
+                <HashTableRow key={hashSolution.id} hashSolution={hashSolution} />
               ))}
             </TableBody>
           </Table>

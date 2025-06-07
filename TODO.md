@@ -5,16 +5,9 @@ General TODO before first public release:
 -[x] determine payout structure and rules for leaderboard; user wins 1 btc
 -[x] connect to degen server backend
 -[x] save the miner address and blockchain message to localStorage if they are valid
--[] add some cards about the hash power of the network if all American households had 1 Bitaxe; and a card for if there was a bitaxe in every house in the world
--[] create terms and conditions and privacy policy
--[] create dumb cookie consent popup
--[] implement leaderboard
--[] ensure React Compiler is enabled
--[] implement global hash rate display and graph and gauge and update live; about every second
--[] have a feed of the hash rate that the bright builds website can listen to; maybe zmq or make this a separate project?
--[] link to lightning network node in AWS
--[] show a bitcoin block header details view when mining
--[] host over tor; show onion link
+-[x] add some cards about the hash power of the network if all American households had 1 Bitaxe; and a card for if there was a bitaxe in every house in the world
+-[x] implement leaderboard
+-[x] implement global hash rate display and graph and gauge and update live; about every second; kinda done; link to global hashrate website elsewhere
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] add leaderboard username and blockchain message to startMining websocket message and remove job id from response message
@@ -24,9 +17,19 @@ General TODO before first public release:
 -[] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated
 -[] treat solutions as rejected by default if there is no response after x seconds, maybe 10
 -[] pass different timestamps to each worker, and somehow increment stuff safely if nonce runs out
+-[] verify the bitaxe probabilities and other probabilities in production mainnet
+-[] add a link to global hashrate graph website
 
 Future features:
 -[] add captcha's maybe
 -[] create login system
 -[] manage devices
 -[] see device hash rate
+-[] create terms and conditions and privacy policy
+-[] create dumb cookie consent popup
+-[] show details about the version of the bitcoin node that is running in the backend
+-[] ensure React Compiler is enabled
+-[] show a bitcoin block header details view when mining
+-[] host over tor; show onion link
+-[] have a feed of the hash rate that the bright builds website can listen to; maybe zmq or make this a separate project?
+-[] link to lightning network node in AWS
