@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { validateBlockchainMessage, getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
+import { getRandomBitcoinPhrase } from "@/utils/bitcoinPhrases";
 
 export function MiningControls() {
   const { toast } = useToast();
@@ -47,6 +48,8 @@ export function MiningControls() {
     includeAddress,
     setIncludeAddress
   } = useShare();
+
+  const randomPhrase = getRandomBitcoinPhrase();
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
@@ -118,7 +121,7 @@ export function MiningControls() {
               <TooltipTrigger asChild>
                 <Input
                   id="blockchain-message"
-                  placeholder="Enter your message"
+                  placeholder={randomPhrase}
                   value={maybeBlockchainMessage ?? ""}
                   onChange={handleMessageChange}
                   maxLength={MAX_MESSAGE_BYTES}
@@ -127,7 +130,7 @@ export function MiningControls() {
                 />
               </TooltipTrigger>
               <TooltipContent className="max-w-[300px]">
-                <p>This message will be added to the coinbase script signature field, if you successfully find a block. UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.</p>
+                <p>This message will be added to the coinbase input script signature field, if you successfully find a block, similar to Satoshi Nakamoto's genesis block. UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
