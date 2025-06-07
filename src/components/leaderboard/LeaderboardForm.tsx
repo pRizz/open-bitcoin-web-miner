@@ -34,7 +34,7 @@ export function LeaderboardForm() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">
+        <Label htmlFor="username" className="flex items-center gap-2">
           Name Tag (1-20 alphanumeric characters)
           <TooltipProvider>
             <Tooltip delayDuration={0}>

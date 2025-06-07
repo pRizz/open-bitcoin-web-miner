@@ -22,14 +22,23 @@ interface NetworkMiningPredictionStatsProps {
   minerCountLabel: string;
   showCombinedHashRate: boolean;
   customPanelHeaderText?: string;
+  hashRateOverride?: number; // Hash rate per miner in H/s
 }
 
-export function MiningChancesStats({ minerCount, minerCountLabel, showCombinedHashRate, customPanelHeaderText }: NetworkMiningPredictionStatsProps) {
+export function MiningChancesStats({
+  minerCount,
+  minerCountLabel,
+  showCombinedHashRate,
+  customPanelHeaderText,
+  hashRateOverride
+}: NetworkMiningPredictionStatsProps) {
   const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
   const { miningStats } = useMining();
   const { maybeHashRate } = miningStats;
 
-  const combinedHashRate = maybeHashRate ? maybeHashRate * minerCount : null;
+  // Use hashRateOverride if provided, otherwise use the current miner's hash rate
+  const hashRatePerMiner = hashRateOverride ?? (maybeHashRate ?? 0);
+  const combinedHashRate = hashRatePerMiner * minerCount;
 
   // Calculate the probability of at least one miner finding a block in a day
   const calculateNetworkProbability = (hashRate: number, requiredZeroes: number, minerCount: number): number => {

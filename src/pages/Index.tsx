@@ -17,6 +17,8 @@ import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
 import { MiningChancesStats } from "@/components/MiningChancesStats";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
 
+const ONE_BITAXE_HASH_RATE = 1e12;
+
 const Index = () => {
   const [searchParams] = useSearchParams();
   const {
@@ -88,6 +90,51 @@ const Index = () => {
               <MiningChancesStats minerCount={1000} minerCountLabel={(1_000).toLocaleString()} showCombinedHashRate={true} />
               <MiningChancesStats minerCount={1_000_000} minerCountLabel="1 million" showCombinedHashRate={true} />
               <MiningChancesStats minerCount={1_000_000_000} minerCountLabel="1 billion" showCombinedHashRate={true} />
+            </div>
+          </Card>
+
+          {/* Bitaxe Probabilities Section */}
+          <Card className="p-6 glass-card">
+            <h2 className="text-2xl font-bold mb-4">Bitaxe Probabilities</h2>
+            <p className="text-muted-foreground mb-4">Chances of finding a block solution with 1 TH/s per Bitaxe</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <MiningChancesStats
+                minerCount={1}
+                minerCountLabel="1 Bitaxe"
+                showCombinedHashRate={true}
+                customPanelHeaderText="Chances with 1 Bitaxe (~1&nbsp;TH/s)"
+                hashRateOverride={ONE_BITAXE_HASH_RATE}
+              />
+              <MiningChancesStats
+                minerCount={1000}
+                minerCountLabel="1,000 Bitaxes"
+                showCombinedHashRate={true}
+                customPanelHeaderText="Chances with 1,000 Bitaxes (~1&nbsp;PH/s)"
+                hashRateOverride={ONE_BITAXE_HASH_RATE}
+              />
+              <MiningChancesStats
+                minerCount={1_000_000}
+                minerCountLabel="1 million Bitaxes"
+                showCombinedHashRate={true}
+                customPanelHeaderText="Chances with 1 million Bitaxes (~1&nbsp;EH/s)"
+                hashRateOverride={ONE_BITAXE_HASH_RATE}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <MiningChancesStats
+                minerCount={130_000_000}
+                minerCountLabel="130 million Bitaxes"
+                showCombinedHashRate={true}
+                customPanelHeaderText="Chances with 130 million Bitaxes (~130&nbsp;EH/s) (There are ~130 million households in the US)"
+                hashRateOverride={ONE_BITAXE_HASH_RATE}
+              />
+              <MiningChancesStats
+                minerCount={2_300_000_000}
+                minerCountLabel="2.3 billion Bitaxes"
+                showCombinedHashRate={true}
+                customPanelHeaderText="Chances with 2.3 billion Bitaxes (~2.3&nbsp;ZH/s) (There are ~2.3 billion households in the world)"
+                hashRateOverride={ONE_BITAXE_HASH_RATE}
+              />
             </div>
           </Card>
 
