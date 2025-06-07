@@ -15,6 +15,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { MiningStatePanel } from "@/components/MiningStatePanel";
 import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
 import { MiningChancesStats } from "@/components/MiningChancesStats";
+import { WelcomeBanner } from "@/components/WelcomeBanner";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -45,6 +46,7 @@ const Index = () => {
   return (
     <PageTransition>
       <div className="max-w-7xl mx-auto">
+        <WelcomeBanner />
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6 glass-card">
