@@ -13,9 +13,9 @@ General TODO before first public release:
 -[x] add a settings page; allow enabling of saving to sessionStorage; nah
 -[x] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated; made a timeout mitigation so they are shown as rejected after 10 seconds
 -[x] treat solutions as rejected by default if there is no response after x seconds, maybe 10
+-[x] pass different timestamps to each worker, and somehow increment stuff safely if nonce runs out
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
--[] pass different timestamps to each worker, and somehow increment stuff safely if nonce runs out
 -[] verify the bitaxe probabilities and other probabilities in production mainnet
 -[] add a link to global hashrate graph website
 
@@ -24,6 +24,7 @@ Future features:
 -[] create login system
 -[] manage devices
 -[] see device hash rate
+-[] add leaderboard for btc address contributions
 -[] create terms and conditions and privacy policy
 -[] create dumb cookie consent popup
 -[] show details about the version of the bitcoin node that is running in the backend
