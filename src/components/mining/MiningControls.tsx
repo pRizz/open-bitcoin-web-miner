@@ -20,6 +20,8 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { validateBlockchainMessage, getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
 import { getRandomBitcoinPhrase } from "@/utils/bitcoinPhrases";
 
+const randomPhrase = getRandomBitcoinPhrase();
+
 export function MiningControls() {
   const { toast } = useToast();
   const {
@@ -48,8 +50,6 @@ export function MiningControls() {
     includeAddress,
     setIncludeAddress
   } = useShare();
-
-  const randomPhrase = getRandomBitcoinPhrase();
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
@@ -130,7 +130,7 @@ export function MiningControls() {
                 />
               </TooltipTrigger>
               <TooltipContent className="max-w-[300px]">
-                <p>This message will be added to the coinbase input script signature field, if you successfully find a block, similar to Satoshi Nakamoto's genesis block. UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.</p>
+                <p>This message will be added to the coinbase input script signature field, if you successfully find a block, similar to Satoshi Nakamoto's genesis block. This does not pollute the UTXO set.<br/><br/>UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -142,14 +142,22 @@ export function MiningControls() {
 
       {/* Start/Stop Button */}
       <Button
+        size="lg"
         className={isMining
-          ? "w-full bg-red-600 hover:bg-red-700 text-white"
-          : "w-full bg-green-600 hover:bg-green-700 text-white"}
+          ? "w-full bg-red-600 hover:bg-red-700 text-white text-lg"
+          : "w-full bg-green-600 hover:bg-green-700 text-white text-lg"}
         onClick={isMining ? stopMining : startMining}
         disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
       >
         {isMining ? "Stop Mining" : "Start Mining"}
       </Button>
+
+      {/* Warning for mining without address */}
+      {isMining && !maybeMinerAddress && (
+        <div className="text-sm text-amber-400 bg-amber-950/50 p-3 rounded-md border border-amber-800 transition-all duration-300 ease-in-out animate-in slide-in-from-top-2">
+          ⚠️ Warning: You are mining without a Bitcoin address. If you find a block, you will not receive the mining reward.
+        </div>
+      )}
 
       {/* Mining Mode Selection */}
       <div className="space-y-2">
