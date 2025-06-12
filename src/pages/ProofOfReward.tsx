@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TypedLink } from "@/components/TypedLink";
 import { NoncelessBlockHeader, ProofOfReward } from "@/types/websocket";
+import * as bitcoin from 'bitcoinjs-lib';
 
 const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemWithProofOfReward, index: number, key: string }) => {
   const { toast } = useToast();
@@ -39,6 +40,11 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
 
   // Every 2 characters is reversed in the previous_block_hash_hex
   const previousBlockHashHexReverseEndian = item.blockHeader.previous_block_hash_hex.match(/.{1,2}/g)?.reverse().join('') || '';
+
+  // Parse the coinbase transaction
+  // TODO: cache this so it doesn't run on every render
+  const tx = bitcoin.Transaction.fromHex(item.proofOfReward.coinbase_transaction_hex);
+  const network = bitcoin.networks.bitcoin;
 
   return (
     <div key={key}>
@@ -95,9 +101,58 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
                     title="Verify transaction in Bitcoin JS UI"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                Decode/Verify Transaction
+                Independently Decode/Verify Transaction
                   </Button>
                 </div>
+
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle>Decoded Transaction</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold">Version</h4>
+                        <p className="font-mono">{tx.version}</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold">Inputs</h4>
+                        {tx.ins.map((input, i) => (
+                          <div key={i} className="mt-2">
+                            <p className="font-mono">Sequence: {input.sequence}</p>
+                            <p className="font-mono">Script: {input.script.toString('hex')}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold">Outputs</h4>
+                        {tx.outs.map((output, i) => {
+                          let address = 'Unknown';
+                          try {
+                            address = bitcoin.address.fromOutputScript(output.script, network);
+                          } catch (e) {
+                            // Skip if we can't decode the address
+                            return null;
+                          }
+                          return (
+                            <div key={i} className="mt-2">
+                              <p className="font-mono">Amount: {output.value / 100_000_000} BTC</p>
+                              <p className="font-mono">Address: {address}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold">Locktime</h4>
+                        <p className="font-mono">{tx.locktime}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
               </div>
             </CardContent>
           </Card>
