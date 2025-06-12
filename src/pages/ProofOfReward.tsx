@@ -122,6 +122,64 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
                           <div key={i} className="mt-2">
                             <p className="font-mono">Sequence: {input.sequence}</p>
                             <p className="font-mono">Script: {input.script.toString('hex')}</p>
+                            <div className="pl-4 space-y-1">
+                              {(() => {
+                                // FIXME: this seems to not be running
+                                const scriptChunks = bitcoin.script.decompile(input.script);
+                                if (!scriptChunks) {
+                                  console.error('Failed to decompile script', input.script);
+                                  return null;
+                                } else {
+                                  console.log('Successfully decompiled script', scriptChunks);
+                                }
+
+                                const decodedFields = [];
+
+                                // Decode block height (BIP-34)
+                                if (scriptChunks.length > 0 && scriptChunks[0] === bitcoin.opcodes.OP_3) {
+                                  const blockHeight = Buffer.from(scriptChunks[1] as Buffer).readUIntLE(0, (scriptChunks[1] as Buffer).length);
+                                  decodedFields.push(
+                                    <p key="height" className="font-mono text-sm">
+                                      Block Height: {blockHeight}
+                                    </p>
+                                  );
+                                }
+
+                                // Decode extra nonce (if present)
+                                if (scriptChunks.length > 2 && Buffer.isBuffer(scriptChunks[2])) {
+                                  const extraNonce = (scriptChunks[2] as Buffer).toString('hex');
+                                  decodedFields.push(
+                                    <p key="nonce" className="font-mono text-sm">
+                                      Extra Nonce: {extraNonce}
+                                    </p>
+                                  );
+                                }
+
+                                // Decode OP_RETURN data (if present)
+                                const opReturnIndex = scriptChunks.findIndex(chunk => chunk === bitcoin.opcodes.OP_RETURN);
+                                if (opReturnIndex !== -1 && scriptChunks[opReturnIndex + 1] && Buffer.isBuffer(scriptChunks[opReturnIndex + 1])) {
+                                  const opReturnData = scriptChunks[opReturnIndex + 1] as Buffer;
+                                  // Try to decode as UTF-8 text
+                                  try {
+                                    const text = opReturnData.toString('utf8');
+                                    decodedFields.push(
+                                      <p key="opreturn" className="font-mono text-sm">
+                                        OP_RETURN Text: {text}
+                                      </p>
+                                    );
+                                  } catch (e) {
+                                    // If UTF-8 decode fails, show as hex
+                                    decodedFields.push(
+                                      <p key="opreturn" className="font-mono text-sm">
+                                        OP_RETURN Data: {opReturnData.toString('hex')}
+                                      </p>
+                                    );
+                                  }
+                                }
+
+                                return decodedFields.length > 0 ? decodedFields : null;
+                              })()}
+                            </div>
                           </div>
                         ))}
                       </div>
