@@ -11,7 +11,7 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { formatLargeNumber } from "@/utils/formatters";
-import { Database, Target, Binary, CheckCircle2, XCircle, Copy, ArrowLeft } from "lucide-react";
+import { Database, Target, Binary, CheckCircle2, XCircle, Copy, ArrowLeft, Loader2 } from "lucide-react";
 import { MiningContextMiningState, MiningHistoryItem } from "@/contexts/mining/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -169,7 +169,7 @@ interface MiningHistoryItemWithProofOfReward {
 }
 
 export default function ProofOfRewardPage() {
-  const { miningStats } = useMining();
+  const { miningStats, startMining, isMining } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight } = useNetworkInfo();
   const { miningHistory: miningHistoryWithoutProofOfReward } = useMining();
@@ -196,7 +196,25 @@ export default function ProofOfRewardPage() {
             {miningHistoryWithProofOfReward.length > 0 && miningHistoryWithProofOfReward.map((item, index) => (
               <MiningChallengeElement key={index.toString()} item={item} index={index} />
             )) || (
-              <p className="text-muted-foreground">No mining challenges found. Start mining to see your mining challenges.</p>
+              <p className="text-muted-foreground">
+                No mining challenges found.{" "}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-green-500 hover:text-green-400 border border-green-500 hover:border-green-400 rounded px-2 py-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={startMining}
+                  disabled={isMining}
+                >
+                  {isMining ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin inline" />
+                      Mining...
+                    </>
+                  ) : (
+                    "Start mining"
+                  )}
+                </Button>
+                {" "}to see your mining challenges.
+              </p>
             )}
           </div>
         </CardContent>
