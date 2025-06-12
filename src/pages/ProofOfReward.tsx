@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TypedLink } from "@/components/TypedLink";
 import { NoncelessBlockHeader, ProofOfReward } from "@/types/websocket";
 import * as bitcoin from 'bitcoinjs-lib';
+import { useMemo } from 'react';
 
 const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemWithProofOfReward, index: number, key: string }) => {
   const { toast } = useToast();
@@ -43,8 +44,8 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
 
   // Parse the coinbase transaction
   // TODO: cache this so it doesn't run on every render
-  const tx = bitcoin.Transaction.fromHex(item.proofOfReward.coinbase_transaction_hex);
-  const network = bitcoin.networks.bitcoin;
+  // const tx = bitcoin.Transaction.fromHex(item.proofOfReward.coinbase_transaction_hex);
+  // const network = bitcoin.networks.bitcoin;
 
   return (
     <div key={key}>
@@ -113,78 +114,19 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
                     <div className="space-y-4">
                       <div>
                         <h4 className="font-semibold">Version</h4>
-                        <p className="font-mono">{tx.version}</p>
+                        <p className="font-mono">{item.parsedCoinbaseTransaction.tx.version}</p>
                       </div>
 
                       <div>
                         <h4 className="font-semibold">Inputs</h4>
-                        {tx.ins.map((input, i) => (
+                        {item.parsedCoinbaseTransaction.scriptMappings.map((scriptMapping, i) => (
                           <div key={i} className="mt-2">
-                            <p className="font-mono">Sequence: {input.sequence}</p>
-                            <p className="font-mono">Script: {input.script.toString('hex')}</p>
-                            <div className="pl-4 space-y-1">
-                              {(() => {
-                                // FIXME: this seems to not be running
-                                const scriptChunks = bitcoin.script.decompile(input.script);
-                                if (!scriptChunks) {
-                                  console.error('Failed to decompile script', input.script);
-                                  return null;
-                                } else {
-                                  console.log('Successfully decompiled script', scriptChunks);
-                                }
-
-                                const decodedFields = [];
-
-                                // Decode block height (BIP-34)
-                                if (scriptChunks.length > 0 && scriptChunks[0] === bitcoin.opcodes.OP_3) {
-                                  const blockHeight = Buffer.from(scriptChunks[1] as Buffer).readUIntLE(0, (scriptChunks[1] as Buffer).length);
-                                  decodedFields.push(
-                                    <p key="height" className="font-mono text-sm">
-                                      Block Height: {blockHeight}
-                                    </p>
-                                  );
-                                }
-
-                                // Decode extra nonce (if present)
-                                if (scriptChunks.length > 2 && Buffer.isBuffer(scriptChunks[2])) {
-                                  const extraNonce = (scriptChunks[2] as Buffer).toString('hex');
-                                  decodedFields.push(
-                                    <p key="nonce" className="font-mono text-sm">
-                                      Extra Nonce: {extraNonce}
-                                    </p>
-                                  );
-                                }
-
-                                // Decode OP_RETURN data (if present)
-                                const opReturnIndex = scriptChunks.findIndex(chunk => chunk === bitcoin.opcodes.OP_RETURN);
-                                if (opReturnIndex !== -1 && scriptChunks[opReturnIndex + 1] && Buffer.isBuffer(scriptChunks[opReturnIndex + 1])) {
-                                  const opReturnData = scriptChunks[opReturnIndex + 1] as Buffer;
-                                  // Try to decode as UTF-8 text
-                                  try {
-                                    const text = opReturnData.toString('utf8');
-                                    decodedFields.push(
-                                      <p key="opreturn" className="font-mono text-sm">
-                                        OP_RETURN Text: {text}
-                                      </p>
-                                    );
-                                  } catch (e) {
-                                    // If UTF-8 decode fails, show as hex
-                                    decodedFields.push(
-                                      <p key="opreturn" className="font-mono text-sm">
-                                        OP_RETURN Data: {opReturnData.toString('hex')}
-                                      </p>
-                                    );
-                                  }
-                                }
-
-                                return decodedFields.length > 0 ? decodedFields : null;
-                              })()}
-                            </div>
+                            <p className="font-mono">Key: {scriptMapping.key} Value: {scriptMapping.value} Raw Hex: {scriptMapping.rawHex}</p>
                           </div>
                         ))}
                       </div>
 
-                      <div>
+                      {/* <div>
                         <h4 className="font-semibold">Outputs</h4>
                         {tx.outs.map((output, i) => {
                           let address = 'Unknown';
@@ -201,12 +143,25 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
                             </div>
                           );
                         })}
-                      </div>
+                      </div> */}
+
+                      {/* <div>
+                        <h4 className="font-semibold">Outputs (TODO)</h4>
+                        {item.parsedCoinbaseTransaction.tx.outs.map((output, i) => (
+                          <div key={i} className="mt-2">
+                            <p className="font-mono">Amount: {output.value / 100_000_000} BTC</p>
+                            <p className="font-mono">Script: {output.script.toString('hex')}</p>
+                            <p className="font-mono">Address: {bitcoin.address.fromOutputScript(output.script, bitcoin.networks.regtest)}</p>
+                            FIXME: should be mainnet when on production
+                          </div>
+                        ))}
+                      </div> */}
 
                       <div>
                         <h4 className="font-semibold">Locktime</h4>
-                        <p className="font-mono">{tx.locktime}</p>
+                        <p className="font-mono">{item.parsedCoinbaseTransaction.tx.locktime}</p>
                       </div>
+
                     </div>
                   </CardContent>
                 </Card>
@@ -261,16 +216,100 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
   );
 };
 
+function parseCoinbaseTransaction(coinbaseTransactionHex: string): ParsedCoinbaseTransaction {
+  const scriptMappings: CoinbaseTransactionScriptMapping[] = [];
+  const tx = bitcoin.Transaction.fromHex(coinbaseTransactionHex);
+  const firstInput = tx.ins[0];
+  const firstInputScript = firstInput.script;
+  const firstByte = firstInputScript[0];
+
+  const nextValueSize = firstByte;
+  scriptMappings.push({
+    rawHex: firstByte.toString(16),
+    key: 'Next Value Size',
+    value: nextValueSize.toString()
+  });
+  let cursor = 1;
+
+  const blockHeightAsBuffer = firstInputScript.subarray(cursor, cursor + nextValueSize);
+  cursor += nextValueSize;
+  const blockHeight = blockHeightAsBuffer.readUIntLE(0, blockHeightAsBuffer.length);
+  scriptMappings.push({
+    rawHex: blockHeightAsBuffer.toString('hex'),
+    key: 'Block Height in Little Endian Hex',
+    value: blockHeight.toString()
+  });
+
+  const nextNextValueSize = firstInputScript[cursor];
+  cursor += 1;
+  scriptMappings.push({
+    rawHex: nextNextValueSize.toString(16),
+    key: 'Next Value Size',
+    value: nextNextValueSize.toString()
+  });
+
+  const miningPoolMessageAsBuffer = firstInputScript.subarray(cursor, cursor + nextNextValueSize);
+  cursor += nextNextValueSize;
+  const miningPoolMessage = miningPoolMessageAsBuffer.toString('utf8');
+  scriptMappings.push({
+    rawHex: miningPoolMessageAsBuffer.toString('hex'),
+    key: 'Mining Pool Message with Extra Random Nonce',
+    value: miningPoolMessage
+  });
+
+  const nextNextNextValueSize = firstInputScript[cursor];
+  cursor += 1;
+  scriptMappings.push({
+    rawHex: nextNextNextValueSize.toString(16),
+    key: 'Next Value Size',
+    value: nextNextNextValueSize.toString()
+  });
+
+  const userMessageAsBuffer = firstInputScript.subarray(cursor, cursor + nextNextNextValueSize);
+  cursor += nextNextNextValueSize;
+  const userMessage = userMessageAsBuffer.toString('utf8');
+  scriptMappings.push({
+    rawHex: userMessageAsBuffer.toString('hex'),
+    key: 'User Message',
+    value: userMessage
+  });
+
+  return {
+    tx: tx,
+    scriptMappings: scriptMappings
+  };
+}
+
 function filterMiningHistoryItemsWithProofOfReward(miningHistory: MiningHistoryItem[]): MiningHistoryItemWithProofOfReward[] {
   return miningHistory
     .filter((item) => item.maybeProofOfReward !== null)
-    .map((item) => ({
-      blockHeader: item.blockHeader,
-      targetZeros: item.targetZeros,
-      timestamp: item.timestamp,
-      proofOfReward: item.maybeProofOfReward!,
-      miningState: item.miningState,
-    }));
+    .map((item) => {
+      const tx = bitcoin.Transaction.fromHex(item.maybeProofOfReward!.coinbase_transaction_hex);
+      return {
+        blockHeader: item.blockHeader,
+        targetZeros: item.targetZeros,
+        timestamp: item.timestamp,
+        proofOfReward: item.maybeProofOfReward!,
+        miningState: item.miningState,
+        parsedCoinbaseTransaction: parseCoinbaseTransaction(item.maybeProofOfReward!.coinbase_transaction_hex)
+      };
+    });
+}
+
+interface CoinbaseTransactionScriptMapping {
+  rawHex: string;
+  key: string;
+  value: string;
+}
+
+interface ParsedCoinbaseTransaction {
+  // version: number;
+  // inputs: {
+  //   sequence: number;
+  //   script: string;
+  // }[];
+  tx: bitcoin.Transaction;
+  scriptMappings: CoinbaseTransactionScriptMapping[];
 }
 
 interface MiningHistoryItemWithProofOfReward {
@@ -278,6 +317,7 @@ interface MiningHistoryItemWithProofOfReward {
   targetZeros: number;
   timestamp: number;
   proofOfReward: ProofOfReward;
+  parsedCoinbaseTransaction: ParsedCoinbaseTransaction;
   miningState: MiningContextMiningState;
 }
 
@@ -286,7 +326,10 @@ export default function ProofOfRewardPage() {
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight } = useNetworkInfo();
   const { miningHistory: miningHistoryWithoutProofOfReward } = useMining();
-  const miningHistoryWithProofOfReward = filterMiningHistoryItemsWithProofOfReward(miningHistoryWithoutProofOfReward);
+  const miningHistoryWithProofOfReward = useMemo(() =>
+    filterMiningHistoryItemsWithProofOfReward(miningHistoryWithoutProofOfReward),
+  [miningHistoryWithoutProofOfReward]
+  );
 
   return (
     <div className="container mx-auto p-6">

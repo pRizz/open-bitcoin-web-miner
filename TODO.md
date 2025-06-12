@@ -20,6 +20,9 @@ General TODO before first public release:
 -[] add a link to global hashrate graph website
 
 Future features:
+-[] gpu mining
+-[] rust cpu mining
+-[] open source all cpu and gpu mining
 -[] add captcha's maybe
 -[] create login system
 -[] manage devices
