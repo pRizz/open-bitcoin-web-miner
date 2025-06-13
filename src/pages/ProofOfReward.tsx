@@ -11,7 +11,7 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { formatLargeNumber } from "@/utils/formatters";
-import { Database, Target, Binary, CheckCircle2, XCircle, Copy, ArrowLeft, Loader2 } from "lucide-react";
+import { Database, Target, Binary, CheckCircle2, XCircle, Copy, ArrowLeft, Loader2, Link } from "lucide-react";
 import { MiningContextMiningState, MiningHistoryItem } from "@/contexts/mining/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,11 @@ import { TypedLink } from "@/components/TypedLink";
 import { NoncelessBlockHeader, ProofOfReward } from "@/types/websocket";
 import * as bitcoin from 'bitcoinjs-lib';
 import { useMemo } from 'react';
+
+function scrollToElementWithOffset(el: HTMLElement, offset = 0) {
+  const y = el.getBoundingClientRect().top + window.pageYOffset + offset;
+  window.scrollTo({ top: y, behavior: "smooth" });
+}
 
 const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemWithProofOfReward, index: number, key: string }) => {
   const { toast } = useToast();
@@ -98,11 +103,17 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open('https://bitcoincore.tech/apps/bitcoinjs-ui/index.html', '_blank')}
-                    title="Verify transaction in Bitcoin JS UI"
+                    onClick={() => {
+                      const element = document.getElementById('verify-coinbase');
+                      if (element) {
+                        scrollToElementWithOffset(element, -120);
+                      }
+                      window.location.hash = '#verify-coinbase';
+                    }}
+                    title="Instructions for independently verifying the coinbase transaction"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                Independently Decode/Verify Transaction
+                Independently Decode/Verify Coinbase Transaction
                   </Button>
                 </div>
 
@@ -121,7 +132,7 @@ const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemW
                         <h4 className="font-semibold">Inputs</h4>
                         {item.parsedCoinbaseTransaction.scriptMappings.map((scriptMapping, i) => (
                           <div key={i} className="mt-2">
-                            <p className="font-mono">Key: {scriptMapping.key} Value: {scriptMapping.value} Raw Hex: {scriptMapping.rawHex}</p>
+                            <p className="font-mono">{scriptMapping.key}: {scriptMapping.value} (Raw Hex: {scriptMapping.rawHex})</p>
                           </div>
                         ))}
                       </div>
@@ -223,32 +234,52 @@ function parseCoinbaseTransaction(coinbaseTransactionHex: string): ParsedCoinbas
   const firstInputScript = firstInput.script;
   const firstByte = firstInputScript[0];
 
+  function earlyReturn(tx: bitcoin.Transaction, scriptMappings: CoinbaseTransactionScriptMapping[]): ParsedCoinbaseTransaction {
+    return {
+      tx,
+      scriptMappings
+    };
+  }
+
+  if (!firstByte) {
+    return earlyReturn(tx, scriptMappings);
+  }
+
   const nextValueSize = firstByte;
-  scriptMappings.push({
-    rawHex: firstByte.toString(16),
-    key: 'Next Value Size',
-    value: nextValueSize.toString()
-  });
+  // scriptMappings.push({
+  //   rawHex: firstByte.toString(16),
+  //   key: 'Next Value Size',
+  //   value: nextValueSize.toString()
+  // });
   let cursor = 1;
 
   const blockHeightAsBuffer = firstInputScript.subarray(cursor, cursor + nextValueSize);
+  if (blockHeightAsBuffer.length === 0) {
+    return earlyReturn(tx, scriptMappings);
+  }
   cursor += nextValueSize;
   const blockHeight = blockHeightAsBuffer.readUIntLE(0, blockHeightAsBuffer.length);
   scriptMappings.push({
     rawHex: blockHeightAsBuffer.toString('hex'),
-    key: 'Block Height in Little Endian Hex',
+    key: 'Block Height for BIP 34 (from Little Endian Hex)',
     value: blockHeight.toString()
   });
 
   const nextNextValueSize = firstInputScript[cursor];
+  if (!nextNextValueSize) {
+    return earlyReturn(tx, scriptMappings);
+  }
   cursor += 1;
-  scriptMappings.push({
-    rawHex: nextNextValueSize.toString(16),
-    key: 'Next Value Size',
-    value: nextNextValueSize.toString()
-  });
+  // scriptMappings.push({
+  //   rawHex: nextNextValueSize.toString(16),
+  //   key: 'Next Value Size (OP_RETURN?)',
+  //   value: nextNextValueSize.toString()
+  // });
 
   const miningPoolMessageAsBuffer = firstInputScript.subarray(cursor, cursor + nextNextValueSize);
+  if (miningPoolMessageAsBuffer.length === 0) {
+    return earlyReturn(tx, scriptMappings);
+  }
   cursor += nextNextValueSize;
   const miningPoolMessage = miningPoolMessageAsBuffer.toString('utf8');
   scriptMappings.push({
@@ -258,14 +289,20 @@ function parseCoinbaseTransaction(coinbaseTransactionHex: string): ParsedCoinbas
   });
 
   const nextNextNextValueSize = firstInputScript[cursor];
+  if (!nextNextNextValueSize) {
+    return earlyReturn(tx, scriptMappings);
+  }
   cursor += 1;
-  scriptMappings.push({
-    rawHex: nextNextNextValueSize.toString(16),
-    key: 'Next Value Size',
-    value: nextNextNextValueSize.toString()
-  });
+  // scriptMappings.push({
+  //   rawHex: nextNextNextValueSize.toString(16),
+  //   key: 'Next Value Size',
+  //   value: nextNextNextValueSize.toString()
+  // });
 
   const userMessageAsBuffer = firstInputScript.subarray(cursor, cursor + nextNextNextValueSize);
+  if (userMessageAsBuffer.length === 0) {
+    return earlyReturn(tx, scriptMappings);
+  }
   cursor += nextNextNextValueSize;
   const userMessage = userMessageAsBuffer.toString('utf8');
   scriptMappings.push({
@@ -405,11 +442,16 @@ export default function ProofOfRewardPage() {
             </p>
           </div>
 
-          <div className="mt-8" >
-            <h3 className="text-lg font-semibold mb-2">Step 3: Verify the Coinbase Transaction contains the correct reward</h3>
+          <div className="mt-8" id="verify-coinbase">
+            <h3 className="text-lg font-semibold mb-2 group">
+              <a href="#verify-coinbase" className="flex items-center gap-2 hover:text-blue-500 transition-colors">
+                Step 3: Verify the Coinbase Transaction contains the correct reward
+                <Link className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </a>
+            </h3>
 
             <p className="mt-4 text-muted-foreground">
-              The coinbase transaction is critical, as it is where the block reward is paid. By examining this transaction using any Bitcoin transaction parser, you will see exactly which addresses are set to receive the reward. You will be able to confirm that this contains the address you specified when you started mining.
+              The coinbase transaction is critical, as it is where the block reward is paid. By examining this transaction using any Bitcoin transaction parser, you will see exactly which addresses are set to receive the reward. You will be able to confirm that this contains the address you specified when you started mining, as well as the blockchain message, if specified.
             </p>
 
             <p className="mt-4 text-muted-foreground">

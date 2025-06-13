@@ -37,3 +37,4 @@ Future features:
 -[] have a feed of the hash rate that the bright builds website can listen to; maybe zmq or make this a separate project?
 -[] link to lightning network node in AWS
 -[] have an achievements page; keep track of notable findings, like a difficulty that beats satoshi's first block, second block, all orders of magnitude of difficulty, all increments of LBZs
+-[] mini chatroom integrated; chatterbox; need pow to post
