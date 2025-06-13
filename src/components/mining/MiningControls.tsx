@@ -210,7 +210,7 @@ export function MiningControls() {
       <div className="space-y-3 pt-2 border-t">
         <Label className="text-sm text-muted-foreground">Sharing Options</Label>
 
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <Label htmlFor="auto-start" className="text-sm">
             Auto-start when sharing
           </Label>
@@ -219,7 +219,7 @@ export function MiningControls() {
             checked={includeAutoStart}
             onCheckedChange={setIncludeAutoStart}
           />
-        </div>
+        </div> */}
 
         <div className="flex items-center justify-between">
           <Label htmlFor="include-address" className="text-sm">

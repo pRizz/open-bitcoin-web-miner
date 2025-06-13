@@ -2,7 +2,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
-import { useLeaderboard } from "@/contexts/leaderboard/LeaderboardContext";
 import { saveLeaderboardUsername, saveLeaderboardMessage } from "@/utils/localStorage";
 import { useMining } from "@/contexts/MiningContext";
 import {
@@ -15,13 +14,12 @@ import { HelpCircle } from "lucide-react";
 import { messageTooltip, nameTagTooltip, blockchainMessageTooltip } from "./LeaderboardConstants";
 
 export function LeaderboardForm() {
-  const { username, setUsername, leaderboardMessage, setLeaderboardMessage } = useLeaderboard();
-  const { maybeBlockchainMessage, setBlockchainMessage } = useMinerInfo();
+  const { maybeLeaderboardUsername, setLeaderboardUsername, maybeLeaderboardMessage, setLeaderboardMessage, maybeBlockchainMessage, setBlockchainMessage } = useMinerInfo();
   const { isMining } = useMining();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUsername = e.target.value;
-    setUsername(newUsername);
+    setLeaderboardUsername(newUsername);
     saveLeaderboardUsername(newUsername);
   };
 
@@ -50,14 +48,14 @@ export function LeaderboardForm() {
         <div className="space-y-1">
           <Input
             id="username"
-            value={username}
+            value={maybeLeaderboardUsername ?? ""}
             onChange={handleUsernameChange}
             placeholder="Enter your name tag"
             maxLength={20}
             disabled={isMining}
           />
           <div className="text-xs text-muted-foreground text-right">
-            {username.length} / 20 characters
+            {maybeLeaderboardUsername?.length ?? 0} / 20 characters
           </div>
         </div>
       </div>
@@ -78,14 +76,14 @@ export function LeaderboardForm() {
         <div className="space-y-1">
           <Input
             id="leaderboardMessage"
-            value={leaderboardMessage}
+            value={maybeLeaderboardMessage ?? ""}
             onChange={handleLeaderboardMessageChange}
             placeholder="Optional message to display on the leaderboard"
             maxLength={120}
             disabled={isMining}
           />
           <div className="text-xs text-muted-foreground text-right">
-            {leaderboardMessage.length} / 120 characters
+            {maybeLeaderboardMessage?.length ?? 0} / 120 characters
           </div>
         </div>
       </div>

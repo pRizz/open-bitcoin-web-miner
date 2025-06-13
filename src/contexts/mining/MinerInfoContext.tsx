@@ -21,6 +21,7 @@ interface MinerInfoContextType {
     maybeLeaderboardMessage: string | null;
     setLeaderboardMessage: (message: string | null) => void;
     resetSettings: () => void;
+    resetLeaderboardInfo: () => void;
 }
 
 const defaultContext: MinerInfoContextType = {
@@ -33,6 +34,7 @@ const defaultContext: MinerInfoContextType = {
   maybeLeaderboardMessage: null,
   setLeaderboardMessage: () => {},
   resetSettings: () => {},
+  resetLeaderboardInfo: () => {},
 }
 
 export const MinerInfoContext = createContext<MinerInfoContextType>(defaultContext);
@@ -74,6 +76,11 @@ export function MinerInfoProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_MESSAGE);
   };
 
+  const resetLeaderboardInfo = () => {
+    localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_USERNAME);
+    localStorage.removeItem(STORAGE_KEYS.LEADERBOARD_MESSAGE);
+  };
+
   return (
     <MinerInfoContext.Provider value={{
       maybeMinerAddress,
@@ -84,7 +91,8 @@ export function MinerInfoProvider({ children }: { children: React.ReactNode }) {
       setLeaderboardUsername,
       maybeLeaderboardMessage,
       setLeaderboardMessage,
-      resetSettings
+      resetSettings,
+      resetLeaderboardInfo
     }}>
       {children}
     </MinerInfoContext.Provider>

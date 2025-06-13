@@ -3,13 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useMining } from "@/contexts/MiningContext";
 import { LeaderboardForm } from "./leaderboard/LeaderboardForm";
-import { useLeaderboard } from "@/contexts/leaderboard/LeaderboardContext";
 import { TypedLink } from "@/components/TypedLink";
 import { Trophy } from "lucide-react";
+import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 
 export function LeaderboardInfoPanel() {
-  const { miningStats, isMining } = useMining();
-  const { resetFields } = useLeaderboard();
+  const { isMining } = useMining();
+  const { resetLeaderboardInfo } = useMinerInfo();
 
   return (
     <Card className="p-6 glass-card">
@@ -18,7 +18,7 @@ export function LeaderboardInfoPanel() {
         <Button
           variant="outline"
           size="sm"
-          onClick={resetFields}
+          onClick={resetLeaderboardInfo}
           disabled={isMining}
           className="text-muted-foreground hover:text-foreground"
         >

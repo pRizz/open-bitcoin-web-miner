@@ -47,7 +47,7 @@ function MiningStatusIndicator() {
 
 export function AppLayout() {
   const location = useLocation();
-  const { includeAutoStart, includeAddress } = useShare();
+  const { includeAutoStart, includeAddress } = useShare(); // fixme: move to ShareControls
 
   return (
     <SidebarProvider defaultOpen={false}>

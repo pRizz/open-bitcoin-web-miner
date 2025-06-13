@@ -14,7 +14,6 @@ import ProofOfRewardPage from "@/pages/ProofOfReward";
 import MiningStatisticsPage from "@/pages/MiningStatistics";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
-import { LeaderboardProvider } from "./contexts/leaderboard/LeaderboardContext";
 import { GlobalLeaderboardProvider } from "./contexts/GlobalLeaderboardContext";
 import { MiningEventsProvider } from "@/contexts/mining/MiningEventsContext";
 import { routes } from "./routes";
@@ -65,10 +64,8 @@ function App() {
                 <MiningEventsProvider>
                   <MiningProvider>
                     <ShareProvider>
-                      <LeaderboardProvider>
-                        <RouterProvider router={router} />
-                        <Toaster />
-                      </LeaderboardProvider>
+                      <RouterProvider router={router} />
+                      <Toaster />
                     </ShareProvider>
                   </MiningProvider>
                 </MiningEventsProvider>
