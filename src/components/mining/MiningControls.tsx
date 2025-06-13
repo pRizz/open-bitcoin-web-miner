@@ -140,14 +140,13 @@ export function MiningControls() {
         </div>
       </div>
 
-      {/* Start/Stop Button */}
+      {/* Start/Stop Button; TODO: add disabled state and make it consistent with other Start Mining buttons throughout the app */}
       <Button
         size="lg"
         className={isMining
           ? "w-full bg-red-600 hover:bg-red-700 text-white text-lg"
           : "w-full bg-green-600 hover:bg-green-700 text-white text-lg"}
         onClick={isMining ? stopMining : startMining}
-        disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
       >
         {isMining ? "Stop Mining" : "Start Mining"}
       </Button>

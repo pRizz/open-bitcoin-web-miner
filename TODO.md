@@ -18,6 +18,9 @@ General TODO before first public release:
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] verify the bitaxe probabilities and other probabilities in production mainnet
 -[] add a link to global hashrate graph website
+-[] put back this disabled logic for start mining button:         disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
+  and make all Start Mining/Stop Mining buttons have consistent business logic thoughout the app
+-[] fix username and blockchain message not being set in the database; leaderboardMessage does not update websocket req on change
 
 Future features:
 -[] gpu mining
