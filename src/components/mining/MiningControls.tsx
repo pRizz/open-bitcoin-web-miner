@@ -167,8 +167,8 @@ export function MiningControls() {
             <SelectValue placeholder="Select mining mode" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cpu">CPU Mining (JS Impl)</SelectItem>
-            <SelectItem disabled value="cpuWasm">CPU Mining (WASM Impl) (Coming Soon)</SelectItem>
+            <SelectItem value="cpu">CPU Mining (JavaScript Implementation)</SelectItem>
+            <SelectItem disabled value="cpuWasm">CPU Mining (WebAssembly Implementation) (Coming Soon)</SelectItem>
             <SelectItem disabled value="webgpu">WebGPU Mining (Coming Soon)</SelectItem>
             <SelectItem disabled value="bitaxe">Bitaxe Mining (Coming Soon)</SelectItem>
           </SelectContent>
