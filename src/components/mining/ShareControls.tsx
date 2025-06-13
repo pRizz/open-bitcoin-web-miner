@@ -4,18 +4,17 @@ import { URL_PARAMS } from "@/constants/mining";
 import { useToast } from "@/hooks/use-toast";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useCallback } from "react";
+import { useShare } from "@/contexts/ShareContext";
 
 interface ShareControlsProps {
-  includeAutoStart: boolean;
-  includeAddress: boolean;
+  maybeButtonText?: string;
 }
 
-export function ShareControls({
-  includeAutoStart,
-  includeAddress,
-}: ShareControlsProps) {
+export function ShareControls({ maybeButtonText }: ShareControlsProps) {
   const { toast } = useToast();
   const { maybeMinerAddress } = useMinerInfo();
+  const { includeAutoStart, includeAddress } = useShare();
+  const buttonText = maybeButtonText ?? "Share";
 
   const handleShare = useCallback(async () => {
     const url = new URL(window.location.href);
@@ -45,11 +44,10 @@ export function ShareControls({
   return (
     <Button
       variant="outline"
-      size="icon"
+      size="default"
       onClick={handleShare}
-      title="Share mining configuration"
     >
-      <Share className="h-4 w-4" />
+      <Share className="h-4 w-4" /> {buttonText}
     </Button>
   );
 }

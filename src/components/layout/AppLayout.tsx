@@ -47,7 +47,6 @@ function MiningStatusIndicator() {
 
 export function AppLayout() {
   const location = useLocation();
-  const { includeAutoStart, includeAddress } = useShare(); // fixme: move to ShareControls
 
   return (
     <SidebarProvider defaultOpen={false}>
@@ -64,10 +63,7 @@ export function AppLayout() {
                 <MiningStatusIndicator />
                 <MinerCountIndicator />
                 {location.pathname === "/" && (
-                  <ShareControls
-                    includeAutoStart={includeAutoStart}
-                    includeAddress={includeAddress}
-                  />
+                  <ShareControls />
                 )}
               </div>
             </div>

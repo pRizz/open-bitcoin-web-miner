@@ -19,6 +19,7 @@ import {
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { validateBlockchainMessage, getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
 import { getRandomBitcoinPhrase } from "@/utils/bitcoinPhrases";
+import { ShareControls } from "./ShareControls";
 
 const randomPhrase = getRandomBitcoinPhrase();
 
@@ -225,24 +226,37 @@ export function MiningControls() {
           <Label htmlFor="include-address" className="text-sm">
             Include Bitcoin address in share link
           </Label>
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <div>
-                  <Switch
-                    id="include-address"
-                    checked={includeAddress}
-                    onCheckedChange={setIncludeAddress}
-                    disabled={!isValidAddress}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Enter a valid Bitcoin address to enable this option</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {!isValidAddress ? (
+            <TooltipProvider>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Switch
+                      id="include-address"
+                      checked={includeAddress}
+                      onCheckedChange={setIncludeAddress}
+                      disabled={!isValidAddress}
+                    />
+                  </div>
+                </TooltipTrigger>
+                {/* TODO: fix tooltip z index positioning and dont use max-w */}
+                <TooltipContent className="max-w-[140px] z-50">
+                  <p>Enter a valid Bitcoin address to enable this option</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <Switch
+              id="include-address"
+              checked={includeAddress}
+              onCheckedChange={setIncludeAddress}
+              disabled={!isValidAddress}
+            />
+          )}
         </div>
+
+        <ShareControls />
+
       </div>
 
       {/* GPU Capabilities */}

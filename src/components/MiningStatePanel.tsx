@@ -377,7 +377,7 @@ export const MiningStatePanel = () => {
             </span>
             <FlashingText value={miningStats.rejectedSolutions || "0"} />
           </div>
-          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+          <div className="flex justify-between border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-yellow-500" />
               Required Leading Binary Zeros
