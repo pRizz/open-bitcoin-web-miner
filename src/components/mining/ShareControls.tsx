@@ -10,6 +10,41 @@ interface ShareControlsProps {
   maybeButtonText?: string;
 }
 
+async function shareUrl(url: string, toast: ReturnType<typeof useToast>['toast']): Promise<void> {
+  // Try to use the Web Share API if available. This uses the native share dialog on mobile devices.
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        url,
+        title: 'Share Mining Link',
+      });
+      return;
+    } catch (err) {
+      // If user cancels share, don't show error
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      console.error('Share failed:', err);
+    }
+  }
+
+  // Fallback to clipboard copy
+  try {
+    await navigator.clipboard.writeText(url);
+    toast({
+      title: "Link Copied!",
+      description: "Share link has been copied to your clipboard",
+    });
+  } catch (err) {
+    console.error('Failed to copy:', err);
+    toast({
+      title: "Copy Failed",
+      description: "Failed to copy link to clipboard",
+      variant: "destructive",
+    });
+  }
+}
+
 export function ShareControls({ maybeButtonText }: ShareControlsProps) {
   const { toast } = useToast();
   const { maybeMinerAddress } = useMinerInfo();
@@ -25,20 +60,7 @@ export function ShareControls({ maybeButtonText }: ShareControlsProps) {
       url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, maybeMinerAddress);
     }
 
-    try {
-      await navigator.clipboard.writeText(url.toString());
-      toast({
-        title: "Link Copied!",
-        description: "Share link has been copied to your clipboard",
-      });
-    } catch (err) {
-      console.error('Failed to copy:', err);
-      toast({
-        title: "Copy Failed",
-        description: "Failed to copy link to clipboard",
-        variant: "destructive",
-      });
-    }
+    await shareUrl(url.toString(), toast);
   }, [includeAutoStart, includeAddress, maybeMinerAddress, toast]);
 
   return (
