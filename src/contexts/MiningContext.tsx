@@ -235,10 +235,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   }, [miningWebSocket]);
 
   const startMining = useCallback(() => {
-    console.log("Starting mining");
+    console.log("Starting mining...");
+    addLog("Converting electrical energy into digital energy...");
     const modeString = miningMode.toUpperCase();
-    const threadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
-    addLog(`Starting ${modeString} mining${threadInfo} at ${miningSpeed}% speed`);
+    const withThreadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
+    addLog(`Starting ${modeString} mining${withThreadInfo} at ${miningSpeed}% speed`);
 
     connectWebSocket();
     workerPool.startMining();
