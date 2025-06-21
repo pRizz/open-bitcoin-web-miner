@@ -130,8 +130,13 @@ export function MiningControls() {
                   disabled={isMining}
                 />
               </TooltipTrigger>
-              <TooltipContent className="max-w-[300px]">
-                <p>This message will be added to the coinbase input script signature field, if you successfully find a block, similar to Satoshi Nakamoto's genesis block. This is typically where miners identify themselves with some text. This does not pollute the UTXO set.<br/><br/>UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.</p>
+              <TooltipContent className="max-w-[300px]" side="bottom">
+                <p>This message will be added to the coinbase input script signature field, if you successfully find a block, similar to Satoshi Nakamoto's genesis block.
+                  <br/><br/>
+                  This is typically where miners identify themselves with some text, and add entropy (randomness) to widen the mining search space. This does not pollute the UTXO set.
+                  <br/><br/>
+                  UTF-8 text is allowed, with a maximum length of {MAX_MESSAGE_BYTES} bytes. No control characters allowed.
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
