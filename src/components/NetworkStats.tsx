@@ -3,9 +3,9 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle, Loader2 } from "lucide-react";
 import { BinaryZeroesHelp } from "./BinaryZeroesHelp";
 import { formatLargeNumber } from "@/utils/formatters";
-import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
-import API_CONFIG from "@/config/api";
+import API_CONFIG, { developmentUrl, productionUrl, productionMainnetUrl } from "@/config/api";
 import { toast } from "sonner";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 
@@ -92,25 +92,33 @@ function StatValue({ children, isLoading }: { children: React.ReactNode, isLoadi
 
 export function NetworkStats() {
   const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty, maybeLatestBlockHashHex, maybeLatestBlockHashBinary, maybeLeadingZeroesInLatestBlockHash } = useNetworkInfo();
-  const [isLocalhost, setIsLocalhost] = useState(true);
+  const [selectedBackend, setSelectedBackend] = useState<string>('localhost');
   const [isHighlighted, setIsHighlighted] = useState(false);
+
+  const backends = [
+    { value: 'localhost', label: 'Localhost', url: developmentUrl },
+    { value: 'production', label: 'Production', url: productionUrl },
+    { value: 'mainnet', label: 'Mainnet', url: productionMainnetUrl }
+  ];
 
   useEffect(() => {
     const currentUrl = API_CONFIG.baseUrl;
-    setIsLocalhost(currentUrl.includes('localhost'));
+    const currentBackend = backends.find(backend => backend.url === currentUrl);
+    if (currentBackend) {
+      setSelectedBackend(currentBackend.value);
+    }
   }, []);
 
-  const toggleEndpoint = () => {
-    const newUrl = isLocalhost
-      ? 'https://btc-mining-webapp.lightningfaucet.us:443'
-      : 'http://localhost:3007';
+  const handleBackendChange = (value: string) => {
+    const selectedBackendConfig = backends.find(backend => backend.value === value);
+    if (selectedBackendConfig) {
+      // Update the environment variable
+      import.meta.env.VITE_API_URL = selectedBackendConfig.url;
+      API_CONFIG.baseUrl = selectedBackendConfig.url;
 
-    // Update the environment variable
-    import.meta.env.VITE_API_URL = newUrl;
-    API_CONFIG.baseUrl = newUrl;
-
-    setIsLocalhost(!isLocalhost);
-    toast.success(`Switched to ${isLocalhost ? 'production' : 'localhost'} endpoint`);
+      setSelectedBackend(value);
+      toast.success(`Switched to ${selectedBackendConfig.label} endpoint`);
+    }
   };
 
   const calculateProbability = (zeroes: number) => {
@@ -139,12 +147,19 @@ export function NetworkStats() {
 
         {import.meta.env.DEV && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Production</span>
-            <Switch
-              checked={isLocalhost}
-              onCheckedChange={toggleEndpoint}
-            />
-            <span className="text-sm text-gray-400">Localhost</span>
+            <span className="text-sm text-gray-400">Backend:</span>
+            <Select value={selectedBackend} onValueChange={handleBackendChange}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {backends.map((backend) => (
+                  <SelectItem key={backend.value} value={backend.value}>
+                    {backend.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>
