@@ -102,10 +102,17 @@ export function NetworkStats() {
   ];
 
   useEffect(() => {
-    const currentUrl = API_CONFIG.baseUrl;
-    const currentBackend = backends.find(backend => backend.url === currentUrl);
-    if (currentBackend) {
-      setSelectedBackend(currentBackend.value);
+    // Try to get the persisted backend selection from localStorage
+    const persistedBackend = localStorage.getItem('selectedBackend');
+    if (persistedBackend) {
+      setSelectedBackend(persistedBackend);
+    } else {
+      // Fall back to detecting from current API URL
+      const currentUrl = API_CONFIG.baseUrl;
+      const currentBackend = backends.find(backend => backend.url === currentUrl);
+      if (currentBackend) {
+        setSelectedBackend(currentBackend.value);
+      }
     }
   }, []);
 
@@ -115,6 +122,9 @@ export function NetworkStats() {
       // Update the environment variable
       import.meta.env.VITE_API_URL = selectedBackendConfig.url;
       API_CONFIG.baseUrl = selectedBackendConfig.url;
+
+      // Persist the selection to localStorage
+      localStorage.setItem('selectedBackend', value);
 
       setSelectedBackend(value);
       toast.success(`Switched to ${selectedBackendConfig.label} endpoint`);
