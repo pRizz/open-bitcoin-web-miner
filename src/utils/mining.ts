@@ -307,10 +307,12 @@ export function calculateRequiredLeadingBinaryZeroes(difficulty: number): number
     throw new Error("Difficulty must be greater than 0.");
   }
   let target;
-  // If difficulty is less than 1, or not an integer, we need to use the formula: new_target = genesis_target * floor(1 / difficulty)
-  if (difficulty < 1 || difficulty % 1 !== 0) {
+  // If difficulty is less than 1, and not an integer, we need to use the formula: new_target = genesis_target * floor(1 / difficulty)
+  if (difficulty < 1 && difficulty % 1 !== 0) {
     target = genesisTarget * BigInt(Math.floor(1 / difficulty));
   } else {
+    // Truncate the difficulty to an integer since it's insignificant and we need an integer to create a BigInt.
+    difficulty = Math.floor(difficulty);
     target = genesisTarget / BigInt(difficulty);
   }
   console.log(`target from difficulty ${difficulty} is ${target}`);

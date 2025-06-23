@@ -57,7 +57,13 @@ function HighlightedBinaryHash({ binaryHash, leadingZeroes, isHighlighted }: Hig
   );
 }
 
-const RANDOM_SELECTION_PROBABILITIES = [
+interface RandomSelectionProbability {
+  odds: string;
+  value: number;
+  description: string;
+}
+
+const RANDOM_SELECTION_PROBABILITIES: RandomSelectionProbability[] = [
   { odds: "1 in 1 million", value: 1e6, description: "picking the correct resident of San Francisco (~1M people)" },
   { odds: "1 in 1 billion", value: 1e9, description: "picking the correct person on Earth (~8B people)" },
   { odds: "1 in 1 trillion", value: 1e12, description: "picking the correct grain of sand in a large sandbox (~1T grains)" },
@@ -135,7 +141,7 @@ export function NetworkStats() {
     return 1 / Math.pow(2, zeroes);
   };
 
-  const findClosestComparison = (probability: number) => {
+  const findClosestComparison = (probability: number): RandomSelectionProbability | undefined => {
     const targetValue = 1 / probability;
     const targetLog = Math.log10(targetValue);
 
@@ -146,8 +152,17 @@ export function NetworkStats() {
     });
   };
 
+  const getDescriptionPrefix = (probability: number, comparison: RandomSelectionProbability | undefined): string => {
+    if (probability < comparison?.value) {
+      return `That's harder than`;
+    }
+    return `That's similar to`;
+  };
+
   const probability = maybeRequiredBinaryZeroes ? calculateProbability(maybeRequiredBinaryZeroes) : undefined;
   const comparison = probability ? findClosestComparison(probability) : undefined;
+  const descriptionPrefix = probability ? getDescriptionPrefix(probability, comparison) : undefined;
+  const descriptionStatement = comparison && `${descriptionPrefix} ${comparison.description}`;
 
   return (
     <Card className="p-6 glass-card" style={{ zIndex: 9 }}>
@@ -259,8 +274,8 @@ export function NetworkStats() {
 
         <div>
           <label className="text-sm text-gray-400">To Put That In Perspective...</label>
-          <StatValue isLoading={!comparison}>
-            {comparison && `That's similar to ${comparison.description}`}
+          <StatValue isLoading={!descriptionStatement}>
+            {descriptionStatement}
           </StatValue>
         </div>
 

@@ -180,4 +180,22 @@ describe('calculateRequiredLeadingBinaryZeroes', () => {
     expect(zeroBits).toBeGreaterThan(0);
     expect(zeroBits).toBeLessThan(256);
   });
+
+  // Current network info on 2025-06-23:
+  // Leading Zeroes In Latest Block Hash
+  // 79
+  // Network Difficulty
+  // 126.411T
+  it('should compute sample difficulty', () => {
+    // Arrange
+    const difficulty = 126.411e12;
+
+    // Act
+    const zeroBits = calculateRequiredLeadingBinaryZeroes(difficulty);
+    console.log(`zeroBits for sample difficulty: ${zeroBits}`);
+
+    // Assert
+    expect(zeroBits).toBeGreaterThan(77);
+    expect(zeroBits).toBeLessThan(80);
+  });
 });

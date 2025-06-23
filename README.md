@@ -1,5 +1,13 @@
 # Welcome to your Lovable project
 
+## Common Commands
+
+```sh
+pnpm tsc && pnpm lint:fix
+pnpm test
+pnpm run dev
+```
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/d92f5bad-8918-4827-a7b9-d4b9e8b466e9
