@@ -131,6 +131,10 @@ export default {
           '50%': { transform: 'rotate(40deg)' },
           '70%': { transform: 'rotate(40deg)' },
           '100%': { transform: 'rotate(0deg)' }
+        },
+        'stripes': {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '50px 0' } // Adjust this value to control the speed of the animation
         }
       },
       animation: {
@@ -141,7 +145,8 @@ export default {
         'move-down': 'move-down 0.7s linear forwards',
         'move-up': 'move-up 0.7s linear forwards',
         'flash': 'flash 0.2s ease-in-out',
-        'mining-pickaxe': 'mining-pickaxe 1.5s linear infinite'
+        'mining-pickaxe': 'mining-pickaxe 1.5s linear infinite',
+        'stripes': 'stripes 1s linear infinite'
       },
     },
   },

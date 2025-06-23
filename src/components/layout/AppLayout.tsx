@@ -47,13 +47,18 @@ function MiningStatusIndicator() {
 
 export function AppLayout() {
   const location = useLocation();
+  const { isMining } = useMining();
 
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <main className="flex-1">
-          <div className="sticky top-0 z-[150] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-6">
+          <div className="sticky top-0 z-[150] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-6 relative">
+            {isMining && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-[repeating-linear-gradient(-45deg,theme(colors.green.500),theme(colors.green.500)_10px,theme(colors.green.900)_10px,theme(colors.green.900)_20px)] animate-stripes">
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="h-8 w-8" />
