@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function About() {
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <h1 className="text-4xl font-bold mb-8">About Bitcoin Mining</h1>
+      {/* <h1 className="text-4xl font-bold mb-8">About Bitcoin Mining</h1> */}
 
       <Card>
         <CardHeader>
@@ -66,8 +66,7 @@ export default function About() {
         <CardContent className="space-y-4">
           <p>
             This website provides a platform for real Bitcoin mining on consumer hardware. While the chances of
-            successfully mining a block are extremely low due to the massive computational power of the Bitcoin
-            network, this platform serves as an educational tool to help people understand Bitcoin mining in a
+            successfully mining a block are extremely low due to the comparatively high block difficulty, this platform serves as an educational tool to help people understand Bitcoin mining in a
             more intuitive way. We aim to:
           </p>
           <ul className="list-disc pl-6 space-y-2">
@@ -124,6 +123,21 @@ export default function About() {
           </p>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Where does the rest of the block reward go?</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            The remaining block reward goes to the developer of this website, Peter Ryszkiewicz of Bright Builds LLC, in order to cover the costs of running the website. I don't actually expect to actually find a block via this website, but I do plan on creating other projects that will use this backend as a service, with the possibility of supporting stronger hardware, such as the Bitaxe and others, as well as run a more general purpose mining pool after more testing.
+          </p>
+          <p>
+            Also, if you've done some digging into the coinbase transaction, you'll notice that the miner indentifier references "degen p00l". The "degen" is an acronym for "Digital Energy GENerator", where the phrase "digital energy" is a reference to Michael Saylor's "Bitcoin is digital energy" idea.
+          </p>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }

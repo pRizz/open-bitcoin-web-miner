@@ -23,6 +23,7 @@ General TODO before first public release:
 -[] fix username and blockchain message not being set in the database; leaderboardMessage does not update websocket req on change
 -[] when inspecting submission details, also include the associated coinbase tx and block template link
 -[] add firebase
+-[] add social media links, and search for Bright Builds LLC and Peter Ryszkiewicz in the project and add links
 
 Future features:
 -[] gpu mining
