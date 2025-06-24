@@ -78,17 +78,16 @@ export function BinaryZeroesHelp() {
           </p>
           <ul className="list-disc list-inside space-y-2">
             <li>Bitcoin difficulty of 1.0 means a target of 2^224</li>
-            <li>Difficulty of 2.0 means target is halved</li>
-            <li>Current difficulties are in the trillions (e.g., 53,000,000,000,000)</li>
+            <li>Current difficulties are in the trillions (e.g., 126,000,000,000,000)</li>
           </ul>
           <p className="mt-2">
             In contrast, our binary leading zeroes format:
           </p>
           <ul className="list-disc list-inside space-y-2">
-            <li>Directly shows the probability (1/2^n)</li>
-            <li>Makes it easy to calculate chances mentally</li>
+            <li>Directly shows the probability (1/2^n). For example, with 70 leading zeroes, the probability is 1/2^70 = 1/1.181e+21 = 1 in 1.181 sextillion.</li>
+            <li>Makes it easy to visualize how the hash should look like. For example, with 70 leading zeroes, the hash should start with 70 zeroes.</li>
             <li>Provides intuitive difficulty steps (for each unit increase in leading binary zeroes, the difficulty is doubled)</li>
-            <li>Uses small, manageable numbers (e.g., 32 zeroes vs 53 trillion difficulty)</li>
+            <li>Uses small, manageable numbers (e.g., 32 zeroes vs 126 trillion difficulty)</li>
           </ul>
         </div>
       </div>

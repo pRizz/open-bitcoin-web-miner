@@ -153,7 +153,19 @@ export const MiningStatePanel = () => {
         </h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
-            <span className="text-muted-foreground">Base Block Reward</span>
+            <span className="text-muted-foreground flex items-center gap-2">
+              Current Block Reward
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[300px]">
+                    <p>This is the sum of the base block reward and the transaction fees included in the block template.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </span>
             <FlashingText value={maybeBaseBlockReward ? formatSatsToBTC(maybeBaseBlockReward) : "N/A"} />
           </div>
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
