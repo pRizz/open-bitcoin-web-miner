@@ -1,7 +1,8 @@
 import { LucideIcon, Home, Trophy, Info, BarChart, Zap } from "lucide-react";
 
 type BaseRoute = {
-  title: string;
+  sidebarTitle: string;
+  topBarTitle: string;
   routerPath: string;
   icon: LucideIcon;
   keyName: string;
@@ -25,7 +26,8 @@ export const routes = {
     type: 'static' as const,
     path: '/',
     routerPath: '/',
-    title: 'WinABitco.in',
+    sidebarTitle: 'WinABitco.in',
+    topBarTitle: 'WinABitco.in',
     icon: Home,
     keyName: 'home',
   },
@@ -33,7 +35,8 @@ export const routes = {
     type: 'static' as const,
     path: '/simple-mining',
     routerPath: '/simple-mining',
-    title: 'WinABitco.in - Simple Mode',
+    sidebarTitle: 'Simple Mode',
+    topBarTitle: 'WinABitco.in - Simple Mode',
     icon: Zap,
     keyName: 'simpleMining',
   },
@@ -41,7 +44,8 @@ export const routes = {
     type: 'static' as const,
     path: '/leaderboard',
     routerPath: '/leaderboard',
-    title: 'Global Leaderboard',
+    sidebarTitle: 'Global Leaderboard',
+    topBarTitle: 'Global Leaderboard',
     icon: Trophy,
     keyName: 'leaderboard',
   },
@@ -49,7 +53,8 @@ export const routes = {
     type: 'dynamic' as const,
     path: (params: { hash: string }) => `/submission/${params.hash}`,
     routerPath: '/submission/:hash',
-    title: 'Submission',
+    sidebarTitle: 'Submission',
+    topBarTitle: 'Submission',
     paramName: 'hash' as const,
     icon: Info,
     keyName: 'submission',
@@ -58,7 +63,8 @@ export const routes = {
     type: 'static' as const,
     path: '/about',
     routerPath: '/about',
-    title: 'About',
+    sidebarTitle: 'About',
+    topBarTitle: 'About',
     icon: Info,
     keyName: 'about',
   },
@@ -66,7 +72,8 @@ export const routes = {
     type: 'static' as const,
     path: '/proof-of-reward',
     routerPath: '/proof-of-reward',
-    title: 'Proof of Reward',
+    sidebarTitle: 'Proof of Reward',
+    topBarTitle: 'Proof of Reward',
     icon: Info,
     keyName: 'proofOfReward',
   },
@@ -74,7 +81,8 @@ export const routes = {
     type: 'static' as const,
     path: '/mining-statistics',
     routerPath: '/mining-statistics',
-    title: 'Mining Statistics',
+    sidebarTitle: 'Mining Statistics',
+    topBarTitle: 'Mining Statistics',
     icon: BarChart,
     keyName: 'miningStatistics',
   },
@@ -99,7 +107,7 @@ export function isStaticRoute(route: RouteConfig): route is Extract<RouteConfig,
 
 export function getPageTitle(pathname: string): string {
   const route = Object.values(routes).find((route) => route.path === pathname);
-  return route?.title ?? "WinABitco.in";
+  return route?.topBarTitle ?? "WinABitco.in";
 }
 
 // Define which routes should appear in the sidebar

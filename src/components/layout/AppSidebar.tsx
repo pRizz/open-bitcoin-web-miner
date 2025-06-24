@@ -36,7 +36,7 @@ export function AppSidebar() {
                   >
                     <TypedLink routeKeyName={route.keyName}>
                       <route.icon className="h-4 w-4 mr-3" />
-                      <span className="font-medium">{route.title}</span>
+                      <span className="font-medium">{route.sidebarTitle}</span>
                     </TypedLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
