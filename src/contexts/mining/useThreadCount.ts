@@ -8,9 +8,9 @@ export const useInitialThreadCount = () => {
     if (navigator.hardwareConcurrency) {
       const cores = navigator.hardwareConcurrency;
       setMaxThreads(cores);
-      // TODO: Uncomment this
-      // setThreadCount(Math.max(1, Math.floor(cores * 0.75)));
-      setThreadCount(1);
+      setThreadCount(Math.max(1, Math.floor(cores * 0.95)));
+      // TODO: enable this for testing/development
+      // setThreadCount(1);
     }
   }, []);
 

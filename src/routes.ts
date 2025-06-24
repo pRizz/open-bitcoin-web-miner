@@ -1,4 +1,4 @@
-import { LucideIcon, Home, Trophy, Info, BarChart } from "lucide-react";
+import { LucideIcon, Home, Trophy, Info, BarChart, Zap } from "lucide-react";
 
 type BaseRoute = {
   title: string;
@@ -28,6 +28,14 @@ export const routes = {
     title: 'WinABitco.in',
     icon: Home,
     keyName: 'home',
+  },
+  simpleMining: {
+    type: 'static' as const,
+    path: '/simple-mining',
+    routerPath: '/simple-mining',
+    title: 'WinABitco.in - Simple Mode',
+    icon: Zap,
+    keyName: 'simpleMining',
   },
   leaderboard: {
     type: 'static' as const,
@@ -97,6 +105,7 @@ export function getPageTitle(pathname: string): string {
 // Define which routes should appear in the sidebar
 export const sidebarPages = [
   routes.home,
+  routes.simpleMining,
   routes.leaderboard,
   routes.miningStatistics,
   routes.about,

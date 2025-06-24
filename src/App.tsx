@@ -7,6 +7,7 @@ import { DebugProvider } from "@/contexts/DebugContext";
 import { NetworkInfoProvider } from "@/contexts/NetworkInfoContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
+import SimpleMining from "@/pages/SimpleMining";
 import Leaderboard from "@/pages/Leaderboard";
 import SubmissionPage from "@/pages/submission/[hash]";
 import About from "@/pages/About";
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Index />,
+      },
+      {
+        path: routes.simpleMining.routerPath,
+        element: <SimpleMining />,
       },
       {
         path: routes.leaderboard.routerPath,
