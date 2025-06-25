@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { HashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
 import { Copy } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { showSuccess, showError } from "@/utils/notifications";
 import { Button } from "@/components/ui/button";
 
 interface HashDetailsDialogProps {
@@ -10,21 +10,18 @@ interface HashDetailsDialogProps {
 }
 
 export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
-  const { toast } = useToast();
-
   const handleCopy = async (text: string, field: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copied!",
-        description: `${field} copied to clipboard`,
-      });
+      showSuccess(
+        "Copied!",
+        `${field} copied to clipboard`
+      );
     } catch (err) {
-      toast({
-        title: "Copy Failed",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
+      showError(
+        "Copy Failed",
+        "Failed to copy to clipboard"
+      );
     }
   };
 
@@ -58,16 +55,15 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
         bits: hash.bitsHex
       };
       await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
-      toast({
-        title: "Copied!",
-        description: "All hash details copied as JSON",
-      });
+      showSuccess(
+        "Copied!",
+        "All hash details copied as JSON"
+      );
     } catch (err) {
-      toast({
-        title: "Copy Failed",
-        description: "Failed to copy JSON to clipboard",
-        variant: "destructive",
-      });
+      showError(
+        "Copy Failed",
+        "Failed to copy JSON to clipboard"
+      );
     }
   };
 

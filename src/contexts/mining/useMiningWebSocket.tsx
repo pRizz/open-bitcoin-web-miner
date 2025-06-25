@@ -2,9 +2,8 @@ import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, Nonce
 import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback } from "react";
 import { useMinerInfo } from "./MinerInfoContext";
-import { toast } from "@/hooks/use-toast";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
-import { Trophy } from "lucide-react";
+import { showSuccess, showError } from '@/utils/notifications';
 import { MiningChallenge } from "@/types/mining";
 
 interface MiningWebSocketContextType {
@@ -111,17 +110,17 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
       case "LeaderboardAddSuccess": {
         const { block_hash_hex, rank, leading_binary_zeroes } = message.data;
         console.log(`Global leaderboard entry added: Hash ${block_hash_hex}, Rank ${rank}, Binary Zeroes ${leading_binary_zeroes}`);
-        toast({
-          title: "🏆 Global Leaderboard Entry Added!",
-          description: `You found a hash that had ${leading_binary_zeroes} leading binary zeroes and ranked #${rank} on the global leaderboard!`,
-          // TODO: add link to submission page; broken
-          // action: (
-          //   <Link to="/leaderboard" className="inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600">
-          //     <Trophy className="h-4 w-4" />
-          //     View Leaderboard
-          //   </Link>
-          // ),
-        });
+        showSuccess(
+          "🏆 Global Leaderboard Entry Added!",
+          `You found a hash that had ${leading_binary_zeroes} leading binary zeroes and ranked #${rank} on the global leaderboard!`
+        );
+        // TODO: add link to submission page; broken
+        // action: (
+        //   <Link to="/leaderboard" className="inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600">
+        //     <Trophy className="h-4 w-4" />
+        //     View Leaderboard
+        //   </Link>
+        // ),
         refetchLeaderboard();
         break;
       }
@@ -134,11 +133,10 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
 
   const onError = useCallback((error: ErrorEvent) => {
     console.error('WebSocket error:', error);
-    toast({
-      variant: "destructive",
-      title: "Mining Connection Error",
-      description: "An error occurred while attempting to mine. Please try again.",
-    });
+    showError(
+      "Mining Connection Error",
+      "An error occurred while attempting to mine. Please try again."
+    );
     maybeCallbacks.current?.onError('WebSocket error occurred');
   }, [maybeCallbacks]);
 

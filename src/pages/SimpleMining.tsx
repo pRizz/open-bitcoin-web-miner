@@ -6,14 +6,13 @@ import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { validateBitcoinAddress } from "@/utils/mining";
-import { useToast } from "@/hooks/use-toast";
+import { showError } from "@/utils/notifications";
 import { PageTransition } from "@/components/PageTransition";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { getDescriptionStatement } from "@/utils/probabilityPhrases";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const SimpleMining = () => {
-  const { toast } = useToast();
   const {
     isMining,
     startMining,
@@ -33,11 +32,10 @@ const SimpleMining = () => {
     setMinerAddress(address);
 
     if (address && !validateBitcoinAddress(address)) {
-      toast({
-        title: "Invalid Bitcoin Address",
-        description: "Please enter a valid Bitcoin address",
-        variant: "destructive",
-      });
+      showError(
+        "Invalid Bitcoin Address",
+        "Please enter a valid Bitcoin address"
+      );
     }
   };
 

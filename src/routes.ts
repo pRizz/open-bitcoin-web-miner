@@ -1,4 +1,4 @@
-import { LucideIcon, Home, Trophy, Info, BarChart, Zap } from "lucide-react";
+import { LucideIcon, Home, Trophy, Info, BarChart, Zap, Bell } from "lucide-react";
 
 type BaseRoute = {
   sidebarTitle: string;
@@ -48,6 +48,15 @@ export const routes = {
     topBarTitle: 'Global Leaderboard',
     icon: Trophy,
     keyName: 'leaderboard',
+  },
+  notifications: {
+    type: 'static' as const,
+    path: '/notifications',
+    routerPath: '/notifications',
+    sidebarTitle: 'Notifications',
+    topBarTitle: 'Notifications',
+    icon: Bell,
+    keyName: 'notifications',
   },
   submission: {
     type: 'dynamic' as const,
@@ -115,6 +124,7 @@ export const sidebarPages = [
   routes.home,
   routes.simpleMining,
   routes.leaderboard,
+  routes.notifications,
   routes.miningStatistics,
   routes.about,
 ].filter(isStaticRoute);

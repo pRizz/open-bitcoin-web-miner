@@ -13,6 +13,7 @@ import { useLocation } from "react-router-dom";
 import { useMining } from "@/contexts/MiningContext";
 import { sidebarPages } from "@/routes";
 import { TypedLink } from "@/components/TypedLink";
+import { NotificationBadge } from "@/components/NotificationBadge";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -37,6 +38,9 @@ export function AppSidebar() {
                     <TypedLink routeKeyName={route.keyName}>
                       <route.icon className="h-4 w-4 mr-3" />
                       <span className="font-medium">{route.sidebarTitle}</span>
+                      {route.keyName === 'notifications' && (
+                        <NotificationBadge maybeClassName="ml-auto" maybeShowIcon={false} />
+                      )}
                     </TypedLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

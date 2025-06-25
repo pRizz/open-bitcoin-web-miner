@@ -104,7 +104,8 @@ export default function MiningStatisticsPage() {
                 {miningStats.maybeRequiredBinaryZeroes || "Not available"}
               </p>
             </div>
-            
+
+            {/* TODO: use higher units like septillion, etc., like on the main mining page */}
             {miningStats.maybeRequiredBinaryZeroes && (
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Odds of Finding a Share</p>

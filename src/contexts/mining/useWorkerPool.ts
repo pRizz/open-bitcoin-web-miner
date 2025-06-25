@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { WorkerPool } from "@/workers/WorkerPool";
-import { useToast } from "@/hooks/use-toast";
+import { showError } from "@/utils/notifications";
 import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
 import { GPUCapabilities } from './types';
 import { NoncelessBlockHeader } from '@/types/websocket';
@@ -13,7 +13,6 @@ export const useWorkerPool = (
   onSolution: (solution: MiningSolution) => void,
 ) => {
   console.log("useWorkerPool called");
-  const { toast } = useToast();
   const [gpuCapabilities, setGpuCapabilities] = useState<GPUCapabilities>();
   const [maybeCurrentChallenge, setCurrentChallenge] = useState<MiningChallenge | null>(null);
 
@@ -24,11 +23,10 @@ export const useWorkerPool = (
   workerPool.current.onHashRate = onHashRate;
   workerPool.current.onSolution = onSolution;
   workerPool.current.onError = (error) => {
-    toast({
-      title: "Mining Error",
-      description: error,
-      variant: "destructive",
-    });
+    showError(
+      "Mining Error",
+      error
+    );
     stopMining();
   };
   workerPool.current.onGPUCapabilities = (capabilities) => {
@@ -107,14 +105,13 @@ export const useWorkerPool = (
         console.log("Started worker pool with no challenge, yet.");
       }
     } catch (error) {
-      toast({
-        title: "Failed to Start Mining",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
-      });
+      showError(
+        "Failed to Start Mining",
+        error instanceof Error ? error.message : "Unknown error occurred"
+      );
       stopMining();
     }
-  }, [threadCount, miningMode, miningSpeed, maybeCurrentChallenge, workerPool, onHashRate, onSolution, toast]);
+  }, [threadCount, miningMode, miningSpeed, maybeCurrentChallenge, workerPool, onHashRate, onSolution]);
 
   const stopMining = useCallback(() => {
     console.log("Stopping mining");

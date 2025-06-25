@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Share } from "lucide-react";
 import { URL_PARAMS } from "@/constants/mining";
-import { useToast } from "@/hooks/use-toast";
+import { showSuccess, showError } from "@/utils/notifications";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useCallback } from "react";
 import { useShare } from "@/contexts/ShareContext";
@@ -10,7 +10,7 @@ interface ShareControlsProps {
   maybeButtonText?: string;
 }
 
-async function shareUrl(url: string, toast: ReturnType<typeof useToast>['toast']): Promise<void> {
+async function shareUrl(url: string): Promise<void> {
   // Try to use the Web Share API if available. This uses the native share dialog on mobile devices.
   if (navigator.share) {
     try {
@@ -31,22 +31,20 @@ async function shareUrl(url: string, toast: ReturnType<typeof useToast>['toast']
   // Fallback to clipboard copy
   try {
     await navigator.clipboard.writeText(url);
-    toast({
-      title: "Link Copied!",
-      description: "Share link has been copied to your clipboard",
-    });
+    showSuccess(
+      "Link Copied!",
+      "Share link has been copied to your clipboard"
+    );
   } catch (err) {
     console.error('Failed to copy:', err);
-    toast({
-      title: "Copy Failed",
-      description: "Failed to copy link to clipboard",
-      variant: "destructive",
-    });
+    showError(
+      "Copy Failed",
+      "Failed to copy link to clipboard"
+    );
   }
 }
 
 export function ShareControls({ maybeButtonText }: ShareControlsProps) {
-  const { toast } = useToast();
   const { maybeMinerAddress } = useMinerInfo();
   const { includeAutoStart, includeAddress } = useShare();
   const buttonText = maybeButtonText ?? "Share";
@@ -60,8 +58,8 @@ export function ShareControls({ maybeButtonText }: ShareControlsProps) {
       url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, maybeMinerAddress);
     }
 
-    await shareUrl(url.toString(), toast);
-  }, [includeAutoStart, includeAddress, maybeMinerAddress, toast]);
+    await shareUrl(url.toString());
+  }, [includeAutoStart, includeAddress, maybeMinerAddress]);
 
   return (
     <Button

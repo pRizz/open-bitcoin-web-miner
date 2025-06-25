@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { useMining } from "@/contexts/MiningContext";
 import { useShare } from "@/contexts/ShareContext";
 import { validateBitcoinAddress } from "@/utils/mining";
-import { useToast } from "@/hooks/use-toast";
+import { showError } from "@/utils/notifications";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { GPUCapabilities } from "../GPUCapabilities";
@@ -24,7 +24,6 @@ import { ShareControls } from "./ShareControls";
 const randomPhrase = getRandomBitcoinPhrase();
 
 export function MiningControls() {
-  const { toast } = useToast();
   const {
     isMining,
     miningSpeed,
@@ -57,11 +56,10 @@ export function MiningControls() {
     setMinerAddress(address);
 
     if (address && !validateBitcoinAddress(address)) {
-      toast({
-        title: "Invalid Bitcoin Address",
-        description: "Please enter a valid Bitcoin address",
-        variant: "destructive",
-      });
+      showError(
+        "Invalid Bitcoin Address",
+        "Please enter a valid Bitcoin address"
+      );
     }
   };
 
@@ -70,11 +68,10 @@ export function MiningControls() {
     setBlockchainMessage(message);
     const error = validateBlockchainMessage(message);
     if (error) {
-      toast({
-        title: "Invalid Message",
-        description: error,
-        variant: "destructive",
-      });
+      showError(
+        "Invalid Message",
+        error
+      );
     }
   };
 

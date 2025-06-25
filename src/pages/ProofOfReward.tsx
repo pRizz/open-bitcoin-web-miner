@@ -14,7 +14,7 @@ import { formatLargeNumber } from "@/utils/formatters";
 import { Database, Target, Binary, CheckCircle2, XCircle, Copy, ArrowLeft, Loader2, Link } from "lucide-react";
 import { MiningContextMiningState, MiningHistoryItem } from "@/contexts/mining/types";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { showSuccess, showError } from "@/utils/notifications";
 import { TypedLink } from "@/components/TypedLink";
 import { NoncelessBlockHeader, ProofOfReward } from "@/types/websocket";
 import * as bitcoin from 'bitcoinjs-lib';
@@ -26,21 +26,18 @@ function scrollToElementWithOffset(el: HTMLElement, offset = 0) {
 }
 
 const MiningChallengeElement = ({ item, index, key }: { item: MiningHistoryItemWithProofOfReward, index: number, key: string }) => {
-  const { toast } = useToast();
-
   const handleCopy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copied!",
-        description: "Transaction hex copied to clipboard",
-      });
+      showSuccess(
+        "Copied!",
+        "Transaction hex copied to clipboard"
+      );
     } catch (err) {
-      toast({
-        title: "Copy Failed",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
+      showError(
+        "Copy Failed",
+        "Failed to copy to clipboard"
+      );
     }
   };
 

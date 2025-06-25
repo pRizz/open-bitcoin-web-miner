@@ -16,6 +16,7 @@ import { MiningStatePanel } from "@/components/MiningStatePanel";
 import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
 import { MiningChancesStats } from "@/components/MiningChancesStats";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
+import { showSuccess, showError, showWarning, showInfo } from "@/utils/notifications";
 
 const ONE_BITAXE_HASH_RATE = 1e12;
 
@@ -45,6 +46,13 @@ const Index = () => {
     }
   }, [searchParams, startMining, isMining, setMinerAddress, setBlockchainMessage]);
 
+  const handleTestNotifications = () => {
+    showSuccess("Test Success", "This is a test success notification");
+    setTimeout(() => showError("Test Error", "This is a test error notification"), 1000);
+    setTimeout(() => showWarning("Test Warning", "This is a test warning notification"), 2000);
+    setTimeout(() => showInfo("Test Info", "This is a test info notification"), 3000);
+  };
+
   return (
     <PageTransition>
       <div className="max-w-7xl mx-auto">
@@ -54,15 +62,25 @@ const Index = () => {
             <Card className="p-6 glass-card">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-2xl font-bold">Mining Controls</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetSettings}
-                  disabled={isMining}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Reset Settings
-                </Button>
+                <div className="flex gap-2">
+                  {/* <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTestNotifications}
+                    className="text-xs"
+                  >
+                    Test Notifications
+                  </Button> */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetSettings}
+                    disabled={isMining}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    Reset Settings
+                  </Button>
+                </div>
               </div>
               <p className="text-muted-foreground mb-4">Configure your mining settings</p>
               <MiningControls />

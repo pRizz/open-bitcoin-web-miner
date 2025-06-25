@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { MiningStats, HashSolution, SessionMiningStats, PersistentMiningStats } from "@/types/mining";
-import { useToast } from "@/hooks/use-toast";
+import { showInfo } from "@/utils/notifications";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { MiningSubmissionStatus, WorkMetadata } from "@/types/websocket";
 
@@ -23,7 +23,6 @@ const defaultSessionStats: SessionMiningStats = {
 
 export const useMiningState = () => {
   console.log("useMiningState called");
-  const { toast } = useToast();
   const networkInfo = useNetworkInfo();
 
   const [persistentStats, setPersistentStats] = useState<PersistentMiningStats>(() => {
@@ -43,11 +42,10 @@ export const useMiningState = () => {
       const solutionWithTime = { ...solution, timeToFind };
 
       if (solution.binaryZeroes >= networkInfo.maybeNetworkRequiredLeadingZeroes) {
-        toast({
-          title: "Partial Solution Found!",
-          description: `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`,
-          variant: "default",
-        });
+        showInfo(
+          "Partial Solution Found!",
+          `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`
+        );
       }
 
       return prev;
@@ -122,11 +120,10 @@ export const useMiningState = () => {
       maybeRequiredBinaryZeroes: networkInfo.maybeNetworkRequiredLeadingZeroes,
     });
     localStorage.removeItem(STORAGE_KEY);
-    toast({
-      title: "Data Reset",
-      description: "All mining data has been cleared.",
-      variant: "default",
-    });
+    showInfo(
+      "Data Reset",
+      "All mining data has been cleared."
+    );
   };
 
   const startMining = () => {

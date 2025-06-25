@@ -9,6 +9,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";
 import SimpleMining from "@/pages/SimpleMining";
 import Leaderboard from "@/pages/Leaderboard";
+import Notifications from "@/pages/Notifications";
 import SubmissionPage from "@/pages/submission/[hash]";
 import About from "@/pages/About";
 import ProofOfRewardPage from "@/pages/ProofOfReward";
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: routes.leaderboard.routerPath,
         element: <Leaderboard />,
+      },
+      {
+        path: routes.notifications.routerPath,
+        element: <Notifications />,
       },
       {
         path: routes.submission.routerPath,
