@@ -158,7 +158,7 @@ export function HashRateGauge() {
             {maybeHashRate && CONFIDENCE_LEVELS.map(({ confidence, label }) => (
               <div key={label} className="flex gap-2">
                 <span className="text-gray-500">•</span>
-                <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(maybeHashRate, maybeRequiredBinaryZeroes, confidence))}</span>
+                <span>{label} chance in {formatTime(calculateSecondsToFindBlock(maybeHashRate, maybeRequiredBinaryZeroes, confidence))}</span>
               </div>
             )) || <span className="text-gray-500">• Start mining to see your chances of finding a block solution</span>}
           </div>
