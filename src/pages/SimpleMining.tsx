@@ -11,6 +11,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { getDescriptionStatement } from "@/utils/probabilityPhrases";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatLargeNumber } from "@/utils/formatters";
 
 const SimpleMining = () => {
   const {
@@ -126,7 +127,7 @@ const SimpleMining = () => {
               <p className="text-sm text-muted-foreground mb-2">Odds of Finding a Block</p>
               <p className="text-lg font-mono">
                 {maybeRequiredBinaryZeroes
-                  ? `1 in ${Math.pow(2, maybeRequiredBinaryZeroes).toLocaleString()}`
+                  ? `1 in ${formatLargeNumber(Math.pow(2, maybeRequiredBinaryZeroes))}`
                   : "Loading..."
                 }
               </p>

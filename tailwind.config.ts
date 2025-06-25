@@ -134,7 +134,8 @@ export default {
         },
         'stripes': {
           '0%': { backgroundPosition: '0 0' },
-          '100%': { backgroundPosition: '50px 0' } // Adjust this value to control the speed of the animation
+          // Must be a multiple of 28.28px
+          '100%': { backgroundPosition: '56.56px 0' }
         }
       },
       animation: {

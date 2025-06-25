@@ -171,14 +171,14 @@ const Notifications = () => {
               </Select>
             </div>
 
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex h-full items-center space-x-2">
               <Switch
                 id="show-read"
                 checked={showRead}
                 onCheckedChange={setShowRead}
               />
               <Label htmlFor="show-read">Show read notifications</Label>
-            </div>
+            </div> */}
           </div>
         </Card>
 
