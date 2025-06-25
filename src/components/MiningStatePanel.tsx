@@ -59,13 +59,44 @@ function formatSatsToBTC(sats: number) {
 }
 
 export const MiningStatePanel = () => {
-  const { miningStats, isMining, resetData, miningContextMiningState } = useMining();
+  const { miningStats, isMining, resetData, miningContextMiningState, maybeMostRecentMiningStartTime } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
   const { maybeBlockHeight, maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes, maybeFormattedNetworkDifficulty, maybeConnectedMinerCount, maybeServerStartingMinLeadingZeroCount, maybeBaseBlockReward, maybeMiningReward } = useNetworkInfo();
   const { subscribe } = useMiningEvents();
   const isConnected = maybeConnectedMinerCount !== undefined;
 
   const [activeAnimations, setActiveAnimations] = useState<AnimationInstance[]>([]);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Update current time every second when mining is active
+  useEffect(() => {
+    if (!isMining || !maybeMostRecentMiningStartTime) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isMining, maybeMostRecentMiningStartTime]);
+
+  // Calculate duration in mm:ss format
+  const getDurationText = () => {
+    if (!maybeMostRecentMiningStartTime || !isMining) {
+      return "";
+    }
+
+    const durationMs = currentTime - maybeMostRecentMiningStartTime;
+    if (durationMs < 1000) {
+      return " (0:00)";
+    }
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    return ` (${minutes}:${seconds.toString().padStart(2, '0')})`;
+  };
 
   // Example 1: we get two events in a row, with a delay of 500ms between them
   // The first event will trigger an animation, and the second event will be queued up
@@ -128,7 +159,7 @@ export const MiningStatePanel = () => {
   let miningStateText = "";
   switch (miningContextMiningState) {
   case MiningContextMiningState.MINING:
-    miningStateText = "Mining";
+    miningStateText = "Mining" + getDurationText();
     break;
   case MiningContextMiningState.BEHAVIOR_CHECK:
     miningStateText = "Behavior Check";

@@ -34,6 +34,7 @@ const defaultContext: MiningContextType = {
   maxThreads: 1,
   miningMode: "cpu",
   miningContextMiningState: MiningContextMiningState.NOT_MINING,
+  maybeMostRecentMiningStartTime: null,
   setMiningSpeed: () => {},
   setThreadCount: () => {},
   setMiningMode: () => {},
@@ -64,6 +65,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [miningSpeed, setMiningSpeed] = useState(100);
   const [miningMode, setMiningMode] = useState<MiningMode>("cpu");
   const [miningHistory, setMiningHistory] = useState<MiningHistoryItem[]>([]);
+  const [maybeMostRecentMiningStartTime, setMaybeMostRecentMiningStartTime] = useState<number | null>(null);
   const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useInitialThreadCount();
 
   const workerPool = useWorkerPool(
@@ -241,6 +243,8 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     const withThreadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
     addLog(`Starting ${modeString} mining${withThreadInfo} at ${miningSpeed}% speed`);
 
+    const startTime = Date.now();
+    setMaybeMostRecentMiningStartTime(startTime);
     connectWebSocket();
     workerPool.startMining();
     setIsMining(true);
@@ -278,6 +282,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         maxThreads,
         miningMode,
         miningContextMiningState,
+        maybeMostRecentMiningStartTime,
         setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
         setMiningMode,

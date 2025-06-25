@@ -39,6 +39,7 @@ export interface MiningContextType {
   miningMode: MiningMode;
   miningContextMiningState: MiningContextMiningState;
   gpuCapabilities?: GPUCapabilities;
+  maybeMostRecentMiningStartTime: number | null;
   setMiningSpeed: (speed: number) => void;
   setThreadCount: (count: number) => void;
   setMiningMode: (mode: MiningMode) => void;
