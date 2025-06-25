@@ -44,7 +44,10 @@ export const useMiningState = () => {
       if (solution.binaryZeroes >= networkInfo.maybeNetworkRequiredLeadingZeroes) {
         showInfo(
           "Partial Solution Found!",
-          `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`
+          `Found a hash with ${solution.binaryZeroes} leading binary zeroes!`,
+          {
+            maybePersist: false,
+          }
         );
       }
 

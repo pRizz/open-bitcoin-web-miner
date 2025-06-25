@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,16 +41,16 @@ const getNotificationIcon = (type: NotificationType) => {
 
 const getNotificationColor = (type: NotificationType) => {
   switch (type) {
-    case 'success':
-      return 'border-green-900 bg-green-950 text-green-100';
-    case 'error':
-      return 'border-red-900 bg-red-950 text-red-100';
-    case 'warning':
-      return 'border-yellow-900 bg-yellow-950 text-yellow-100';
-    case 'info':
-      return 'border-blue-900 bg-blue-950 text-blue-100';
-    default:
-      return 'border-gray-900 bg-gray-950 text-gray-100';
+  case 'success':
+    return 'border-green-900 bg-green-950 text-green-100';
+  case 'error':
+    return 'border-red-900 bg-red-950 text-red-100';
+  case 'warning':
+    return 'border-yellow-900 bg-yellow-950 text-yellow-100';
+  case 'info':
+    return 'border-blue-900 bg-blue-950 text-blue-100';
+  default:
+    return 'border-gray-900 bg-gray-950 text-gray-100';
   }
 };
 
@@ -65,21 +65,29 @@ const Notifications = () => {
   } = useNotifications();
 
   const [typeFilter, setTypeFilter] = useState<NotificationType | 'all'>('all');
-  const [readFilter, setReadFilter] = useState<'all' | 'read' | 'unread'>('all');
+  //   const [readFilter, setReadFilter] = useState<'all' | 'read' | 'unread'>('all');
   const [showRead, setShowRead] = useState(true);
+
+  // Mark all notifications as read when visiting the page
+  useEffect(() => {
+    // TODO: Uncomment when we figure out why unreadCount starts at 0, mistakenly.
+    // if (unreadCount > 0) {
+    markAllAsRead();
+    // }
+  }, []); // Empty dependency array means this runs once when component mounts
 
   const filteredNotifications = notifications.filter(notification => {
     if (typeFilter !== 'all' && notification.type !== typeFilter) {
       return false;
     }
 
-    if (readFilter === 'read' && !notification.read) {
-      return false;
-    }
+    // if (readFilter === 'read' && !notification.read) {
+    //   return false;
+    // }
 
-    if (readFilter === 'unread' && notification.read) {
-      return false;
-    }
+    // if (readFilter === 'unread' && notification.read) {
+    //   return false;
+    // }
 
     if (!showRead && notification.read) {
       return false;
@@ -103,12 +111,12 @@ const Notifications = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Notifications</h1>
-            <p className="text-muted-foreground">
+            {/* <p className="text-muted-foreground">
               {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-            </p>
+            </p> */}
           </div>
           <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
+            {/* {unreadCount > 0 && (
               <Button
                 variant="outline"
                 size="sm"
@@ -118,7 +126,25 @@ const Notifications = () => {
                 <Check className="h-4 w-4" />
                 Mark all as read
               </Button>
-            )}
+            )} */}
+
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold">Filter by type:</h3>
+            </div>
+
+            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as NotificationType | 'all')}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+              </SelectContent>
+            </Select>
+
             {notifications.length > 0 && (
               <Button
                 variant="outline"
@@ -134,53 +160,27 @@ const Notifications = () => {
         </div>
 
         {/* Filters */}
-        <Card className="p-4">
-          <div className="flex items-center gap-4 mb-4">
+        {/* <Card className="p-4 flex flex-row gap-4">
+          <div className="flex items-center gap-4">
             <Filter className="h-5 w-5 text-muted-foreground" />
-            <h3 className="font-semibold">Filters</h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="type-filter">Type</Label>
-              <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as NotificationType | 'all')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All types</SelectItem>
-                  <SelectItem value="success">Success</SelectItem>
-                  <SelectItem value="error">Error</SelectItem>
-                  <SelectItem value="warning">Warning</SelectItem>
-                  <SelectItem value="info">Info</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="font-semibold flex items-center gap-2">
+            <h3 >Filter by type</h3>
             </div>
+            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as NotificationType | 'all')}>
+            <SelectTrigger>
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+            </SelectContent>
+            </Select>
 
-            <div className="space-y-2">
-              <Label htmlFor="read-filter">Status</Label>
-              <Select value={readFilter} onValueChange={(value) => setReadFilter(value as 'all' | 'read' | 'unread')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All notifications</SelectItem>
-                  <SelectItem value="unread">Unread only</SelectItem>
-                  <SelectItem value="read">Read only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* <div className="flex h-full items-center space-x-2">
-              <Switch
-                id="show-read"
-                checked={showRead}
-                onCheckedChange={setShowRead}
-              />
-              <Label htmlFor="show-read">Show read notifications</Label>
-            </div> */}
           </div>
-        </Card>
+        </Card> */}
 
         {/* Notifications List */}
         <div className="space-y-3">
@@ -255,7 +255,7 @@ const Notifications = () => {
                           </Button>
                         )}
 
-                        {!notification.read ? (
+                        {/* {!notification.read ? (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -275,7 +275,7 @@ const Notifications = () => {
                           >
                             <EyeOff className="h-4 w-4" />
                           </Button>
-                        )}
+                        )} */}
 
                         <Button
                           variant="ghost"
@@ -301,9 +301,6 @@ const Notifications = () => {
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>
                 Showing {filteredNotifications.length} of {notifications.length} notifications
-              </span>
-              <span>
-                {unreadCount} unread
               </span>
             </div>
           </Card>
