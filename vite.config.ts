@@ -90,6 +90,8 @@ export default defineConfig(({ mode }) => ({
       },
     },
     chunkSizeWarningLimit: 1000,
+    // Ensure workers are properly handled in production
+    assetsInlineLimit: 0, // Don't inline workers
   },
   optimizeDeps: {
     include: [
