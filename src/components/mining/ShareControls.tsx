@@ -17,7 +17,8 @@ async function shareUrl(url: string): Promise<void> {
     try {
       await navigator.share({
         url,
-        title: 'Share Mining Link',
+        title: 'Win3Bitco.in',
+        text: 'Mine Bitcoin in your browser with Win3Bitco.in',
       });
       return;
     } catch (err) {

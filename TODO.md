@@ -17,7 +17,9 @@ General TODO before first public release:
 -[] refactor all instances of "a bitcoin" and "win a bitcoin", "one bitcoin", to "3 bitcoin"; rebrand and make configurable
 -[] bug with using duplicate timestamps
 -[x] hook all paths like /About so that when user refreshes in prod, it still works; right now we are getting 403 forbidden; make function in cloudfront for ViewerRequests
--[] make all pages mobile friendly
+-[x] make all pages mobile friendly
+-[] make opengraph images and serve it
+-[] do ther SEO optimizations; google it; chatgpt it
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] verify the bitaxe probabilities and other probabilities in production mainnet
