@@ -11,10 +11,6 @@ import { useMining } from "@/contexts/MiningContext";
 import { TypedLink } from "@/components/TypedLink";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { routes } from "@/routes";
-import { useEffect } from "react";
-
-// Session-only variable to track if user has visited home page in this session
-let hasVisitedHomeThisSession = false;
 
 function MinerCountIndicator() {
   const { maybeConnectedMinerCount } = useNetworkInfo();
@@ -56,35 +52,8 @@ export function AppLayout() {
   const { isMining } = useMining();
   const isMobile = useIsMobile();
 
-  // // Mobile redirect logic with session-only user intent detection
-  // useEffect(() => {
-  //   // Use synchronous mobile detection to avoid timing issues
-  //   const isMobileSyncResult = isMobileSync();
-    
-  //   // Only redirect if on mobile and we're on the homepage
-  //   if (!hasVisitedHomeThisSession && isMobileSyncResult && location.pathname === routes.home.path) {
-  //     // Check if user explicitly navigated to homepage
-  //     const maybeReferrer = document.referrer;
-  //     const hasUrlParams = searchParams.toString().length > 0;
-      
-  //     // Consider it explicit navigation if:
-  //     // 1. Has URL parameters (auto-start, bitcoin address, etc.)
-  //     // 2. User has visited the home page in this session (shows intent)
-  //     // 3. Has any referrer (means they came from somewhere)
-  //     const isExplicitNavigation = hasUrlParams || hasVisitedHomeThisSession || maybeReferrer;
-      
-  //     // If not an explicit navigation, redirect to simple mining
-  //     if (!isExplicitNavigation) {
-  //       navigate(routes.simpleMining.path, { replace: true });
-  //     } else {
-  //       // Mark that user has visited home page in this session
-  //       hasVisitedHomeThisSession = true;
-  //     }
-  //   }
-  // }, [location.pathname, navigate, searchParams]);
-
   // Show ShareControls on home page or simple mining page for mobile users
-  const shouldShowShareControls = location.pathname === "/" || 
+  const shouldShowShareControls = location.pathname === "/" ||
     (isMobile && location.pathname === routes.simpleMining.path);
 
   return (
