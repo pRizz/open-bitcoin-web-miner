@@ -5,18 +5,18 @@ export const productionMainnetUrl = 'https://backend.winabitco.in:443';
 const getInitialBaseUrl = () => {
   // In development mode, check localStorage for persisted backend selection
   if (!import.meta.env.DEV) {
-    return import.meta.env.VITE_API_URL || productionUrl;
+    return import.meta.env.VITE_API_URL || productionMainnetUrl;
   }
 
   // Check if localStorage is available (browser context)
   if (typeof localStorage === 'undefined') {
     console.warn("localStorage is not available, using developmentUrl");
-    return import.meta.env.VITE_API_URL || developmentUrl;
+    return import.meta.env.VITE_API_URL || productionMainnetUrl;
   }
 
   const persistedBackend = localStorage.getItem('selectedBackend');
   if (!persistedBackend) {
-    return import.meta.env.VITE_API_URL || developmentUrl;
+    return import.meta.env.VITE_API_URL || productionMainnetUrl;
   }
 
   switch (persistedBackend) {
@@ -27,7 +27,7 @@ const getInitialBaseUrl = () => {
   case 'mainnet':
     return productionMainnetUrl;
   default:
-    return import.meta.env.VITE_API_URL || productionMainnetUrl;
+    return import.meta.env.VITE_API_URL || developmentUrl;
   }
 };
 
