@@ -112,7 +112,10 @@ export class WorkerPool {
 
   private createWorker(url: URL): Worker {
     try {
-      const worker = new Worker(url, { type: 'module' });
+      // new URL('./cpuMiningWorker.ts', import.meta.url)
+      // const worker = new Worker(url, { type: 'module' });
+      // FIXME: This is a hack to get the worker to work in production.
+      const worker = new Worker(new URL('./cpuMiningWorker.ts', import.meta.url), { type: 'module' });
 
       worker.onerror = (error: ErrorEvent) => {
         // Ensure we pass a meaningful error message

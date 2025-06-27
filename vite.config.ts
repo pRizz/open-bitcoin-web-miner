@@ -38,13 +38,13 @@ export default defineConfig(({ mode }) => ({
     }),
     // Bundle analyzer - generates stats.html after build
     // Try with pnpm run analyze
-    mode === 'production' && visualizer({
-      filename: 'dist/stats.html',
-      open: true,
-      gzipSize: true,
-      brotliSize: true,
-      template: 'treemap', // or 'sunburst', 'network', 'raw-data'
-    }),
+    // mode === 'production' && visualizer({
+    //   filename: 'dist/stats.html',
+    //   open: true,
+    //   gzipSize: true,
+    //   brotliSize: true,
+    //   template: 'treemap', // or 'sunburst', 'network', 'raw-data'
+    // }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -91,7 +91,7 @@ export default defineConfig(({ mode }) => ({
     },
     chunkSizeWarningLimit: 1000,
     // Ensure workers are properly handled in production
-    assetsInlineLimit: 0, // Don't inline workers
+    // assetsInlineLimit: 0, // Don't inline workers
   },
   optimizeDeps: {
     include: [
