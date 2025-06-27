@@ -65,8 +65,10 @@ export function AppLayout() {
                 <h1 className="text-4xl font-bold">{getPageTitle(location.pathname)}</h1>
               </div>
               <div className="flex items-center gap-4">
-                <MiningStatusIndicator />
-                <MinerCountIndicator />
+                <div className="flex items-center gap-2 md:block hidden">
+                  <MiningStatusIndicator />
+                  <MinerCountIndicator />
+                </div>
                 {location.pathname === "/" && (
                   <ShareControls />
                 )}
