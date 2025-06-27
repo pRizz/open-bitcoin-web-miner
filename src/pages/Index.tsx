@@ -135,9 +135,34 @@ const Index = () => {
           <Card className="p-6 glass-card">
             <h2 className="text-2xl font-bold mb-4">Collective Probabilities</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <MiningChancesStats minerCount={1000} minerCountLabel={(1_000).toLocaleString()} showCombinedHashRate={true} />
-              <MiningChancesStats minerCount={1_000_000} minerCountLabel="1 million" showCombinedHashRate={true} />
-              <MiningChancesStats minerCount={1_000_000_000} minerCountLabel="1 billion" showCombinedHashRate={true} />
+              {/* <MiningChancesStats minerCount={1000} minerCountLabel={(1_000).toLocaleString()} showCombinedHashRate={true} /> */}
+              <MiningChancesStats minerCount={1_000_000} minerCountLabel="1 million" showCombinedHashRate={true}
+                maybeTimePeriods={[
+                  oneMonthTimePeriod,
+                  oneYearTimePeriod,
+                  tenYearsTimePeriod,
+                  hundredYearsTimePeriod,
+                  thousandYearsTimePeriod,
+                ]}
+              />
+              <MiningChancesStats minerCount={1_000_000_000} minerCountLabel="1 billion" showCombinedHashRate={true}
+                maybeTimePeriods={[
+                  oneHourTimePeriod,
+                  oneDayTimePeriod,
+                  oneWeekTimePeriod,
+                  oneYearTimePeriod,
+                  tenYearsTimePeriod,
+                ]}
+              />
+              <MiningChancesStats minerCount={8_000_000_000} minerCountLabel="8 billion" showCombinedHashRate={true}
+                maybeTimePeriods={[
+                  oneHourTimePeriod,
+                  oneDayTimePeriod,
+                  oneWeekTimePeriod,
+                  oneYearTimePeriod,
+                  tenYearsTimePeriod,
+                ]}
+              />
             </div>
           </Card>
 

@@ -82,7 +82,7 @@ export default function About() {
         <CardContent className="space-y-4">
           <p>
             This website provides a platform for real Bitcoin mining on consumer hardware. While the chances of
-            successfully mining a block are extremely low due to the comparatively high block difficulty, this platform serves as an educational tool to help people understand Bitcoin mining in a
+            successfully mining a block are extremely low due to the comparatively high block difficulty, this platform primarily serves as an educational tool to help people understand Bitcoin mining in a
             more intuitive way. We aim to:
           </p>
           <ul className="list-disc pl-6 space-y-2">
