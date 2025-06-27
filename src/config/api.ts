@@ -27,7 +27,7 @@ const getInitialBaseUrl = () => {
   case 'mainnet':
     return productionMainnetUrl;
   default:
-    return import.meta.env.VITE_API_URL || developmentUrl;
+    return import.meta.env.VITE_API_URL || productionMainnetUrl;
   }
 };
 
