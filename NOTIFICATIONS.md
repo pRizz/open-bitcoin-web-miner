@@ -56,7 +56,7 @@ interface Notification {
   maybeMetadata?: Record<string, any>;
 }
 
-interface NotificationOptions {
+export interface NotificationOptions {
   title: string;
   maybeDescription?: string;
   maybeType?: NotificationType;
@@ -66,6 +66,7 @@ interface NotificationOptions {
   };
   maybeMetadata?: Record<string, any>;
   maybePersist?: boolean;
+  maybeDuration?: number;
 }
 
 interface NotificationFilters {
@@ -101,6 +102,7 @@ showNotification({
   maybeDescription: "With custom options",
   maybeType: "info",
   maybePersist: true, // Save to history (default: true)
+  maybeDuration: 5000, // Show for 5 seconds
   maybeAction: {
     label: "View Details",
     onClick: () => navigate('/details')
@@ -110,6 +112,31 @@ showNotification({
     hashRate: 1000
   }
 });
+```
+
+### Toast Duration
+
+You can control how long toast notifications are displayed using the `maybeDuration` option:
+
+```typescript
+import { 
+  showSuccess, 
+  showShort, 
+  showLong, 
+  showPersistent 
+} from '@/utils/notifications';
+
+// Predefined durations
+showShort("Quick Message", "Disappears in 3 seconds");
+showLong("Important Message", "Stays for 10 seconds");
+showPersistent("Manual Dismiss", "Won't auto-dismiss");
+
+// Custom duration (in milliseconds)
+showSuccess("Custom Duration", "5 second toast", { maybeDuration: 5000 });
+showError("Quick Error", "2 second error", { maybeDuration: 2000 });
+
+// Default behavior (uses Radix UI default)
+showInfo("Default Duration", "Uses system default");
 ```
 
 ### Using the Hook

@@ -24,6 +24,7 @@ export interface NotificationOptions {
   };
   maybeMetadata?: Record<string, any>;
   maybePersist?: boolean;
+  maybeDuration?: number;
 }
 
 export interface NotificationFilters {

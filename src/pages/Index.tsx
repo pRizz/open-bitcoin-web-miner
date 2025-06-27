@@ -15,7 +15,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { MiningStatePanel } from "@/components/MiningStatePanel";
 import { MiningChancesStats, oneDayTimePeriod, oneHourTimePeriod, oneMinuteTimePeriod, oneMonthTimePeriod, oneWeekTimePeriod, oneYearTimePeriod, TimePeriod } from "@/components/MiningChancesStats";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
-import { showSuccess, showError, showWarning, showInfo } from "@/utils/notifications";
+import { showSuccess, showError, showWarning, showInfo, showShort, showLong, showPersistent } from "@/utils/notifications";
 
 const ONE_BITAXE_HASH_RATE = 1e12;
 
@@ -61,10 +61,12 @@ const Index = () => {
   }, [searchParams, startMining, isMining, setMinerAddress, setBlockchainMessage]);
 
   const handleTestNotifications = () => {
-    showSuccess("Test Success", "This is a test success notification");
-    setTimeout(() => showError("Test Error", "This is a test error notification"), 1000);
-    setTimeout(() => showWarning("Test Warning", "This is a test warning notification"), 2000);
-    setTimeout(() => showInfo("Test Info", "This is a test info notification"), 3000);
+    // Test different durations
+    // showShort("Short Toast", "This will disappear in 3 seconds");
+    // setTimeout(() => showLong("Long Toast", "This will stay for 10 seconds"), 1000);
+    // setTimeout(() => showPersistent("Persistent Toast", "This won't auto-dismiss"), 2000);
+    setTimeout(() => showSuccess("Custom Duration", "5 second duration", { maybeDuration: 15000 }), 3000);
+    // setTimeout(() => showError("Quick Error", "2 second error", { maybeDuration: 2000 }), 4000);
   };
 
   return (

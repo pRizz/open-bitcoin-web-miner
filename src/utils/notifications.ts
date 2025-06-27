@@ -70,6 +70,7 @@ class NotificationManager {
       title: notification.title,
       description: notification.maybeDescription,
       variant: this.getToastVariant(notification.type),
+      duration: options.maybeDuration,
     });
 
     // Persist to storage if requested
@@ -112,6 +113,34 @@ class NotificationManager {
       title,
       maybeDescription,
       maybeType: 'info',
+      ...options,
+    });
+  }
+
+  // Convenience methods for common durations
+  public showShort(title: string, maybeDescription?: string, options?: Partial<NotificationOptions>): string {
+    return this.show({
+      title,
+      maybeDescription,
+      maybeDuration: 3000, // 3 seconds
+      ...options,
+    });
+  }
+
+  public showLong(title: string, maybeDescription?: string, options?: Partial<NotificationOptions>): string {
+    return this.show({
+      title,
+      maybeDescription,
+      maybeDuration: 10000, // 10 seconds
+      ...options,
+    });
+  }
+
+  public showPersistent(title: string, maybeDescription?: string, options?: Partial<NotificationOptions>): string {
+    return this.show({
+      title,
+      maybeDescription,
+      maybeDuration: undefined, // No auto-dismiss
       ...options,
     });
   }
@@ -197,5 +226,12 @@ export const showWarning = (title: string, maybeDescription?: string, options?: 
   notificationManager.warning(title, maybeDescription, options);
 export const showInfo = (title: string, maybeDescription?: string, options?: Partial<NotificationOptions>) =>
   notificationManager.info(title, maybeDescription, options);
+
+export const showShort = (title: string, maybeDescription?: string, options?: Partial<NotificationOptions>) =>
+  notificationManager.showShort(title, maybeDescription, options);
+export const showLong = (title: string, maybeDescription?: string, options?: Partial<NotificationOptions>) =>
+  notificationManager.showLong(title, maybeDescription, options);
+export const showPersistent = (title: string, maybeDescription?: string, options?: Partial<NotificationOptions>) =>
+  notificationManager.showPersistent(title, maybeDescription, options);
 
 export default notificationManager;
