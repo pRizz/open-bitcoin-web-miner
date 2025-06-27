@@ -16,6 +16,7 @@ General TODO before first public release:
 -[x] pass different timestamps to each worker, and somehow increment stuff safely if nonce runs out
 -[] refactor all instances of "a bitcoin" and "win a bitcoin", "one bitcoin", to "3 bitcoin"; rebrand and make configurable
 -[] bug with using duplicate timestamps
+-[x] hook all paths like /About so that when user refreshes in prod, it still works; right now we are getting 403 forbidden; make function in cloudfront for ViewerRequests
 -[] make all pages mobile friendly
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
@@ -27,6 +28,7 @@ General TODO before first public release:
 -[] when inspecting submission details, also include the associated coinbase tx and block template link
 -[] add firebase
 -[] add social media links, and search for Bright Builds LLC and Peter Ryszkiewicz in the project and add links
+-[] search project and fix this: "FIXME: Uncaught Error: useNavigate()"
 
 Future features:
 -[] gpu mining

@@ -5,6 +5,7 @@ import { useMinerInfo } from "./MinerInfoContext";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
 import { showSuccess, showError } from '@/utils/notifications';
 import { MiningChallenge } from "@/types/mining";
+// import { useTypedNavigate } from "@/hooks/useTypedNavigate";
 
 interface MiningWebSocketContextType {
   connect: () => void;
@@ -28,6 +29,8 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
   const maybeCallbacks = useRef<MiningWebSocketCallbacks | null>(null);
   const { maybeMinerAddress, maybeBlockchainMessage, maybeLeaderboardUsername, maybeLeaderboardMessage } = useMinerInfo();
   const { refetch: refetchLeaderboard } = useGlobalLeaderboard();
+  // FIXME: Uncaught Error: useNavigate() may be used only in the context of a <Router> component.
+  // const navigate = useTypedNavigate();
 
   console.log("MiningWebSocketProvider constructor called");
 
@@ -112,15 +115,14 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
         console.log(`Global leaderboard entry added: Hash ${block_hash_hex}, Rank ${rank}, Binary Zeroes ${leading_binary_zeroes}`);
         showSuccess(
           "🏆 Global Leaderboard Entry Added!",
-          `You found a hash that had ${leading_binary_zeroes} leading binary zeroes and ranked #${rank} on the global leaderboard!`
+          `You found a hash that had ${leading_binary_zeroes} leading binary zeroes and ranked #${rank} on the global leaderboard!`,
+          {
+            // maybeAction: {
+            //   label: "View Leaderboard",
+            //   onClick: () => navigate.to('leaderboard'),
+            // },
+          }
         );
-        // TODO: add link to submission page; broken
-        // action: (
-        //   <Link to="/leaderboard" className="inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600">
-        //     <Trophy className="h-4 w-4" />
-        //     View Leaderboard
-        //   </Link>
-        // ),
         refetchLeaderboard();
         break;
       }
