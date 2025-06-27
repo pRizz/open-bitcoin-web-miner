@@ -3,6 +3,7 @@ import type { Notification, NotificationOptions, NotificationType, NotificationF
 
 const STORAGE_KEY = 'notifications';
 const MAX_NOTIFICATIONS = 1000;
+const DEFAULT_DURATION = 7000;
 
 class NotificationManager {
   private notifications: Notification[] = [];
@@ -70,7 +71,7 @@ class NotificationManager {
       title: notification.title,
       description: notification.maybeDescription,
       variant: this.getToastVariant(notification.type),
-      duration: options.maybeDuration,
+      duration: options.maybeDuration ?? DEFAULT_DURATION,
     });
 
     // Persist to storage if requested
