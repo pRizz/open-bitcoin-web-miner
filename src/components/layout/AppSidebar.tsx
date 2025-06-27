@@ -14,10 +14,20 @@ import { useMining } from "@/contexts/MiningContext";
 import { sidebarPages } from "@/routes";
 import { TypedLink } from "@/components/TypedLink";
 import { NotificationBadge } from "@/components/NotificationBadge";
+import { useSidebar } from "@/components/ui/sidebar/sidebar-context";
 
 export function AppSidebar() {
   const location = useLocation();
   const { resetData } = useMining();
+  const { setOpenMobile, setOpen, isMobile } = useSidebar();
+
+  const handleItemClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      setOpen(false);
+    }
+  };
 
   return (
     <Sidebar>
@@ -34,6 +44,7 @@ export function AppSidebar() {
                     asChild
                     isActive={location.pathname === route.path}
                     className="px-3 py-2 w-full transition-colors duration-200"
+                    onClick={handleItemClick}
                   >
                     <TypedLink routeKeyName={route.keyName}>
                       <route.icon className="h-4 w-4 mr-3" />
@@ -57,7 +68,10 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem className="px-3">
                 <SidebarMenuButton
-                  onClick={resetData}
+                  onClick={() => {
+                    resetData();
+                    handleItemClick();
+                  }}
                   className="px-3 py-2 w-full transition-colors duration-200 text-destructive hover:text-destructive"
                 >
                   <Trash2 className="h-4 w-4 mr-3" />
