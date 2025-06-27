@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "build:analyze": "vite build --mode production",
     "deploy": "aws s3 sync dist s3://www.winabitco.in/ --delete",
-    "build-and-deploy": "pnpm run build && pnpm run deploy",
+    "build-and-deploy": "rm -rf dist && pnpm run build && pnpm run deploy",
     "analyze": "pnpm run build:analyze",
     "preview": "vite preview",
     "lint": "eslint .",
