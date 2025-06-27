@@ -5,6 +5,7 @@ import { showSuccess, showError } from "@/utils/notifications";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useCallback } from "react";
 import { useShare } from "@/contexts/ShareContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ShareControlsProps {
   maybeButtonText?: string;
@@ -47,7 +48,8 @@ async function shareUrl(url: string): Promise<void> {
 export function ShareControls({ maybeButtonText }: ShareControlsProps) {
   const { maybeMinerAddress } = useMinerInfo();
   const { includeAutoStart, includeAddress } = useShare();
-  const buttonText = maybeButtonText ?? "Share";
+  const isMobile = useIsMobile();
+  const buttonText = isMobile ? "" : (maybeButtonText ?? "Share");
 
   const handleShare = useCallback(async () => {
     const url = new URL(window.location.href);
