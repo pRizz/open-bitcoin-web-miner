@@ -18,11 +18,12 @@ General TODO before first public release:
 -[] bug with using duplicate timestamps
 -[x] hook all paths like /About so that when user refreshes in prod, it still works; right now we are getting 403 forbidden; make function in cloudfront for ViewerRequests
 -[x] make all pages mobile friendly
--[] make opengraph images and serve it
--[] do ther SEO optimizations; google it; chatgpt it
+-[x] make opengraph images and serve it
+-[x] do ther SEO optimizations; google it; chatgpt it
+-[x] verify the bitaxe probabilities and other probabilities in production mainnet
+-[] show coinbase address outputs in Proof Of Reward page
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
--[] verify the bitaxe probabilities and other probabilities in production mainnet
 -[] add a link to global hashrate graph website
 -[] put back this disabled logic for start mining button:         disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
   and make all Start Mining/Stop Mining buttons have consistent business logic thoughout the app
