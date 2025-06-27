@@ -12,6 +12,7 @@ import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 import { getDescriptionStatement } from "@/utils/probabilityPhrases";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatLargeNumber } from "@/utils/formatters";
+import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
 
 const SimpleMining = () => {
   const {
@@ -142,23 +143,37 @@ const SimpleMining = () => {
         </Card>
 
         {/* Quick Stats */}
-        {isMining && maybeHashRate && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-3 text-center">Mining Status</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <span className="text-green-500 font-medium">Active</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Address:</span>
-                <span className="font-mono text-xs">
-                  {maybeMinerAddress ? (isValidAddress ? "Valid" : "Invalid") : "None"}
-                </span>
-              </div>
-            </div>
-          </Card>
-        )}
+        {isMining && maybeHashRate &&
+        // (
+        //   <Card className="p-6">
+        //     <h3 className="text-lg font-semibold mb-3 text-center">Mining Status</h3>
+        //     <div className="space-y-2 text-sm">
+        //       <div className="flex justify-between">
+        //         <span className="text-muted-foreground">Status:</span>
+        //         <span className="text-green-500 font-medium">Active</span>
+        //       </div>
+        //       <div className="flex justify-between">
+        //         <span className="text-muted-foreground">Address:</span>
+        //         <span className="font-mono text-xs">
+        //           {maybeMinerAddress ? (isValidAddress ? "Valid" : "Invalid") : "None"}
+        //         </span>
+        //       </div>
+        //     </div>
+        //   </Card>
+        // )
+        <MiningTimeRequiredStats confidenceLevels={
+          [
+            { confidence: 0.00001, label: "0.001%" },
+            { confidence: 0.0001, label: "0.01%" },
+            { confidence: 0.001, label: "0.1%" },
+            { confidence: 0.01, label: "1%" },
+            { confidence: 0.1, label: "10%" },
+            { confidence: 0.50, label: "50%" },
+            { confidence: 0.90, label: "90%" },
+            { confidence: 0.99, label: "99%" },
+          ]
+        } />
+        }
       </div>
     </PageTransition>
   );

@@ -6,15 +6,22 @@ import { useMining } from "@/contexts/MiningContext";
 import { calculateSecondsToFindBlock, formatTime } from "@/utils/mining";
 import { Card } from "@/components/ui/card";
 
-const CONFIDENCE_LEVELS = [
+export const DEFAULT_CONFIDENCE_LEVELS = [
+  { confidence: 0.00001, label: "0.001%" },
+  { confidence: 0.0001, label: "0.01%" },
+  { confidence: 0.001, label: "0.1%" },
   { confidence: 0.01, label: "1%" },
   { confidence: 0.1, label: "10%" },
   { confidence: 0.50, label: "50%" },
   { confidence: 0.90, label: "90%" },
   { confidence: 0.99, label: "99%" },
-];
+]
 
-export function MiningTimeRequiredStats() {
+interface MiningTimeRequiredStatsProps {
+  confidenceLevels?: { confidence: number, label: string }[];
+}
+
+export function MiningTimeRequiredStats({ confidenceLevels = DEFAULT_CONFIDENCE_LEVELS }: MiningTimeRequiredStatsProps) {
   const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
   const { miningStats } = useMining();
   const { maybeHashRate } = miningStats;
@@ -106,10 +113,10 @@ export function MiningTimeRequiredStats() {
         </Dialog>
       </div>
       <div className="text-sm text-gray-400">
-        {maybeHashRate && maybeRequiredBinaryZeroes && CONFIDENCE_LEVELS.map(({ confidence, label }) => (
+        {maybeHashRate && maybeRequiredBinaryZeroes && confidenceLevels.map(({ confidence, label }) => (
           <div key={label} className="flex gap-2">
             <span className="text-gray-500">•</span>
-            <span>{label} chance of finding a block solution in {formatTime(calculateSecondsToFindBlock(maybeHashRate, maybeRequiredBinaryZeroes, confidence))}</span>
+            <span>{label} chance in {formatTime(calculateSecondsToFindBlock(maybeHashRate, maybeRequiredBinaryZeroes, confidence))}</span>
           </div>
         )) || <span className="text-gray-500">• Start mining to see the time required to find a block solution</span>}
       </div>

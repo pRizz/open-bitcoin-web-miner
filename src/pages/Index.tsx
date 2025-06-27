@@ -13,7 +13,6 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/PageTransition";
 import { MiningStatePanel } from "@/components/MiningStatePanel";
-import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
 import { MiningChancesStats, oneDayTimePeriod, oneHourTimePeriod, oneMinuteTimePeriod, oneMonthTimePeriod, oneWeekTimePeriod, oneYearTimePeriod, TimePeriod } from "@/components/MiningChancesStats";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
 import { showSuccess, showError, showWarning, showInfo } from "@/utils/notifications";
@@ -108,7 +107,7 @@ const Index = () => {
           <HashRateGauge />
 
           {/* Personal Probabilities Section */}
-          <Card className="p-6 glass-card">
+          {/* <Card className="p-6 glass-card">
             <h2 className="text-2xl font-bold mb-4">Personal Probabilities</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <MiningTimeRequiredStats />
@@ -129,7 +128,7 @@ const Index = () => {
                   thousandYearsTimePeriod,
                 ]} />
             </div>
-          </Card>
+          </Card> */}
 
           {/* Collective Probabilities Section */}
           <Card className="p-6 glass-card">
