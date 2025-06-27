@@ -398,6 +398,7 @@ export const MiningStatePanel = () => {
             </span>
             <FlashingText value={miningStats.acceptedSolutions || "0"} />
           </div>
+
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500" />
@@ -420,6 +421,25 @@ export const MiningStatePanel = () => {
             </span>
             <FlashingText value={miningStats.rejectedSolutions || "0"} />
           </div>
+
+          <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-red-500" />
+              Rejected Rate (%)
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[300px]">
+                    <p>The percentage of solutions that were rejected.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </span>
+            <FlashingText value={`${((miningStats.rejectedSolutions / (miningStats.maybeTotalSolutions || 1)) * 100 || 0).toFixed(2)}%`} />
+          </div>
+
           <div className="flex justify-between border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-yellow-500" />
