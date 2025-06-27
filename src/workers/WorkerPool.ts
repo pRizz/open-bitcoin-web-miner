@@ -142,6 +142,7 @@ export class WorkerPool {
     }
   }
 
+  // TODO: audit because this may overrun the current time if solutions are submitted quickly
   private getNextTimestampSeconds(): number {
     const timestamp = this.nextTimestampSeconds;
     this.nextTimestampSeconds++;
@@ -339,16 +340,13 @@ export class WorkerPool {
   updateChallenge(challenge: MiningChallenge) {
     console.log("Updating challenge in worker pool:", challenge);
     this.maybeCurrentChallenge = challenge;
-
-    // Update all active workers with new challenge
-    const message: WorkerMessage = {
-      type: "updateChallenge",
-      maybeChallenge: this.maybeCurrentChallenge
-    };
-
-    this.cpuWorkers.forEach(worker => worker.postMessage(message));
-    if (this.maybeWebGLWorker) this.maybeWebGLWorker.postMessage(message);
-    if (this.maybeWebGPUWorker) this.maybeWebGPUWorker.postMessage(message);
+    this.cpuWorkers.forEach(worker => 
+      {
+        // Need to capture `this` in a closure, otherwise it will be undefined
+        this.updateTimestampAndWorkerChallenge(worker);
+      });
+    if (this.maybeWebGLWorker) this.updateTimestampAndWorkerChallenge(this.maybeWebGLWorker);
+    if (this.maybeWebGPUWorker) this.updateTimestampAndWorkerChallenge(this.maybeWebGPUWorker);
   }
 
   updateDifficulty(newDifficulty: number) {

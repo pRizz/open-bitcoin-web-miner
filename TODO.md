@@ -14,6 +14,8 @@ General TODO before first public release:
 -[x] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated; made a timeout mitigation so they are shown as rejected after 10 seconds
 -[x] treat solutions as rejected by default if there is no response after x seconds, maybe 10
 -[x] pass different timestamps to each worker, and somehow increment stuff safely if nonce runs out
+-[] bug with using duplicate timestamps
+-[] make all pages mobile friendly
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] verify the bitaxe probabilities and other probabilities in production mainnet
