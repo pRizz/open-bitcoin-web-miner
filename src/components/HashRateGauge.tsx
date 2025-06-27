@@ -5,6 +5,7 @@ import { HelpCircle } from "lucide-react";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMining } from "@/contexts/MiningContext";
+import { useEffect, useState } from "react";
 
 interface MinerReference {
   hashRate: number;
@@ -52,6 +53,20 @@ export function HashRateGauge() {
   const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
   const { miningStats } = useMining();
   const { maybeHashRate } = miningStats;
+
+  // Responsive breakpoint for medium tablets (1024px)
+  const [isMediumTabletOrSmaller, setIsMediumTabletOrSmaller] = useState(false);
+
+  useEffect(() => {
+    const checkViewportSize = () => {
+      // console.log("viewport width changed to", window.innerWidth);
+      setIsMediumTabletOrSmaller(window.innerWidth <= 1024);
+    };
+
+    checkViewportSize();
+    window.addEventListener('resize', checkViewportSize);
+    return () => window.removeEventListener('resize', checkViewportSize);
+  }, []);
 
   // Format number with locale-specific separators
   const formatNumber = (num: number): string => {
@@ -164,79 +179,81 @@ export function HashRateGauge() {
           </div>
         </div>
 
-        <div className="flex-1 basis-2/3 px-10">
-          <div className="relative">
-            {/* Reference labels - moved above the gauge */}
-            <div className="relative h-16">
-              {MINER_REFERENCES.map((miner) => {
-                const tickPosition = getLogScale(miner.hashRate);
-                return (
-                  <div
-                    key={miner.name}
-                    className="absolute -translate-x-1/2"
-                    style={{ left: `${tickPosition}%` }}
-                  >
-                    <div className="text-xs text-gray-400 whitespace-nowrap text-center mb-1">
-                      {miner.maybeLink ? (
-                        <a className="text-blue-500 hover:text-blue-600 underline" href={miner.maybeLink} target="_blank" rel="noopener">
-                          {miner.name}
-                        </a>
-                      ) : (
-                        miner.name
-                      )}
-                      <span className="block hash-text">
-                        ~{formatHashRateWithoutDecimals(miner.hashRate)}
-                      </span>
+        {!isMediumTabletOrSmaller && (
+          <div className="flex-1 basis-2/3 px-10">
+            <div className="relative">
+              {/* Reference labels - moved above the gauge */}
+              <div className="relative h-16">
+                {MINER_REFERENCES.map((miner) => {
+                  const tickPosition = getLogScale(miner.hashRate);
+                  return (
+                    <div
+                      key={miner.name}
+                      className="absolute -translate-x-1/2"
+                      style={{ left: `${tickPosition}%` }}
+                    >
+                      <div className="text-xs text-gray-400 whitespace-nowrap text-center mb-1">
+                        {miner.maybeLink ? (
+                          <a className="text-blue-500 hover:text-blue-600 underline" href={miner.maybeLink} target="_blank" rel="noopener">
+                            {miner.name}
+                          </a>
+                        ) : (
+                          miner.name
+                        )}
+                        <span className="block hash-text">
+                          ~{formatHashRateWithoutDecimals(miner.hashRate)}
+                        </span>
+                      </div>
+                      <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
                     </div>
-                    <div className="h-2 w-0.5 bg-gray-400 mx-auto" />
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
 
-            <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
-                style={{ width: `${maybePercentage || 0}%` }}
-              >
-                {(maybePercentage || 0) > 5 && (
-                  <span className="text-xs font-medium text-white relative z-10">
-                    {formatHashRateWithoutDecimals(maybeHashRate)}
-                  </span>
-                )}
+              <div className="relative h-8 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="absolute h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 flex items-center justify-end pr-2"
+                  style={{ width: `${maybePercentage || 0}%` }}
+                >
+                  {(maybePercentage || 0) > 5 && (
+                    <span className="text-xs font-medium text-white relative z-10">
+                      {formatHashRateWithoutDecimals(maybeHashRate)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Magnitude ticks */}
+              <div className="relative h-8 mt-1 mb-8">
+                {ALL_TICKS.map((value) => {
+                  if (value > MAX_HASH_RATE) return null;
+                  const tickPosition = getLogScale(value);
+                  const isMainTick = MAGNITUDE_TICKS.includes(value);
+                  return (
+                    <TooltipProvider key={value}>
+                      <Tooltip delayDuration={0}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="absolute -translate-x-1/2"
+                            style={{ left: `${tickPosition}%` }}
+                          >
+                            <div className={`h-${isMainTick ? '4' : '2'} w-px bg-gray-600`} />
+                            <div className={`absolute ${isMainTick ? 'text-xs' : 'hidden'} text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap translate-x-2`}>
+                              {formatHashRateWithoutDecimals(value)}
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center">
+                          {formatHashRateWithLongSIAndNumericUnitsWithoutDecimals(value)}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                })}
               </div>
             </div>
-
-            {/* Magnitude ticks */}
-            <div className="relative h-8 mt-1 mb-8">
-              {ALL_TICKS.map((value) => {
-                if (value > MAX_HASH_RATE) return null;
-                const tickPosition = getLogScale(value);
-                const isMainTick = MAGNITUDE_TICKS.includes(value);
-                return (
-                  <TooltipProvider key={value}>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <div
-                          className="absolute -translate-x-1/2"
-                          style={{ left: `${tickPosition}%` }}
-                        >
-                          <div className={`h-${isMainTick ? '4' : '2'} w-px bg-gray-600`} />
-                          <div className={`absolute ${isMainTick ? 'text-xs' : 'hidden'} text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap translate-x-2`}>
-                            {formatHashRateWithoutDecimals(value)}
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" align="center">
-                        {formatHashRateWithLongSIAndNumericUnitsWithoutDecimals(value)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                );
-              })}
-            </div>
           </div>
-        </div>
+        )}
       </div>
     </Card>
   );

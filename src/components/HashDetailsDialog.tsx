@@ -70,7 +70,7 @@ export function HashDetailsDialog({ hash }: HashDetailsDialogProps) {
   return (
     <Dialog>
       <DialogTrigger className="text-blue-500 hover:text-blue-400">
-        View
+        View Details
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -2,66 +2,20 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { HashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
 import { HashDetailsDialog } from "./HashDetailsDialog";
-import { CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const PENDING_TIMEOUT_MS = 10_000; // 10 seconds
+import { formatTimestamp, getEffectiveStatus, getStatusIcon, getStatusText } from "@/utils/submittedSolutionsUtils";
 
 interface HashTableRowProps {
   hashSolution: HashSolution;
 }
 
 export function HashTableRow({ hashSolution }: HashTableRowProps) {
-  const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString();
-  };
-
-  const getEffectiveStatus = () => {
-    if (hashSolution.status === 'pending') {
-      const pendingDurationMs = Date.now() - hashSolution.timestamp;
-      if (pendingDurationMs > PENDING_TIMEOUT_MS) {
-        return 'rejected';
-      }
-    }
-    return hashSolution.status;
-  };
-
-  const effectiveStatus = getEffectiveStatus();
-
-  const getStatusIcon = () => {
-    switch (effectiveStatus) {
-    case 'accepted':
-      return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-    case 'rejected':
-      return <XCircle className="w-4 h-4 text-red-500" />;
-    case 'outdated':
-      return <Clock className="w-4 h-4 text-yellow-500" />;
-    case 'pending':
-      return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
-    default:
-      return null;
-    }
-  };
-
-  const getStatusText = () => {
-    switch (effectiveStatus) {
-    case 'accepted':
-      return 'Accepted';
-    case 'rejected':
-      return effectiveStatus === hashSolution.status ? 'Rejected' : 'Rejected (Timeout)';
-    case 'outdated':
-      return 'Outdated';
-    case 'pending':
-      return 'Pending';
-    default:
-      return 'Unknown';
-    }
-  };
+  const effectiveStatus = getEffectiveStatus(hashSolution);
 
   return (
     <TableRow>
@@ -85,10 +39,10 @@ export function HashTableRow({ hashSolution }: HashTableRowProps) {
           <TooltipProvider>
             <Tooltip delayDuration={0}>
               <TooltipTrigger>
-                {getStatusIcon()}
+                {getStatusIcon(effectiveStatus)}
               </TooltipTrigger>
               <TooltipContent>
-                <p>{getStatusText()}</p>
+                <p>{getStatusText(effectiveStatus, hashSolution.status)}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
