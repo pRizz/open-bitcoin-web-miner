@@ -10,7 +10,7 @@ import { PageTransition } from "@/components/PageTransition";
 export default function MiningStatisticsPage() {
   const { miningStats } = useMining();
   const { maybeMinerAddress } = useMinerInfo();
-  const { maybeBlockHeight } = useNetworkInfo();
+  const { maybeBlockHeight, maybeServerStartingMinLeadingZeroCount } = useNetworkInfo();
 
   return (
     <PageTransition>
@@ -87,6 +87,15 @@ export default function MiningStatisticsPage() {
               </span>
               <span className="font-medium text-red-500">{miningStats.rejectedSolutions || "0"}</span>
             </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-red-500" />
+                Rejected Rate (%)
+              </span>
+              <span className="font-medium text-red-500">{`${((miningStats.rejectedSolutions / (miningStats.maybeTotalSolutions || 1)) * 100 || 0).toFixed(2)}%`}</span>
+            </div>
+
           </div>
         </Card>
 
@@ -101,7 +110,7 @@ export default function MiningStatisticsPage() {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Required Leading Binary Zeros</p>
               <p className="text-2xl font-bold text-yellow-500">
-                {miningStats.maybeRequiredBinaryZeroes || "Not available"}
+                {miningStats.maybeRequiredBinaryZeroes || maybeServerStartingMinLeadingZeroCount?.toLocaleString() || "Not available"}
               </p>
             </div>
 
