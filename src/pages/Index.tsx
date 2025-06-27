@@ -14,11 +14,26 @@ import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/PageTransition";
 import { MiningStatePanel } from "@/components/MiningStatePanel";
 import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
-import { MiningChancesStats } from "@/components/MiningChancesStats";
+import { MiningChancesStats, oneDayTimePeriod, oneHourTimePeriod, oneMinuteTimePeriod, oneMonthTimePeriod, oneWeekTimePeriod, oneYearTimePeriod, TimePeriod } from "@/components/MiningChancesStats";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
 import { showSuccess, showError, showWarning, showInfo } from "@/utils/notifications";
 
 const ONE_BITAXE_HASH_RATE = 1e12;
+
+const tenYearsTimePeriod: TimePeriod = {
+  seconds: 10 * 365 * 24 * 60 * 60,
+  label: "10 years",
+};
+
+const hundredYearsTimePeriod: TimePeriod = {
+  seconds: 100 * 365 * 24 * 60 * 60,
+  label: "100 years",
+};
+
+const thousandYearsTimePeriod: TimePeriod = {
+  seconds: 1000 * 365 * 24 * 60 * 60,
+  label: "1,000 years",
+};
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -97,7 +112,22 @@ const Index = () => {
             <h2 className="text-2xl font-bold mb-4">Personal Probabilities</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <MiningTimeRequiredStats />
-              <MiningChancesStats minerCount={1} minerCountLabel="1" customPanelHeaderText="Chances of finding a block solution" showCombinedHashRate={false} />
+              <MiningChancesStats
+                minerCount={1}
+                minerCountLabel="1"
+                customPanelHeaderText="Chances of finding a block solution"
+                showCombinedHashRate={false}
+                maybeTimePeriods={[
+                  oneMinuteTimePeriod,
+                  oneHourTimePeriod,
+                  oneDayTimePeriod,
+                  oneWeekTimePeriod,
+                  oneMonthTimePeriod,
+                  oneYearTimePeriod,
+                  tenYearsTimePeriod,
+                  hundredYearsTimePeriod,
+                  thousandYearsTimePeriod,
+                ]} />
             </div>
           </Card>
 
@@ -114,7 +144,7 @@ const Index = () => {
           {/* Bitaxe Probabilities Section */}
           <Card className="p-6 glass-card">
             <h2 className="text-2xl font-bold mb-4">Bitaxe Probabilities</h2>
-            <p className="text-muted-foreground mb-4">Chances of finding a block solution with 1 TH/s per Bitaxe</p>
+            <p className="text-muted-foreground mb-4">Chances of finding at least 1 block solution with 1 TH/s per Bitaxe</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <MiningChancesStats
                 minerCount={1}
@@ -122,35 +152,47 @@ const Index = () => {
                 showCombinedHashRate={true}
                 customPanelHeaderText="Chances with 1 Bitaxe (~1&nbsp;TH/s)"
                 hashRateOverride={ONE_BITAXE_HASH_RATE}
+                maybeTimePeriods={[
+                  oneMonthTimePeriod,
+                  oneYearTimePeriod,
+                  tenYearsTimePeriod,
+                  hundredYearsTimePeriod,
+                  thousandYearsTimePeriod,
+                ]}
+              />
+              <MiningChancesStats
+                minerCount={10}
+                minerCountLabel="10 Bitaxes"
+                showCombinedHashRate={true}
+                customPanelHeaderText="Chances with 10 Bitaxes (~10&nbsp;TH/s)"
+                hashRateOverride={ONE_BITAXE_HASH_RATE}
+                maybeTimePeriods={[
+                  oneDayTimePeriod,
+                  oneWeekTimePeriod,
+                  oneMonthTimePeriod,
+                  oneYearTimePeriod,
+                  tenYearsTimePeriod,
+                ]}
+              />
+              <MiningChancesStats
+                minerCount={100}
+                minerCountLabel="100 Bitaxes"
+                showCombinedHashRate={true}
+                customPanelHeaderText="Chances with 100 Bitaxes (~100&nbsp;TH/s)"
+                hashRateOverride={ONE_BITAXE_HASH_RATE}
+                maybeTimePeriods={[
+                  oneHourTimePeriod,
+                  oneDayTimePeriod,
+                  oneWeekTimePeriod,
+                  oneMonthTimePeriod,
+                  oneYearTimePeriod,
+                ]}
               />
               <MiningChancesStats
                 minerCount={1000}
                 minerCountLabel="1,000 Bitaxes"
                 showCombinedHashRate={true}
                 customPanelHeaderText="Chances with 1,000 Bitaxes (~1&nbsp;PH/s)"
-                hashRateOverride={ONE_BITAXE_HASH_RATE}
-              />
-              <MiningChancesStats
-                minerCount={1_000_000}
-                minerCountLabel="1 million Bitaxes"
-                showCombinedHashRate={true}
-                customPanelHeaderText="Chances with 1 million Bitaxes (~1&nbsp;EH/s)"
-                hashRateOverride={ONE_BITAXE_HASH_RATE}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <MiningChancesStats
-                minerCount={130_000_000}
-                minerCountLabel="130 million Bitaxes"
-                showCombinedHashRate={true}
-                customPanelHeaderText="Chances with 130 million Bitaxes (~130&nbsp;EH/s) (There are ~130 million households in the US)"
-                hashRateOverride={ONE_BITAXE_HASH_RATE}
-              />
-              <MiningChancesStats
-                minerCount={2_300_000_000}
-                minerCountLabel="2.3 billion Bitaxes"
-                showCombinedHashRate={true}
-                customPanelHeaderText="Chances with 2.3 billion Bitaxes (~2.3&nbsp;ZH/s) (There are ~2.3 billion households in the world)"
                 hashRateOverride={ONE_BITAXE_HASH_RATE}
               />
             </div>

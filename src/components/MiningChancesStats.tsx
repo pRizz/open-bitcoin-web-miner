@@ -14,8 +14,81 @@ const CONFIDENCE_LEVELS = [
   { confidence: 0.99, label: "99%" },
 ];
 
+export interface TimePeriod {
+  seconds: number;
+  label: string;
+}
+
+export const oneMinuteTimePeriod: TimePeriod = {
+  seconds: 60,
+  label: "1 minute",
+};
+
+export const oneHourTimePeriod: TimePeriod = {
+  seconds: 60 * 60,
+  label: "1 hour",
+};
+
+export const oneDayTimePeriod: TimePeriod = {
+  seconds: 24 * 60 * 60,
+  label: "1 day",
+};
+
+export const oneWeekTimePeriod: TimePeriod = {
+  seconds: 7 * 24 * 60 * 60,
+  label: "1 week",
+};
+
+export const oneMonthTimePeriod: TimePeriod = {
+  seconds: 30 * 24 * 60 * 60,
+  label: "1 month",
+};
+
+export const oneYearTimePeriod: TimePeriod = {
+  seconds: 365 * 24 * 60 * 60,
+  label: "1 year",
+};
+
+const defaultTimePeriods: TimePeriod[] = [
+  oneMinuteTimePeriod,
+  oneHourTimePeriod,
+  oneDayTimePeriod,
+  oneWeekTimePeriod,
+  oneMonthTimePeriod,
+  oneYearTimePeriod,
+];
+
 // Number of seconds in a day
 const SECONDS_IN_DAY = 24 * 60 * 60;
+
+// Based on https://chatgpt.com/c/685dba8b-27cc-8002-b234-0697c4e0eadd
+// Calculate probability using Poisson distribution
+/**
+ * Probability of mining ≥ 1 hash with `leadingZeroBits` leading zeroes
+ * within `seconds`, given `hashRate` hashes per second.
+ *
+ * Returns a value in [0, 1].
+ */
+const calculateProbability = (minerCount: number, hashRatePerMiner: number, requiredZeroes: number, timeInSeconds: number) => {
+  const totalHashRate = minerCount * hashRatePerMiner;
+  const totalHashCount = totalHashRate * timeInSeconds;
+  if (totalHashCount <= 0) {
+    return 0;
+  }
+
+  const logLambda = Math.log(totalHashCount) - requiredZeroes * Math.LN2;
+
+  // Extreme-value guards to keep numerical error low
+  if (logLambda < -20) {          // λ ≈ 2 × 10⁻⁹ or smaller
+    return Math.exp(logLambda);   // P ≈ λ  (very small)
+  }
+  if (logLambda > 20) {           // λ ≈ 4.8 × 10⁸ or larger
+    return 1;                     // Practically certain
+  }
+
+  const lambda = Math.exp(logLambda);
+  return 1 - Math.exp(-lambda);   // General case
+};
 
 interface NetworkMiningPredictionStatsProps {
   minerCount: number;
@@ -23,67 +96,38 @@ interface NetworkMiningPredictionStatsProps {
   showCombinedHashRate: boolean;
   customPanelHeaderText?: string;
   hashRateOverride?: number; // Hash rate per miner in H/s
+  maybeTimePeriods?: TimePeriod[];
 }
+
+// Example values for the help dialog
+const exampleHashRate = 100;
+const exampleRequiredZeroes = 20;
+const exampleMinerCount = 1000;
+const exampleTotalHashRate = exampleHashRate * exampleMinerCount;
+const exampleSuccessProbability = Math.pow(2, -exampleRequiredZeroes);
+const exampleLambda = (exampleTotalHashRate * SECONDS_IN_DAY) * exampleSuccessProbability;
 
 export function MiningChancesStats({
   minerCount,
   minerCountLabel,
   showCombinedHashRate,
   customPanelHeaderText,
-  hashRateOverride
+  hashRateOverride,
+  maybeTimePeriods,
 }: NetworkMiningPredictionStatsProps) {
-  const { maybeNetworkRequiredLeadingZeroes: maybeRequiredBinaryZeroes } = useNetworkInfo();
+  const { maybeNetworkRequiredLeadingZeroes } = useNetworkInfo();
   const { miningStats } = useMining();
-  const { maybeHashRate } = miningStats;
+  const { maybeHashRate: maybeUserHashRate } = miningStats;
 
-  // Use hashRateOverride if provided, otherwise use the current miner's hash rate
-  const hashRatePerMiner = hashRateOverride ?? (maybeHashRate ?? 0);
+  const hashRatePerMiner = hashRateOverride ?? (maybeUserHashRate ?? 0);
   const combinedHashRate = hashRatePerMiner * minerCount;
 
-  // Calculate the probability of at least one miner finding a block in a day
-  const calculateNetworkProbability = (hashRate: number, requiredZeroes: number, minerCount: number): number => {
-    // Probability of a single hash being successful
-    const successProbability = Math.pow(2, -requiredZeroes);
-
-    // Expected number of successful hashes per day for all miners
-    const expectedSuccessesPerDay = (hashRate * minerCount * SECONDS_IN_DAY) * successProbability;
-
-    // Probability of at least one success in a day (using Poisson approximation)
-    // P(at least 1 success) = 1 - P(0 successes) = 1 - e^(-λ)
-    return 1 - Math.exp(-expectedSuccessesPerDay);
-  };
-
   // Format number with locale-specific separators
-  const formatNumber = (num: number, precision: number = 2): string => {
+  const formatNumber = (num: number, precision: number = 3): string => {
     return num.toLocaleString(undefined, { maximumFractionDigits: precision });
   };
 
-  // Example values for the help dialog
-  const exampleHashRate = 100;
-  const exampleRequiredZeroes = 20;
-  const exampleMinerCount = 1000;
-  const exampleTotalHashRate = exampleHashRate * exampleMinerCount;
-  const exampleSuccessProbability = Math.pow(2, -exampleRequiredZeroes);
-  const exampleLambda = (exampleTotalHashRate * SECONDS_IN_DAY) * exampleSuccessProbability;
-
-  // Calculate probability using Poisson distribution
-  const calculateProbability = (minerCount: number, hashRatePerMiner: number, requiredZeroes: number, timeInSeconds: number) => {
-    // λ (lambda) = total_hashrate / 2^required_zeroes
-    const lambda = (minerCount * hashRatePerMiner) / Math.pow(2, requiredZeroes);
-    // P(X ≥ 1) = 1 - P(X = 0) = 1 - e^(-λt)
-    return 1 - Math.exp(-lambda * timeInSeconds);
-  };
-
-  // Example hash rate per miner (in H/s)
-  // const hashRatePerMiner = 100;
-
-  // Time periods to check (in seconds)
-  const timePeriods = [
-    { seconds: 60, label: "1 minute" },
-    { seconds: 3600, label: "1 hour" },
-    { seconds: 86400, label: "1 day" },
-    { seconds: 604800, label: "1 week" },
-  ];
+  const timePeriods: TimePeriod[] = maybeTimePeriods ?? defaultTimePeriods;
 
   return (
     <Card className="p-6 glass-card">
@@ -162,7 +206,7 @@ export function MiningChancesStats({
         </Dialog>
       </div>
       <div className="text-sm text-gray-400">
-        {maybeRequiredBinaryZeroes && combinedHashRate ? (
+        {maybeNetworkRequiredLeadingZeroes && combinedHashRate ? (
           <div className="space-y-2">
             {showCombinedHashRate ? (
               <div className="flex gap-2">
@@ -173,7 +217,7 @@ export function MiningChancesStats({
               </div>
             ) : null}
             {timePeriods.map(({ seconds, label }) => {
-              const probability = calculateProbability(minerCount, combinedHashRate, maybeRequiredBinaryZeroes, seconds);
+              const probability = calculateProbability(minerCount, hashRatePerMiner, maybeNetworkRequiredLeadingZeroes, seconds);
               return (
                 <div key={label} className="flex gap-2">
                   <span className="text-gray-500">•</span>
