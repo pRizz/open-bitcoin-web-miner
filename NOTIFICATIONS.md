@@ -1,6 +1,6 @@
 # Notifications System
 
-This document describes the notifications system implemented in the WinABitco.in application.
+This document describes the notifications system implemented in the Win3Bitcoi.in / WinABitco.in application.
 
 ## Overview
 

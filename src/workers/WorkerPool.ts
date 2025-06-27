@@ -340,11 +340,11 @@ export class WorkerPool {
   updateChallenge(challenge: MiningChallenge) {
     console.log("Updating challenge in worker pool:", challenge);
     this.maybeCurrentChallenge = challenge;
-    this.cpuWorkers.forEach(worker => 
-      {
-        // Need to capture `this` in a closure, otherwise it will be undefined
-        this.updateTimestampAndWorkerChallenge(worker);
-      });
+    this.cpuWorkers.forEach(worker =>
+    {
+      // Need to capture `this` in a closure, otherwise it will be undefined
+      this.updateTimestampAndWorkerChallenge(worker);
+    });
     if (this.maybeWebGLWorker) this.updateTimestampAndWorkerChallenge(this.maybeWebGLWorker);
     if (this.maybeWebGPUWorker) this.updateTimestampAndWorkerChallenge(this.maybeWebGPUWorker);
   }

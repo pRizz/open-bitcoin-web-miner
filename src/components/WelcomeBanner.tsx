@@ -41,11 +41,11 @@ export const WelcomeBanner = () => {
       <div className="overflow-hidden">
         <Alert className="mb-6 relative p-4">
           <Info className="h-4 w-4" />
-          <AlertTitle className="mb-2">Welcome to WinABitco.in!</AlertTitle>
+          <AlertTitle className="mb-2">Welcome to Win3Bitco.in!</AlertTitle>
           <AlertDescription>
             Experience the thrill of Bitcoin mining in your browser. Configure your mining settings,
             track your hash rate, and compete with others on the leaderboard. Start mining now to
-            see if you can find the next block solution and win a Bitcoin!
+            see if you can find the next block solution and win 3 Bitcoin!
             <Button
               variant="ghost"
               size="icon"

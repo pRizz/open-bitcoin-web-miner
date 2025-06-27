@@ -26,8 +26,8 @@ export const routes = {
     type: 'static' as const,
     path: '/',
     routerPath: '/',
-    sidebarTitle: 'WinABitco.in',
-    topBarTitle: 'WinABitco.in',
+    sidebarTitle: 'Win3Bitco.in',
+    topBarTitle: 'Win3Bitco.in',
     icon: Home,
     keyName: 'home',
   },
@@ -36,7 +36,7 @@ export const routes = {
     path: '/simple-mining',
     routerPath: '/simple-mining',
     sidebarTitle: 'Simple Mode',
-    topBarTitle: 'WinABitco.in - Simple Mode',
+    topBarTitle: 'Win3Bitco.in',
     icon: Zap,
     keyName: 'simpleMining',
   },
@@ -116,7 +116,7 @@ export function isStaticRoute(route: RouteConfig): route is Extract<RouteConfig,
 
 export function getPageTitle(pathname: string): string {
   const route = Object.values(routes).find((route) => route.path === pathname);
-  return route?.topBarTitle ?? "WinABitco.in";
+  return route?.topBarTitle ?? "Win3Bitco.in";
 }
 
 // Define which routes should appear in the sidebar
