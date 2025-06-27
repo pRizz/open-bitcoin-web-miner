@@ -15,11 +15,19 @@ import { sidebarPages } from "@/routes";
 import { TypedLink } from "@/components/TypedLink";
 import { NotificationBadge } from "@/components/NotificationBadge";
 import { useSidebar } from "@/components/ui/sidebar/sidebar-context";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function AppSidebar() {
   const location = useLocation();
   const { resetData } = useMining();
+  const { clearAll } = useNotifications();
   const { setOpenMobile, setOpen, isMobile } = useSidebar();
+
+  const resetAllData = () => {
+    clearAll();
+    resetData();
+    handleItemClick();
+  };
 
   const handleItemClick = () => {
     if (isMobile) {
@@ -69,8 +77,7 @@ export function AppSidebar() {
               <SidebarMenuItem className="px-3">
                 <SidebarMenuButton
                   onClick={() => {
-                    resetData();
-                    handleItemClick();
+                    resetAllData();
                   }}
                   className="px-3 py-2 w-full transition-colors duration-200 text-destructive hover:text-destructive"
                 >
