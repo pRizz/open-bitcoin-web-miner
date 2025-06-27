@@ -35,12 +35,12 @@ const SortIcon = ({ field, currentField, direction }: { field: SortField; curren
     <ArrowDown className="inline ml-1 h-4 w-4" />;
 };
 
-export function DesktopLeaderboard({ 
-  sortedLeaderboard, 
-  sortField, 
-  sortDirection, 
-  onSort, 
-  maybeRequiredBinaryZeroes 
+export function DesktopLeaderboard({
+  sortedLeaderboard,
+  sortField,
+  sortDirection,
+  onSort,
+  maybeRequiredBinaryZeroes
 }: DesktopLeaderboardProps) {
   return (
     <Card className="p-6">
@@ -221,4 +221,4 @@ export function DesktopLeaderboard({
       </div>
     </Card>
   );
-} 
+}

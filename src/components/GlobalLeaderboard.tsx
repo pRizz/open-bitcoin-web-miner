@@ -74,25 +74,25 @@ export function GlobalLeaderboard() {
       </Card>
     );
   }
-return (
-  <>
-  <div className="lg:hidden block">
-      <MobileLeaderboard
-        sortedLeaderboard={sortedLeaderboard}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-      />
-  </div>
-  <div className="lg:block hidden">
-    <DesktopLeaderboard
-      sortedLeaderboard={sortedLeaderboard}
-      sortField={sortField}
-      sortDirection={sortDirection}
-      onSort={handleSort}
-      maybeRequiredBinaryZeroes={maybeRequiredBinaryZeroes}
-    />
-    </div>
+  return (
+    <>
+      <div className="lg:hidden block">
+        <MobileLeaderboard
+          sortedLeaderboard={sortedLeaderboard}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+        />
+      </div>
+      <div className="lg:block hidden">
+        <DesktopLeaderboard
+          sortedLeaderboard={sortedLeaderboard}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          maybeRequiredBinaryZeroes={maybeRequiredBinaryZeroes}
+        />
+      </div>
     </>
   );
 }

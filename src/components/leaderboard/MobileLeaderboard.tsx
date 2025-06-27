@@ -42,7 +42,7 @@ export function MobileLeaderboard({ sortedLeaderboard, sortField, sortDirection,
           </button> */}
         </div>
       </div>
-      
+
       <div className="space-y-3">
         {sortedLeaderboard.map((entry) => (
           <motion.div
@@ -130,4 +130,4 @@ export function MobileLeaderboard({ sortedLeaderboard, sortField, sortDirection,
       </div>
     </div>
   );
-} 
+}

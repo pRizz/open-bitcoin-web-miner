@@ -151,11 +151,11 @@ export default function About() {
           <p>
             Also, if you've done some digging into the coinbase transaction, you'll notice that the miner indentifier references "degen p00l". The "degen" is an acronym for "Digital Energy GENerator", where the phrase "digital energy" is a reference to Michael Saylor's "Bitcoin is digital energy" idea. See the video below for an explanation from Michael Saylor himself.
           </p>
-          <div className="flex justify-center"> 
-          <iframe 
-          width={videoWidth} 
-          height={videoHeight} 
-          src="https://www.youtube.com/embed/qBPtUf50XVg?si=fP8ovyk-5ssCkqBA&amp;start=3344" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+          <div className="flex justify-center">
+            <iframe
+              width={videoWidth}
+              height={videoHeight}
+              src="https://www.youtube.com/embed/qBPtUf50XVg?si=fP8ovyk-5ssCkqBA&amp;start=3344" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
           </div>
         </CardContent>
       </Card>
