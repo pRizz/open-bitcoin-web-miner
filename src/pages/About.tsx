@@ -1,6 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 
 export default function About() {
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const videoWidth = isMobile ? 400 : 700;
+  const videoHeight = isMobile ? 315 : 500;
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       {/* <h1 className="text-4xl font-bold mb-8">About Bitcoin Mining</h1> */}
@@ -133,8 +149,14 @@ export default function About() {
             The remaining block reward goes to the developer of this website, Peter Ryszkiewicz of Bright Builds LLC, in order to cover the costs of running the website. I don't actually expect to actually find a block via this website, but I do plan on creating other projects that will use this backend as a service, with the possibility of supporting stronger hardware, such as the Bitaxe and others, as well as run a more general purpose mining pool after more testing.
           </p>
           <p>
-            Also, if you've done some digging into the coinbase transaction, you'll notice that the miner indentifier references "degen p00l". The "degen" is an acronym for "Digital Energy GENerator", where the phrase "digital energy" is a reference to Michael Saylor's "Bitcoin is digital energy" idea.
+            Also, if you've done some digging into the coinbase transaction, you'll notice that the miner indentifier references "degen p00l". The "degen" is an acronym for "Digital Energy GENerator", where the phrase "digital energy" is a reference to Michael Saylor's "Bitcoin is digital energy" idea. See the video below for an explanation from Michael Saylor himself.
           </p>
+          <div className="flex justify-center"> 
+          <iframe 
+          width={videoWidth} 
+          height={videoHeight} 
+          src="https://www.youtube.com/embed/qBPtUf50XVg?si=fP8ovyk-5ssCkqBA&amp;start=3344" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+          </div>
         </CardContent>
       </Card>
 
