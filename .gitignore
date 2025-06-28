@@ -27,3 +27,6 @@ supabase/.temp
 supabase/.temp/*
 
 *.tsbuildinfo
+
+# Sentry Config File
+.env.sentry-build-plugin
