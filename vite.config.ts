@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin, ViteDevServer } from "vite";
 import packageVersion from 'vite-plugin-package-version';
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -7,6 +7,27 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { visualizer } from 'rollup-plugin-visualizer';
 import viteCompression from 'vite-plugin-compression';
 import { sentryVitePlugin } from "@sentry/vite-plugin";
+import type { IncomingMessage, ServerResponse } from 'http'
+
+const logRequestsPlugin: Plugin = {
+  name: 'log-requests',
+  configureServer(server: ViteDevServer) {
+    server.middlewares.use(
+      (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+        const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const now = new Date().toISOString()
+        const method = req.method ?? 'UNKNOWN'
+        const url = req.url ?? 'UNKNOWN'
+        const userAgent = req.headers['user-agent'] ?? 'UNKNOWN'
+        if(url !== '/') {
+          return next();
+        }
+        console.log(`[${now}] ${clientIp} ${method} ${url} ${userAgent}`)
+        next()
+      }
+    )
+  }
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -52,6 +73,7 @@ export default defineConfig(({ mode }) => ({
       project: "win3bitcoin",
       authToken: process.env.SENTRY_AUTH_TOKEN,
     }),
+    logRequestsPlugin,
   ].filter(Boolean),
   resolve: {
     alias: {
