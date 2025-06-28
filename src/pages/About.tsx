@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BITAXE_ANCHOR_COMPONENT } from "@/constants/urls";
 import { useEffect, useState } from "react";
 
 export default function About() {
@@ -146,7 +147,7 @@ export default function About() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            The remaining block reward goes to the developer of this website, Peter Ryszkiewicz of Bright Builds LLC, in order to cover the costs of running the website. I don't actually expect to actually find a block via this website, but I do plan on creating other projects that will use this backend as a service, with the possibility of supporting stronger hardware, such as the Bitaxe and others, as well as run a more general purpose mining pool after more testing.
+            The remaining block reward goes to the developer of this website, Peter Ryszkiewicz of Bright Builds LLC, in order to cover the costs of running the website. I don't actually expect to actually find a block via this website, but I do plan on creating other projects that will use this backend as a service, with the possibility of supporting stronger hardware, such as the {BITAXE_ANCHOR_COMPONENT} and others, as well as run a more general purpose mining pool after more testing.
           </p>
           <p>
             Also, if you've done some digging into the coinbase transaction, you'll notice that the miner indentifier references "degen p00l". The "degen" is an acronym for "Digital Energy GENerator", where the phrase "digital energy" is a reference to Michael Saylor's "Bitcoin is digital energy" idea. See the video below for an explanation from Michael Saylor himself.

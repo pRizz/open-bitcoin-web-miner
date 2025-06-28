@@ -16,6 +16,7 @@ import { MiningStatePanel } from "@/components/MiningStatePanel";
 import { MiningChancesStats, oneDayTimePeriod, oneHourTimePeriod, oneMinuteTimePeriod, oneMonthTimePeriod, oneWeekTimePeriod, oneYearTimePeriod, TimePeriod } from "@/components/MiningChancesStats";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
 import { showSuccess, showError, showWarning, showInfo, showShort, showLong, showPersistent } from "@/utils/notifications";
+import { BITAXE_ANCHOR_COMPONENT } from "@/constants/urls";
 
 const ONE_BITAXE_HASH_RATE = 1e12;
 
@@ -169,7 +170,9 @@ const Index = () => {
 
           {/* Bitaxe Probabilities Section */}
           <Card className="p-6 glass-card">
-            <h2 className="text-2xl font-bold mb-4">Bitaxe Probabilities</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {BITAXE_ANCHOR_COMPONENT}&nbsp;
+              Probabilities</h2>
             <p className="text-muted-foreground mb-4">Chances of finding at least 1 block solution with 1 TH/s per Bitaxe</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <MiningChancesStats
