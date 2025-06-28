@@ -6,6 +6,7 @@ import { componentTagger } from "lovable-tagger";
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { visualizer } from 'rollup-plugin-visualizer';
 import viteCompression from 'vite-plugin-compression';
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -45,6 +46,12 @@ export default defineConfig(({ mode }) => ({
     //   brotliSize: true,
     //   template: 'treemap', // or 'sunburst', 'network', 'raw-data'
     // }),
+    // Put the Sentry vite plugin after all other plugins
+    sentryVitePlugin({
+      org: "bright-builds-llc",
+      project: "win3bitcoin",
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
