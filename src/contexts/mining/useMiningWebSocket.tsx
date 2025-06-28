@@ -5,7 +5,7 @@ import { useMinerInfo } from "./MinerInfoContext";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
 import { showSuccess, showError } from '@/utils/notifications';
 import { MiningChallenge } from "@/types/mining";
-// import { useTypedNavigate } from "@/hooks/useTypedNavigate";
+import * as Sentry from "@sentry/react";
 
 interface MiningWebSocketContextType {
   connect: () => void;
@@ -139,6 +139,11 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
       "Mining Connection Error",
       "An error occurred while attempting to mine. Please try again."
     );
+    Sentry.captureException(error, {
+      data: {
+        description: "useMiningWebSocket onError: Mining Connection Error: An error occurred while attempting to mine. Please try again."
+      }
+    });
     maybeCallbacks.current?.onError('WebSocket error occurred');
   }, [maybeCallbacks]);
 
