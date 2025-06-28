@@ -67,6 +67,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [miningHistory, setMiningHistory] = useState<MiningHistoryItem[]>([]);
   const [maybeMostRecentMiningStartTime, setMaybeMostRecentMiningStartTime] = useState<number | null>(null);
   const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useInitialThreadCount();
+  const [maybeScreenWakeLock, setMaybeScreenWakeLock] = useState<WakeLockSentinel | null>(null);
 
   const workerPool = useWorkerPool(
     threadCount,
@@ -165,6 +166,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   }, [addLog, miningWebSocket, emit]);
 
   const stopMining = useCallback(() => {
+    if (maybeScreenWakeLock) {
+      maybeScreenWakeLock.release();
+      setMaybeScreenWakeLock(null);
+    }
+
     const modeString = miningMode.toUpperCase();
     addLog(`Stopping ${modeString} mining`);
 
@@ -172,7 +178,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     workerPool.stopMining();
     setIsMining(false);
     miningState.stopMining();
-  }, [miningMode, addLog, disconnectWebSocket, miningState, workerPool]);
+  }, [miningMode, addLog, disconnectWebSocket, miningState, workerPool, maybeScreenWakeLock]);
 
   const handleSubmissionResponse = useCallback((submissionResponse: MiningSubmissionResponse) => {
     addLog(`Mining submission response: ${JSON.stringify(submissionResponse)}`);
@@ -243,13 +249,24 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     const withThreadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
     addLog(`Starting ${modeString} mining${withThreadInfo} at ${miningSpeed}% speed`);
 
+    // Make user's device not go to sleep
+    navigator.wakeLock.request('screen').then((wakeLock) => {
+      addLog("Screen wake lock acquired");
+      setMaybeScreenWakeLock(wakeLock);
+      wakeLock.addEventListener('release', () => {
+        addLog("Screen wake lock released");
+      });
+    }).catch((error) => {
+      addLog(`Failed to request screen wake lock: ${error}`);
+    });
+
     const startTime = Date.now();
     setMaybeMostRecentMiningStartTime(startTime);
     connectWebSocket();
     workerPool.startMining();
     setIsMining(true);
     miningState.startMining();
-  }, [miningMode, threadCount, miningSpeed, addLog, connectWebSocket, miningState, workerPool]);
+  }, [miningMode, threadCount, miningSpeed, addLog, connectWebSocket, miningState, workerPool, maybeScreenWakeLock]);
 
   const setThreadCount = useCallback((count: number) => {
     workerPool.updateThreadCount(count);
