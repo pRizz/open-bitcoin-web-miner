@@ -137,18 +137,21 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
   const onError = useCallback((error: ErrorEvent) => {
     if (!userHadDisconnected) {
       console.error('WebSocket error:', error);
-      showError(
-        "Mining Connection Error",
-        "An error occurred while attempting to mine. Please try again."
-      );
-      maybeCallbacks.current?.onError('WebSocket error occurred');
+      if(error.message){
+        showError(
+          "Mining Connection Error",
+          "An error occurred while attempting to mine. Please try again."
+        );
+        maybeCallbacks.current?.onError('WebSocket error occurred');
+      }
     }
-    const errorDescription = `useMiningWebSocket onError; userHadDisconnected: ${userHadDisconnected}: Mining Connection Error: An error occurred while attempting to mine. Please try again.`;
+    const errorDescription = `useMiningWebSocket onError; userHadDisconnected: ${userHadDisconnected}; error.message: ${error.message}; Mining Connection Error: An error occurred while attempting to mine. Please try again.`;
     Sentry.captureException(error, {
       attachments: [
         {
           data: errorDescription,
-          filename: 'errorDescription',
+          filename: 'errorDescription.txt',
+          contentType: 'text/plain'
         }
       ]
     });
