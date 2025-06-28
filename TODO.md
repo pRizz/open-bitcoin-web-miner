@@ -23,6 +23,7 @@ General TODO before first public release:
 -[x] verify the bitaxe probabilities and other probabilities in production mainnet
 -[] show coinbase address outputs in Proof Of Reward page
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
+-[] GPU mining
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] add a link to global hashrate graph website
 -[] put back this disabled logic for start mining button:         disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}

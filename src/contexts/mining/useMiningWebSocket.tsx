@@ -1,6 +1,6 @@
 import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, MiningSubmissionResponse, BlockTemplateUpdate } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
-import { createContext, useContext, useRef, useCallback } from "react";
+import { createContext, useContext, useRef, useCallback, useState } from "react";
 import { useMinerInfo } from "./MinerInfoContext";
 import { useGlobalLeaderboard } from "@/contexts/GlobalLeaderboardContext";
 import { showSuccess, showError } from '@/utils/notifications';
@@ -29,6 +29,7 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
   const maybeCallbacks = useRef<MiningWebSocketCallbacks | null>(null);
   const { maybeMinerAddress, maybeBlockchainMessage, maybeLeaderboardUsername, maybeLeaderboardMessage } = useMinerInfo();
   const { refetch: refetchLeaderboard } = useGlobalLeaderboard();
+  const [userHadDisconnected, setUserHadDisconnected] = useState(false);
   // FIXME: Uncaught Error: useNavigate() may be used only in the context of a <Router> component.
   // const navigate = useTypedNavigate();
 
@@ -134,18 +135,20 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
   }, [maybeCallbacks, refetchLeaderboard]);
 
   const onError = useCallback((error: ErrorEvent) => {
-    console.error('WebSocket error:', error);
-    showError(
-      "Mining Connection Error",
-      "An error occurred while attempting to mine. Please try again."
-    );
+    if (!userHadDisconnected) {
+      console.error('WebSocket error:', error);
+      showError(
+        "Mining Connection Error",
+        "An error occurred while attempting to mine. Please try again."
+      );
+      maybeCallbacks.current?.onError('WebSocket error occurred');
+    }
     Sentry.captureException(error, {
       data: {
-        description: "useMiningWebSocket onError: Mining Connection Error: An error occurred while attempting to mine. Please try again."
+        description: `useMiningWebSocket onError; userHadDisconnected: ${userHadDisconnected}: Mining Connection Error: An error occurred while attempting to mine. Please try again.`
       }
     });
-    maybeCallbacks.current?.onError('WebSocket error occurred');
-  }, [maybeCallbacks]);
+  }, [maybeCallbacks, userHadDisconnected]);
 
   const onClose = useCallback(() => {
     console.log('WebSocket connection closed');
@@ -159,6 +162,7 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
 
   const connect = useCallback(() => {
     console.log("in useMiningWebSocket connect, connecting to WebSocket");
+    setUserHadDisconnected(false);
     if (maybeWebSocket.current) {
       console.warn("WebSocket already connected");
       return;
@@ -181,13 +185,14 @@ export function MiningWebSocketProvider({ children }: { children: React.ReactNod
 
   const disconnect = useCallback(() => {
     console.log('Disconnecting WebSocket');
+    setUserHadDisconnected(true);
     if (maybeWebSocket.current) {
       maybeWebSocket.current.close();
       maybeWebSocket.current = null;
     } else {
       console.warn("Trying to disconnect, but WebSocket is not connected");
     }
-  }, [maybeWebSocket]);
+  }, [maybeWebSocket, userHadDisconnected]);
 
   const submitSolution = useCallback((submission: MiningSubmission) => {
     if (!maybeWebSocket.current || maybeWebSocket.current.readyState !== WebSocket.OPEN) {
