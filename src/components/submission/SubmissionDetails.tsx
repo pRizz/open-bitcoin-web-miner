@@ -60,7 +60,7 @@ export function SubmissionDetails({ hash }: SubmissionDetailsProps) {
               <p className="text-xl">{submission.maybeUsername || "anonymous"}</p>
             </div>
             <div>
-              <h2 className="text-sm text-muted-foreground">Message</h2>
+              <h2 className="text-sm text-muted-foreground">Leaderboard Message</h2>
               <p className="text-xl">{submission.maybeLeaderboardMessage || "-"}</p>
             </div>
             <div>

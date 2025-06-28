@@ -3,9 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Search, ExternalLink, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { type SortField, type SortDirection } from "./types";
+import { LeaderboardEntry } from "@/contexts/GlobalLeaderboardContext";
 
 interface MobileLeaderboardProps {
-  sortedLeaderboard: any[];
+  sortedLeaderboard: LeaderboardEntry[];
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
@@ -78,13 +79,13 @@ export function MobileLeaderboard({ sortedLeaderboard, sortField, sortDirection,
                   <div className="space-y-2">
                     {entry.maybeLeaderboardMessage && (
                       <div>
-                        <span className="text-xs text-muted-foreground">Message:</span>
+                        <span className="text-xs text-muted-foreground">Leaderboard Message:</span>
                         <p className="text-sm break-words">{entry.maybeLeaderboardMessage}</p>
                       </div>
                     )}
                     {entry.maybeBlockchainMessage && (
                       <div>
-                        <span className="text-xs text-muted-foreground">Blockchain:</span>
+                        <span className="text-xs text-muted-foreground">Blockchain Message:</span>
                         <p className="text-sm break-words">{entry.maybeBlockchainMessage}</p>
                       </div>
                     )}
@@ -113,6 +114,7 @@ export function MobileLeaderboard({ sortedLeaderboard, sortField, sortDirection,
                         {entry.blockHeight.toLocaleString()}
                       </a>
                     )}
+                    {/* FIXME: For some reason, this shows Invalid Date on mobile*/}
                     <span>{new Date(entry.createdAt).toLocaleDateString()}</span>
                   </div>
                   <a

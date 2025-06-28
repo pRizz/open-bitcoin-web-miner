@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import API_CONFIG from "@/config/api";
 import { compareHashes } from "@/utils/mining";
 
-interface LeaderboardEntry {
+export interface LeaderboardEntry {
   maybeUsername: string | null;
   maybeLeaderboardMessage: string | null;
   maybeBlockchainMessage: string | null;
