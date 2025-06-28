@@ -107,14 +107,15 @@ const Notifications = () => {
   return (
     <PageTransition>
       <div className="max-w-4xl mx-auto space-y-6">
+
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-row-reverse items-center justify-between">
+          {/* <div>
             <h1 className="text-3xl font-bold">Notifications</h1>
-            {/* <p className="text-muted-foreground">
+            <p className="text-muted-foreground">
               {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-            </p> */}
-          </div>
+            </p>
+          </div> */}
           <div className="flex items-center gap-2">
             {/* {unreadCount > 0 && (
               <Button
@@ -128,8 +129,13 @@ const Notifications = () => {
               </Button>
             )} */}
 
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <h3 className="font-semibold">Filter by type:</h3>
+            </div> */}
+
+            {/* Filter icon */}
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
             </div>
 
             <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as NotificationType | 'all')}>
@@ -158,6 +164,17 @@ const Notifications = () => {
             )}
           </div>
         </div>
+
+        {/* Summary */}
+        {notifications.length > 0 && (
+          <Card className="p-4">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>
+                Showing {filteredNotifications.length} of {notifications.length} notifications
+              </span>
+            </div>
+          </Card>
+        )}
 
         {/* Filters */}
         {/* <Card className="p-4 flex flex-row gap-4">
@@ -255,28 +272,6 @@ const Notifications = () => {
                           </Button>
                         )}
 
-                        {/* {!notification.read ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleMarkAsRead(notification.id)}
-                            className="h-8 w-8 p-0"
-                            title="Mark as read"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 opacity-50"
-                            title="Already read"
-                            disabled
-                          >
-                            <EyeOff className="h-4 w-4" />
-                          </Button>
-                        )} */}
-
                         <Button
                           variant="ghost"
                           size="sm"
@@ -295,16 +290,6 @@ const Notifications = () => {
           )}
         </div>
 
-        {/* Summary */}
-        {notifications.length > 0 && (
-          <Card className="p-4">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>
-                Showing {filteredNotifications.length} of {notifications.length} notifications
-              </span>
-            </div>
-          </Card>
-        )}
       </div>
     </PageTransition>
   );

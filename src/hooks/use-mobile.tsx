@@ -2,6 +2,10 @@ import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
 
+export function supportsHover(): boolean {
+  return window.matchMedia("(hover: hover)").matches
+}
+
 export function isMobileSync(): boolean {
   return window.innerWidth < MOBILE_BREAKPOINT
 }

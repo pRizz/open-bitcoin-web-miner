@@ -8,6 +8,7 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import viteCompression from 'vite-plugin-compression';
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import type { IncomingMessage, ServerResponse } from 'http'
+import fs from 'node:fs';
 
 const logRequestsPlugin: Plugin = {
   name: 'log-requests',
@@ -29,11 +30,21 @@ const logRequestsPlugin: Plugin = {
   }
 };
 
+// https://chatgpt.com/c/68605d68-0dec-8002-806c-a3d988076c2b
+const certPath = path.resolve(__dirname, '192.168.0.31.pem');
+const keyPath = path.resolve(__dirname, '192.168.0.31-key.pem');
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8085,
+    // https://chatgpt.com/c/68605d68-0dec-8002-806c-a3d988076c2b
+    // Serving localhost over https so that apis such as crypto.subtle work; they only work in a secure context.
+    https: {
+      cert: fs.readFileSync(certPath),
+      key: fs.readFileSync(keyPath),
+    },
   },
   plugins: [
     react(),

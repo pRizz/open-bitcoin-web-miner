@@ -30,3 +30,8 @@ supabase/.temp/*
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+
+# Local SSL Certificates for serving localhost over https
+192.168.0.31.pem
+192.168.0.31-key.pem
