@@ -33,6 +33,12 @@ General TODO before first public release:
 -[] add social media links, and search for Bright Builds LLC and Peter Ryszkiewicz in the project and add links
 -[] search project and fix this: "FIXME: Uncaught Error: useNavigate()"
 
+Share to:
+-[] orange pill app
+-[] nostr
+-[] reddit
+-[] X
+
 Future features:
 -[] gpu mining
 -[] rust cpu mining
