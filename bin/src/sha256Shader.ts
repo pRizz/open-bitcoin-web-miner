@@ -101,8 +101,13 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     
     // Main loop
     for (var t = 0u; t < 64u; t++) {
-        let t1 = h + sigma1(e) + ch(e, f, g) + K[t] + w[t];
-        let t2 = sigma0(a) + maj(a, b, c);
+var t1 = h;
+t1 = t1 + sigma1(e);
+t1 = t1 + ch(e, f, g);
+t1 = t1 + K[t];
+t1 = t1 + w[t];
+
+var t2 = sigma0(a) + maj(a, b, c);
         
         h = g;
         g = f;
