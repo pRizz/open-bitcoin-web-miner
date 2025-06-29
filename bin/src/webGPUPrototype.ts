@@ -31,10 +31,12 @@ async function run(): Promise<void> {
   const device = await getDevice();
 
   // 2. prepare data - two messages: empty string and "abc"
+  // https://www.di-mgt.com.au/sha_testvectors.html
   const messages = [
     "", // empty string
     "abc", // string "abc" = 0x616263
-    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits
+    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits // wrong
+    "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits // wrong
     "", // empty string
     "", // empty string
   ];
