@@ -82,4 +82,14 @@ function main() {
 
 // main();
 
-webGPUPrototypeMain();
+async function runWebGPUPrototype() {
+  try {
+    await webGPUPrototypeMain();
+  } catch (error) {
+    console.error("Error running WebGPU prototype:", error);
+  }
+}
+
+await runWebGPUPrototype();
+
+console.log("end of index.ts");
