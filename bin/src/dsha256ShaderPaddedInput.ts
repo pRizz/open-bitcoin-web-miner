@@ -156,170 +156,28 @@ fn createPaddedMessageBlock(hash: array<u32, 8>) -> array<u32, 16> {
     return messageBlock;
 }
 
-fn padHashBlock(hash: array<u32, 8>) -> array<u32, 16> {
-    var messageBlock: array<u32, 16>;
-    
-    // First 8 words contain the hash (256 bits)
-    messageBlock[0] = hash[0];
-    messageBlock[1] = hash[1];
-    messageBlock[2] = hash[2];
-    messageBlock[3] = hash[3];
-    messageBlock[4] = hash[4];
-    messageBlock[5] = hash[5];
-    messageBlock[6] = hash[6];
-    messageBlock[7] = hash[7];
-    
-    // Add padding bit (1) and length (256 bits = 32 bytes = 256)
-    // The padding follows SHA-256 standard: 1 bit followed by zeros, then 64-bit length
-    messageBlock[8] = 0x80000000u;  // 1 bit followed by 31 zeros
-    messageBlock[9] = 0x00000000u;  // 32 zeros
-    messageBlock[10] = 0x00000000u; // 32 zeros
-    messageBlock[11] = 0x00000000u; // 32 zeros
-    messageBlock[12] = 0x00000000u; // 32 zeros
-    messageBlock[13] = 0x00000000u; // 32 zeros
-    messageBlock[14] = 0x00000000u; // 32 zeros
-    messageBlock[15] = 0x00000100u; // Length in bits (256 = 0x100)
-    
-    return messageBlock;
-}
-
-// Input: 80 bytes
-// Output: 16 words (64 bytes)
-fn createFirstBlock(header: array<u32, 20>) -> array<u32, 16> {
-    var messageBlock: array<u32, 16>;
-    
-    // Copy the first 16 words (64 bytes) of the 80-byte header
-    for (var i = 0u; i < 16u; i++) {
-        messageBlock[i] = header[i];
-    }
-    
-    return messageBlock;
-}
-
-// Input: 80 bytes
-// Output: 16 words (64 bytes)
-fn createSecondBlock(header: array<u32, 20>) -> array<u32, 16> {
-    var messageBlock: array<u32, 16>;
-    
-    // Copy the remaining 4 words (16 bytes) of the header
-    messageBlock[0] = header[16];
-    messageBlock[1] = header[17];
-    messageBlock[2] = header[18];
-    messageBlock[3] = header[19];
-    
-    // Add padding: 1 bit followed by zeros, then 64-bit length
-    messageBlock[4] = 0x80000000u;  // 1 bit followed by 31 zeros
-    messageBlock[5] = 0x00000000u;  // 32 zeros
-    messageBlock[6] = 0x00000000u;  // 32 zeros
-    messageBlock[7] = 0x00000000u;  // 32 zeros
-    messageBlock[8] = 0x00000000u;  // 32 zeros
-    messageBlock[9] = 0x00000000u;  // 32 zeros
-    messageBlock[10] = 0x00000000u; // 32 zeros
-    messageBlock[11] = 0x00000000u; // 32 zeros
-    messageBlock[12] = 0x00000000u; // 32 zeros
-    messageBlock[13] = 0x00000000u; // 32 zeros
-    messageBlock[14] = 0x00000000u; // 32 zeros
-    messageBlock[15] = 0x00000280u; // Length in bits (640 = 0x280)
-    
-    return messageBlock;
-}
-
-fn sha256WithState(messageBlock: array<u32, 16>, initialState: array<u32, 8>) -> array<u32, 8> {
-    var state = initialState;
-    
-    // Create message schedule array
-    var w: array<u32, 64>;
-    
-    // Load the 16 words of the message block
-    for (var t = 0u; t < 16u; t++) {
-        w[t] = messageBlock[t];
-    }
-    
-    // Extend the first 16 words into the remaining 48 words
-    for (var t = 16u; t < 64u; t++) {
-        let t2 = w[t - 2u];
-        let t7 = w[t - 7u];
-        let t15 = w[t - 15u];
-        let t16 = w[t - 16u];
-        w[t] = gamma1(t2) + t7 + gamma0(t15) + t16;
-    }
-    
-    // Initialize working variables
-    var a = state[0];
-    var b = state[1];
-    var c = state[2];
-    var d = state[3];
-    var e = state[4];
-    var f = state[5];
-    var g = state[6];
-    var h = state[7];
-    
-    // Main loop
-    for (var t = 0u; t < 64u; t++) {
-        var t1 = h;
-        t1 = t1 + sigma1(e);
-        t1 = t1 + ch(e, f, g);
-        t1 = t1 + K[t];
-        t1 = t1 + w[t];
-
-        var t2 = sigma0(a) + maj(a, b, c);
-        
-        h = g;
-        g = f;
-        f = e;
-        e = d + t1;
-        d = c;
-        c = b;
-        b = a;
-        a = t1 + t2;
-    }
-    
-    // Add the compressed chunk to the current hash value
-    state[0] = state[0] + a;
-    state[1] = state[1] + b;
-    state[2] = state[2] + c;
-    state[3] = state[3] + d;
-    state[4] = state[4] + e;
-    state[5] = state[5] + f;
-    state[6] = state[6] + g;
-    state[7] = state[7] + h;
-    
-    return state;
-}
-
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x;
     
-    // Each message takes 20 u32 words (80 bytes = 640 bits)
-    let messageOffset = index * 20u;
+    // Each message takes 16 u32 words (512 bits)
+    let messageOffset = index * 16u;
     
-    // Extract the 80-byte header for this thread
-    var header: array<u32, 20>;
-    for (var i = 0u; i < 20u; i++) {
-        header[i] = input[messageOffset + i];
+    // Extract the message block for this thread
+    var messageBlock: array<u32, 16>;
+    for (var i = 0u; i < 16u; i++) {
+        messageBlock[i] = input[messageOffset + i];
     }
     
-    // Create first block (first 64 bytes)
-    let firstBlock = createFirstBlock(header);
+    // First SHA-256 hash
+    let firstHash = sha256(messageBlock);
     
-    // First SHA-256 hash on first block
-    let firstPartialHash = sha256(firstBlock);
-    
-    // Create second block (remaining 16 bytes + padding)
-    let secondBlock = createSecondBlock(header);
-    
-    // Continue SHA-256 with second block (using first hash as initial state)
-    let firstHash = sha256WithState(secondBlock, firstPartialHash);
-    
-    // Now perform double SHA-256: hash the result again
-    // Create padded message block for the second SHA-256 operation
-    let paddedFirstHash = padHashBlock(firstHash);
+    // Create padded message block for second SHA-256
+    let paddedMessageBlock = createPaddedMessageBlock(firstHash);
     
     // Second SHA-256 hash (double SHA-256)
-    let finalHash = sha256(paddedFirstHash);
+    let finalHash = sha256(paddedMessageBlock);
     
     // Store the result
     output[index].hash = finalHash;
-}
-`;
+}`;
