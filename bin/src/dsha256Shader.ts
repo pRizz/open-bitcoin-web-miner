@@ -1,3 +1,7 @@
+
+// dsha256("abc") = 4f8b42c22dd3729b519ba6f68d2da7cc5b2d606d05daed5ad5128cc03e6c6358
+// dsha256("hello") = 9595c9df90075148eb06860365df33584b75bff782a510c6cd4883a419833d50
+
 // TODO: audit
 export const computeShaderCode = `
 struct Output {
@@ -101,13 +105,13 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     
     // Main loop
     for (var t = 0u; t < 64u; t++) {
-var t1 = h;
-t1 = t1 + sigma1(e);
-t1 = t1 + ch(e, f, g);
-t1 = t1 + K[t];
-t1 = t1 + w[t];
+        var t1 = h;
+        t1 = t1 + sigma1(e);
+        t1 = t1 + ch(e, f, g);
+        t1 = t1 + K[t];
+        t1 = t1 + w[t];
 
-var t2 = sigma0(a) + maj(a, b, c);
+        var t2 = sigma0(a) + maj(a, b, c);
         
         h = g;
         g = f;
