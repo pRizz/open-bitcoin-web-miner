@@ -14,31 +14,33 @@ General TODO before first public release:
 -[x] there is a bug where rejected solution hashes are not found on the front end, so their status cant be updated; made a timeout mitigation so they are shown as rejected after 10 seconds
 -[x] treat solutions as rejected by default if there is no response after x seconds, maybe 10
 -[x] pass different timestamps to each worker, and somehow increment stuff safely if nonce runs out
--[] refactor all instances of "a bitcoin" and "win a bitcoin", "one bitcoin", to "3 bitcoin"; rebrand and make configurable
--[] bug with using duplicate timestamps
+-[x] refactor all instances of "a bitcoin" and "win a bitcoin", "one bitcoin", to "3 bitcoin"; rebrand and make configurable
 -[x] hook all paths like /About so that when user refreshes in prod, it still works; right now we are getting 403 forbidden; make function in cloudfront for ViewerRequests
 -[x] make all pages mobile friendly
 -[x] make opengraph images and serve it
 -[x] do ther SEO optimizations; google it; chatgpt it
 -[x] verify the bitaxe probabilities and other probabilities in production mainnet
+-[x] fix username and blockchain message not being set in the database; leaderboardMessage does not update websocket req on change
+-[x] mining bug with using duplicate timestamps
 -[] show coinbase address outputs in Proof Of Reward page
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] GPU mining
+-[] allow sorting leaderboard by date found
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] add a link to global hashrate graph website
 -[] put back this disabled logic for start mining button:         disabled={(maybeMinerAddress ? !isValidAddress : false) || !isMessageValid}
   and make all Start Mining/Stop Mining buttons have consistent business logic thoughout the app
--[] fix username and blockchain message not being set in the database; leaderboardMessage does not update websocket req on change
 -[] when inspecting submission details, also include the associated coinbase tx and block template link
 -[] add firebase
 -[] add social media links, and search for Bright Builds LLC and Peter Ryszkiewicz in the project and add links
 -[] search project and fix this: "FIXME: Uncaught Error: useNavigate()"
+-[] do automatic reconnects of websocket problems
 
 Share to:
--[] orange pill app
--[] nostr
--[] reddit
--[] X
+-[x] orange pill app
+-[x] nostr
+-[x] reddit
+-[x] X
 
 Future features:
 -[] gpu mining
