@@ -35,6 +35,7 @@ async function run(): Promise<void> {
   const messages = [
     "", // empty string
     "abc", // string "abc" = 0x616263
+    "hello",
     "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits // wrong
     "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits // wrong
     "", // empty string
