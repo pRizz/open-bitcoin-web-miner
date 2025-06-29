@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { bytesToBuffer, doubleSha256, createBlockFromTemplate } from './RewardVerifier';
 import { calculateRequiredLeadingBinaryZeroes } from './miningCopy';
 import { readFileSync } from 'fs';
+import { webGPUPrototypeMain } from './webGPUPrototype';
 // import { updateAWSDomainAddressesMain } from './updateAWSDomainAddresses';
 
 // Run with:
@@ -79,4 +80,6 @@ function main() {
 
 }
 
-main();
+// main();
+
+webGPUPrototypeMain();

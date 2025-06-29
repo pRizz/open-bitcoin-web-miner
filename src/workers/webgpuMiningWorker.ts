@@ -179,7 +179,12 @@ function formatNumber(num: number): string {
   return new Intl.NumberFormat().format(num);
 }
 
-async function initWebGPU() {
+interface GPUInitResult {
+  maxBufferSize: number;
+  maxComputeWorkgroupsPerDimension: number;
+}
+
+async function initWebGPU(): Promise<GPUInitResult> {
   if (!navigator.gpu) {
     throw new Error("WebGPU not supported");
   }
@@ -261,9 +266,10 @@ async function mine() {
   if (!maybeGPUDevice || !maybeGPUComputePipeline || !maybeCurrentChallenge) return;
 
   const { maxBufferSize, maxComputeWorkgroupsPerDimension } = await initWebGPU();
+  console.log(`maxBufferSize: ${maxBufferSize}, maxComputeWorkgroupsPerDimension: ${maxComputeWorkgroupsPerDimension}`);
 
   // Calculate optimal batch size based on available memory
-  // Each hash needs: 4 bytes (input) + 32 bytes (output) = 36 bytes
+  // Each hash needs: 4 bytes (input) + 32 bytes (output) = 36 bytes ?
   // Leave 25% memory free for other operations
   // Also ensure we don't exceed the maximum buffer size of 16MB (reduced from 32MB)
   const MAX_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB in bytes
