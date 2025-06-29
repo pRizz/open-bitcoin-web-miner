@@ -23,7 +23,7 @@ async function getDevice(): Promise<GPUDevice> {
   if (!adapter) throw new Error("No suitable GPU adapter");
 
   const device = await adapter.requestDevice();
-//   console.log("device", device);
+  //   console.log("device", device);
   return device;
 }
 
@@ -33,7 +33,10 @@ async function run(): Promise<void> {
   // 2. prepare data - two messages: empty string and "abc"
   const messages = [
     "", // empty string
-    "abc" // string "abc" = 0x616263
+    "abc", // string "abc" = 0x616263
+    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits
+    "", // empty string
+    "", // empty string
   ];
 
   console.log("Processing messages:");
@@ -42,44 +45,43 @@ async function run(): Promise<void> {
 
   // Convert messages to 512-bit blocks (16 u32 words each)
   const messageBlocks: number[][] = [];
-  
+
   for (const message of messages) {
-    const block = new Array(16).fill(0);
-    
-    if (message.length > 0) {
-      // Convert string to bytes and pack into 32-bit words
-      const bytes = new TextEncoder().encode(message);
-      const bitLength = bytes.length * 8;
-      
-      // Pack bytes into 32-bit words (little-endian)
-      for (let i = 0; i < bytes.length; i += 4) {
-        const wordIndex = Math.floor(i / 4);
-        if (wordIndex < 14) { // Leave space for padding
-          let word = 0;
-          for (let j = 0; j < 4 && i + j < bytes.length; j++) {
-            word |= bytes[i + j] << (j * 8);
-          }
-          block[wordIndex] = word;
-        }
-      }
-      
-      // Add padding bit
-      if (bytes.length % 4 === 0) {
-        block[Math.floor(bytes.length / 4)] = 0x80000000;
-      } else {
-        block[Math.floor(bytes.length / 4)] |= 0x80 << ((bytes.length % 4) * 8);
-      }
-      
-      // Add message length in bits (64 bits) at the end
-      block[14] = 0; // Upper 32 bits of length (0 for our short messages)
-      block[15] = bitLength; // Lower 32 bits of length
-    } else {
-      // Empty string: just padding bit and length
-      block[0] = 0x80000000; // Padding bit
-      block[15] = 0; // Length in bits
+    const block = new Uint32Array(16).fill(0); // Use Uint32Array for direct manipulation
+    const bytes = new TextEncoder().encode(message);
+    const originalBitLength = bytes.length * 8;
+
+    // Copy message bytes into the block
+    for (let i = 0; i < bytes.length; i++) {
+      const byteIndexInBlock = i % 64; // SHA-256 processes 64 bytes at a time
+      const wordIndex = Math.floor(byteIndexInBlock / 4);
+      const byteOffsetInWord = 3 - (byteIndexInBlock % 4); // For big-endian
+
+      block[wordIndex] |= bytes[i] << (byteOffsetInWord * 8);
     }
-    
-    messageBlocks.push(block);
+
+    // Determine where the 1-bit padding starts
+    const oneBitPadIndex = originalBitLength; // Bit index
+
+    // Calculate the word and bit position for the 1-bit
+    const oneBitWordIndex = Math.floor(oneBitPadIndex / 32);
+    const oneBitOffsetInWord = 31 - (oneBitPadIndex % 32); // For big-endian bit position
+
+    // Add the 1-bit
+    block[oneBitWordIndex] |= (0x1 << oneBitOffsetInWord);
+
+    // Add length at the end (last two words, 64 bits)
+    // Assuming messages are short enough for length to fit in lower 32 bits
+    block[14] = 0; // Upper 32 bits of length
+    block[15] = originalBitLength; // Lower 32 bits of length
+
+    // This simplified logic assumes the padded message fits within a single 512-bit block.
+    // For longer messages, you would need to generate multiple blocks and handle
+    // the padding (1-bit and length) only on the *last* block.
+    // Your current code processes multiple messages, each assumed to be one block.
+    // The core issue is how the 1-bit is inserted.
+
+    messageBlocks.push(Array.from(block)); // Convert back to number[] if needed, or stick to Uint32Array
   }
 
   console.log("Message blocks:");
@@ -91,21 +93,30 @@ async function run(): Promise<void> {
   const inputData = messageBlocks.flat();
   const inputBuffer = new Uint32Array(inputData);
   const byteLength = inputBuffer.byteLength;
+  const alignedByteLength = Math.ceil(byteLength / 256) * 256; // Align to 256 bytes for storage buffers
+
+  console.log(`Input buffer: ${byteLength} bytes, aligned to ${alignedByteLength} bytes`);
+  console.log(`Input data length: ${inputData.length} u32 words`);
 
   const storage = device.createBuffer({
-    size: byteLength,
+    size: alignedByteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     mappedAtCreation: true,
   });
   new Uint32Array(storage.getMappedRange()).set(inputBuffer);
   storage.unmap();
 
-  // Output buffer for 2 hashes, each with 8 u32 words
-  const outputSize = 2 * 8 * 4; // 2 messages * 8 words * 4 bytes per word
-  
-  // Storage buffer for shader output
+  // Output buffer for all hashes (messages.length), each with 8 u32 words
+  const outputSize = messages.length * 8 * 4; // messages.length messages * 8 words * 4 bytes per word
+
+  // Storage buffer for shader output - ensure proper alignment
+  const alignedOutputSize = Math.ceil(outputSize / 256) * 256; // Align to 256 bytes for storage buffers
+
+  console.log(`Output buffer: ${outputSize} bytes, aligned to ${alignedOutputSize} bytes`);
+  console.log(`Expected output: ${messages.length} hashes, ${messages.length * 8} u32 words total`);
+
   const outputBuffer = device.createBuffer({
-    size: outputSize,
+    size: alignedOutputSize,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
 
@@ -138,28 +149,28 @@ async function run(): Promise<void> {
   const pass = encoder.beginComputePass();
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bind);
-  pass.dispatchWorkgroups(2); // Process 2 messages
+  pass.dispatchWorkgroups(messages.length); // Process 2 messages
   pass.end();
-  
+
   // Copy from output buffer to readback buffer
   encoder.copyBufferToBuffer(outputBuffer, 0, readback, 0, outputSize);
-  
+
   device.queue.submit([encoder.finish()]);
 
   // 5. read & log
   await readback.mapAsync(GPUMapMode.READ);
   const result = new Uint32Array(readback.getMappedRange());
-  
+
   // Print results
   console.log("\nSHA-256 Results:");
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < messages.length; i++) {
     const hashStart = i * 8;
     const hash = Array.from(result.slice(hashStart, hashStart + 8));
     const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
     console.log(`Hash ${i + 1} (${messages[i] ? `"${messages[i]}"` : 'empty string'}):`);
     console.log(`  ${hashHex}`);
   }
-  
+
   readback.unmap();
 
   // 6. Cleanup all WebGPU resources
