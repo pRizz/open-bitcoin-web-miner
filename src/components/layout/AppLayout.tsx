@@ -11,41 +11,7 @@ import { useMining } from "@/contexts/MiningContext";
 import { TypedLink } from "@/components/TypedLink";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { routes } from "@/routes";
-
-function MinerCountIndicator() {
-  const { maybeConnectedMinerCount } = useNetworkInfo();
-  const isConnected = maybeConnectedMinerCount !== undefined;
-
-  return (
-    <div className="flex items-center gap-2">
-      <div
-        className={cn(
-          "w-2 h-2 rounded-full",
-          isConnected ? "bg-green-500" : "bg-gray-400"
-        )}
-      />
-      <span className="text-sm text-gray-300">
-        {isConnected
-          ? `${maybeConnectedMinerCount} ${maybeConnectedMinerCount === 1 ? 'miner' : 'miners'} connected`
-          : 'Connecting...'
-        }
-      </span>
-    </div>
-  );
-}
-
-function MiningStatusIndicator() {
-  const { isMining } = useMining();
-
-  if (!isMining) return null;
-
-  return (
-    <TypedLink routeKeyName="home" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-      <span className="text-sm text-gray-300">Mining</span>
-    </TypedLink>
-  );
-}
+import { MinerCountIndicator, MiningStatusIndicator } from "@/components/MinerCountIndicator";
 
 export function AppLayout() {
   const location = useLocation();

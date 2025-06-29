@@ -16,6 +16,7 @@ import { TypedLink } from "@/components/TypedLink";
 import { NotificationBadge } from "@/components/NotificationBadge";
 import { useSidebar } from "@/components/ui/sidebar/sidebar-context";
 import { useNotifications } from "@/hooks/useNotifications";
+import { MinerCountIndicator, MiningStatusIndicatorFull } from "@/components/MinerCountIndicator";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -88,6 +89,31 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup className="mt-6">
+          <SidebarGroupLabel className="px-6 text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold mb-2">
+            Status
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem className="px-3">
+                <SidebarMenuButton
+                  className="px-3 py-2 w-full transition-colors duration-200"
+                >
+                  <MiningStatusIndicatorFull  />
+                  {/* <span className="font-medium">Mining</span> */}
+                </SidebarMenuButton>
+                <SidebarMenuButton
+                  className="px-3 py-2 w-full transition-colors duration-200"
+                >
+                  <MinerCountIndicator />
+                  {/* <span className="font-medium">Miners</span> */}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
       </SidebarContent>
     </Sidebar>
   );
