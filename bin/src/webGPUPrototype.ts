@@ -27,96 +27,101 @@ async function getDevice(): Promise<GPUDevice> {
   return device;
 }
 
+export function serializeNonceLE(nonce: number): Uint8Array {
+    return new Uint8Array([
+      nonce & 0xff,
+      (nonce >> 8) & 0xff,
+      (nonce >> 16) & 0xff,
+      (nonce >> 24) & 0xff
+    ]);
+  }
+
+  function toBigEndianBytes(u32Array: Uint32Array): Uint8Array {
+    const out = new Uint8Array(u32Array.length * 4);
+    for (let i = 0; i < u32Array.length; i++) {
+      const u32Val = u32Array[i];
+      out[i * 4 + 0] = (u32Val >>> 24) & 0xFF; // Most significant byte
+      out[i * 4 + 1] = (u32Val >>> 16) & 0xFF;
+      out[i * 4 + 2] = (u32Val >>> 8) & 0xFF;
+      out[i * 4 + 3] = u32Val & 0xFF;          // Least significant byte
+    }
+    return out;
+  }
+  
+  
 async function run(): Promise<void> {
   const device = await getDevice();
 
   // 2. prepare data - two messages: empty string and "abc"
   // https://www.di-mgt.com.au/sha_testvectors.html
-  const messages = [
-    "", // empty string
-    "abc", // string "abc" = 0x616263
-    "hello",
-    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits // wrong
-    "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits // wrong
-    "", // empty string
-    "", // empty string
-  ];
+//   const messages = [
+//     "", // empty string
+//     "abc", // string "abc" = 0x616263
+//     "hello",
+//     "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits // wrong
+//     "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits // wrong
+//     "", // empty string
+//     "", // empty string
+//   ];
 
-  console.log("Processing messages:");
-  console.log("1. Empty string: \"\"");
-  console.log("2. String \"abc\":", messages[1]);
-
-  // Convert messages to 512-bit blocks (16 u32 words each)
-  const messageBlocks: number[][] = [];
-
-  for (const message of messages) {
-    const block = new Uint32Array(16).fill(0); // Use Uint32Array for direct manipulation
-    const bytes = new TextEncoder().encode(message);
-    const originalBitLength = bytes.length * 8;
-
-    // Copy message bytes into the block
-    for (let i = 0; i < bytes.length; i++) {
-      const byteIndexInBlock = i % 64; // SHA-256 processes 64 bytes at a time
-      const wordIndex = Math.floor(byteIndexInBlock / 4);
-      const byteOffsetInWord = 3 - (byteIndexInBlock % 4); // For big-endian
-
-      block[wordIndex] |= bytes[i] << (byteOffsetInWord * 8);
-    }
-
-    // Determine where the 1-bit padding starts
-    const oneBitPadIndex = originalBitLength; // Bit index
-
-    // Calculate the word and bit position for the 1-bit
-    const oneBitWordIndex = Math.floor(oneBitPadIndex / 32);
-    const oneBitOffsetInWord = 31 - (oneBitPadIndex % 32); // For big-endian bit position
-
-    // Add the 1-bit
-    block[oneBitWordIndex] |= (0x1 << oneBitOffsetInWord);
-
-    // Add length at the end (last two words, 64 bits)
-    // Assuming messages are short enough for length to fit in lower 32 bits
-    block[14] = 0; // Upper 32 bits of length
-    block[15] = originalBitLength; // Lower 32 bits of length
-
-    // This simplified logic assumes the padded message fits within a single 512-bit block.
-    // For longer messages, you would need to generate multiple blocks and handle
-    // the padding (1-bit and length) only on the *last* block.
-    // Your current code processes multiple messages, each assumed to be one block.
-    // The core issue is how the 1-bit is inserted.
-
-    messageBlocks.push(Array.from(block)); // Convert back to number[] if needed, or stick to Uint32Array
-  }
-
-  console.log("Message blocks:");
-  for (let i = 0; i < messageBlocks.length; i++) {
-    console.log(`Block ${i}:`, messageBlocks[i].map(x => "0x" + x.toString(16).padStart(8, '0')));
-  }
+const blockHeaderAsU8Array = new Uint8Array(80); // 80 bytes for block header
+blockHeaderAsU8Array[0] = 1;
+// blockHeaderAsU8Array.set(serializeNonceLE(1), 0);
+// const nonce = 0;
+// const nonce = 12345;
+// blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
+console.log("blockHeaderAsU8Array", blockHeaderAsU8Array);
+console.log("blockHeaderAsU8Array.length", blockHeaderAsU8Array.length);
 
   // Flatten the blocks into a single array
-  const inputData = messageBlocks.flat();
-  const inputBuffer = new Uint32Array(inputData);
-  const byteLength = inputBuffer.byteLength;
-  const alignedByteLength = Math.ceil(byteLength / 256) * 256; // Align to 256 bytes for storage buffers
+  const inputData = blockHeaderAsU8Array;
+//   console.log("inputData", inputData);
+  // should be doubleSha256BlockHeaderU8Array: blockHeaderAsU8Array Uint8Array(80) [
+//   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
+//   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
+//   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
+//   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
+//   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
+//   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
+//   0, 0, 0, 0, 57, 48, 0, 0
+// ]
+//   const inputBuffer = new Uint32Array(inputData);
+  const byteLength = inputData.byteLength;
+//   const alignedByteLength = Math.ceil(byteLength / 256) * 256; // Align to 256 bytes for storage buffers
 
-  console.log(`Input buffer: ${byteLength} bytes, aligned to ${alignedByteLength} bytes`);
-  console.log(`Input data length: ${inputData.length} u32 words`);
+// console.log(`Input buffer: ${byteLength} bytes, aligned to ${alignedByteLength} bytes`);
+console.log(`Input buffer: ${byteLength} bytes`);
+console.log(`Input data length: ${inputData.length} bytes`);
 
   const storage = device.createBuffer({
-    size: alignedByteLength,
+    size: byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     mappedAtCreation: true,
   });
-  new Uint32Array(storage.getMappedRange()).set(inputBuffer);
+  
+  // Option 1: Convert Uint8Array to Uint32Array for proper storage
+//   const uint32Data = new Uint32Array(byteLength / 4); // 80 bytes = 20 u32 words
+//   const dataView = new DataView(inputData.buffer, inputData.byteOffset, inputData.byteLength);
+  
+//   for (let i = 0; i < uint32Data.length; i++) {
+//     uint32Data[i] = dataView.getUint32(i * 4, true); // true for little-endian
+//   }
+  
+//   new Uint32Array(storage.getMappedRange()).set(uint32Data);
+  
+  // Option 2: Alternative - use Uint8Array view directly
+  new Uint8Array(storage.getMappedRange()).set(inputData);
+  
   storage.unmap();
 
   // Output buffer for all hashes (messages.length), each with 8 u32 words
-  const outputSize = messages.length * 8 * 4; // messages.length messages * 8 words * 4 bytes per word
+  const outputSize = 1 * 8 * 4; // 1 message * 8 words * 4 bytes per word
 
   // Storage buffer for shader output - ensure proper alignment
   const alignedOutputSize = Math.ceil(outputSize / 256) * 256; // Align to 256 bytes for storage buffers
 
   console.log(`Output buffer: ${outputSize} bytes, aligned to ${alignedOutputSize} bytes`);
-  console.log(`Expected output: ${messages.length} hashes, ${messages.length * 8} u32 words total`);
+  console.log(`Expected output: 1 hash, 8 u32 words total`);
 
   const outputBuffer = device.createBuffer({
     size: alignedOutputSize,
@@ -152,7 +157,7 @@ async function run(): Promise<void> {
   const pass = encoder.beginComputePass();
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bind);
-  pass.dispatchWorkgroups(messages.length); // Process 2 messages
+  pass.dispatchWorkgroups(1);
   pass.end();
 
   // Copy from output buffer to readback buffer
@@ -162,17 +167,38 @@ async function run(): Promise<void> {
 
   // 5. read & log
   await readback.mapAsync(GPUMapMode.READ);
-  const result = new Uint32Array(readback.getMappedRange());
+  const uint32ArrayResult = new Uint32Array(readback.getMappedRange());
+  console.log("Uint32Array result", uint32ArrayResult);
+
+  // Print each u32 in hex
+  for (let i = 0; i < uint32ArrayResult.length; i++) {
+    console.log(`u32[${i}] = ${uint32ArrayResult[i].toString(16).padStart(8, '0')}`);
+  }
+
+  // U8 view of result
+  const resultU8 = toBigEndianBytes(uint32ArrayResult);
+  console.log("resultU8", resultU8);
+
+  // Reverse the u8 array
+  const reversedResultU8 = new Uint8Array(resultU8.length);
+  for (let i = 0; i < resultU8.length; i++) {
+    reversedResultU8[i] = resultU8[resultU8.length - i - 1];
+  }
+  console.log("reversedResultU8", reversedResultU8);
+
+  // Convert to hex for easier comparison
+  const resultHex = Array.from(reversedResultU8)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  console.log("resultHex", resultHex);
 
   // Print results
   console.log("\nSHA-256 Results:");
-  for (let i = 0; i < messages.length; i++) {
-    const hashStart = i * 8;
-    const hash = Array.from(result.slice(hashStart, hashStart + 8));
+    const hashStart = 0 * 8;
+    const hash = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
     const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
-    console.log(`Hash ${i + 1} (${messages[i] ? `"${messages[i]}"` : 'empty string'}):`);
+    console.log(`Hash 1 (block header with nonce):`);
     console.log(`  ${hashHex}`);
-  }
 
   readback.unmap();
 
