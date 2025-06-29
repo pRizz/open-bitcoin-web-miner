@@ -375,6 +375,7 @@ async function mine() {
         const chunkStart = offset * 8 * 4;
         const chunkEnd = (offset + chunkSize) * 8 * 4;
 
+        // Contains a series of 256 hashes, which must be read in chunks of 8 32-bit words each.
         const resultsChunk = new Uint32Array(mappedRange.slice(chunkStart, chunkEnd));
 
         // Process results for this chunk
