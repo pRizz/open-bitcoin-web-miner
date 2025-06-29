@@ -1,3 +1,18 @@
+// Bugged output:
+// SHA-256 Results:
+// Hash 1 (empty string):
+//   0xe3b0c442 0x98fc1c14 0x9afbf4c8 0x996fb924 0x27ae41e4 0x649b934c 0xa495991b 0x7852b855
+// Hash 2 ("abc"):
+//   0xba7816bf 0x8f01cfea 0x414140de 0x5dae2223 0xb00361a3 0x96177a9c 0xb410ff61 0xf20015ad
+// Hash 3 ("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"):
+//   0xaafff98b 0xeb5f808f 0x8be1cf96 0x60577562 0x8e87f9ac 0xade749e7 0xffd2208d 0x6d4ac859
+// Hash 4 ("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"):
+//   0x97c59d72 0xf5db6d91 0xe46926c4 0x51b39824 0x3774075d 0xf2f2a491 0xf538aab8 0xeca1e85e
+// Hash 5 (empty string):
+//   0xe3b0c442 0x98fc1c14 0x9afbf4c8 0x996fb924 0x27ae41e4 0x649b934c 0xa495991b 0x7852b855
+// Hash 6 (empty string):
+//   0xe3b0c442 0x98fc1c14 0x9afbf4c8 0x996fb924 0x27ae41e4 0x649b934c 0xa495991b 0x7852b855
+
 // TODO: audit
 export const computeShaderCode = `
 struct Output {

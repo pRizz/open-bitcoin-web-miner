@@ -1,4 +1,3 @@
-
 // dsha256("abc") = 4f8b42c22dd3729b519ba6f68d2da7cc5b2d606d05daed5ad5128cc03e6c6358
 // dsha256("hello") = 9595c9df90075148eb06860365df33584b75bff782a510c6cd4883a419833d50
 
@@ -58,13 +57,7 @@ fn gamma1(x: u32) -> u32 {
     return rotr(x, 17u) ^ rotr(x, 19u) ^ (x >> 10u);
 }
 
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let index = global_id.x;
-    
-    // Each message takes 16 u32 words (512 bits)
-    let messageOffset = index * 16u;
-    
+fn sha256(messageBlock: array<u32, 16>) -> array<u32, 8> {
     var state: array<u32, 8>;
     // Initialize state with standard SHA-256 initial values
     state[0] = 0x6a09e667u;
@@ -81,7 +74,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     
     // Load the 16 words of the message block
     for (var t = 0u; t < 16u; t++) {
-        w[t] = input[messageOffset + t];
+        w[t] = messageBlock[t];
     }
     
     // Extend the first 16 words into the remaining 48 words
@@ -133,13 +126,25 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     state[6] = state[6] + g;
     state[7] = state[7] + h;
     
-    // Store all 8 words of the hash
-    output[index].hash[0] = state[0];
-    output[index].hash[1] = state[1];
-    output[index].hash[2] = state[2];
-    output[index].hash[3] = state[3];
-    output[index].hash[4] = state[4];
-    output[index].hash[5] = state[5];
-    output[index].hash[6] = state[6];
-    output[index].hash[7] = state[7];
+    return state;
+}
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+    
+    // Each message takes 16 u32 words (512 bits)
+    let messageOffset = index * 16u;
+    
+    // Extract the message block for this thread
+    var messageBlock: array<u32, 16>;
+    for (var i = 0u; i < 16u; i++) {
+        messageBlock[i] = input[messageOffset + i];
+    }
+    
+    // Compute SHA-256 hash
+    let hash = sha256(messageBlock);
+    
+    // Store the result
+    output[index].hash = hash;
 }`;
