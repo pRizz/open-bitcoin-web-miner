@@ -129,6 +129,33 @@ fn sha256(messageBlock: array<u32, 16>) -> array<u32, 8> {
     return state;
 }
 
+fn createPaddedMessageBlock(hash: array<u32, 8>) -> array<u32, 16> {
+    var messageBlock: array<u32, 16>;
+    
+    // First 8 words contain the hash (256 bits)
+    messageBlock[0] = hash[0];
+    messageBlock[1] = hash[1];
+    messageBlock[2] = hash[2];
+    messageBlock[3] = hash[3];
+    messageBlock[4] = hash[4];
+    messageBlock[5] = hash[5];
+    messageBlock[6] = hash[6];
+    messageBlock[7] = hash[7];
+    
+    // Add padding bit (1) and length (256 bits = 32 bytes = 256)
+    // The padding follows SHA-256 standard: 1 bit followed by zeros, then 64-bit length
+    messageBlock[8] = 0x80000000u;  // 1 bit followed by 31 zeros
+    messageBlock[9] = 0x00000000u;  // 32 zeros
+    messageBlock[10] = 0x00000000u; // 32 zeros
+    messageBlock[11] = 0x00000000u; // 32 zeros
+    messageBlock[12] = 0x00000000u; // 32 zeros
+    messageBlock[13] = 0x00000000u; // 32 zeros
+    messageBlock[14] = 0x00000000u; // 32 zeros
+    messageBlock[15] = 0x00000100u; // Length in bits (256 = 0x100)
+    
+    return messageBlock;
+}
+
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x;
@@ -142,9 +169,15 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         messageBlock[i] = input[messageOffset + i];
     }
     
-    // Compute SHA-256 hash
-    let hash = sha256(messageBlock);
+    // First SHA-256 hash
+    let firstHash = sha256(messageBlock);
+    
+    // Create padded message block for second SHA-256
+    let paddedMessageBlock = createPaddedMessageBlock(firstHash);
+    
+    // Second SHA-256 hash (double SHA-256)
+    let finalHash = sha256(paddedMessageBlock);
     
     // Store the result
-    output[index].hash = hash;
+    output[index].hash = finalHash;
 }`;
