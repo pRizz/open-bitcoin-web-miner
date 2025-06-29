@@ -26,6 +26,64 @@ describe('cpuMiningUtils', () => {
     });
   });
 
+  describe('doubleSha256BlockHeaderU8ArrayBytesOf0', () => {
+    it('should update nonce and perform double SHA-256 hash on block header', async () => {
+      // Arrange
+      const blockHeaderAsU8Array = new Uint8Array(80).fill(0); // 80 bytes for block header
+      // const nonce = 12345;
+
+      // Act
+      const result = await doubleSha256BlockHeaderU8Array(blockHeaderAsU8Array, 0);
+
+      // Assert
+      expect(result).toBeInstanceOf(Uint8Array);
+      expect(result.length).toBe(32); // SHA-256 produces 32 bytes
+
+      // Verify that the nonce was updated in the block header
+      const nonceBytes = blockHeaderAsU8Array.slice(76, 80);
+      const expectedNonceBytes = serializeNonceLE(0);
+      expect(nonceBytes).toEqual(expectedNonceBytes);
+
+      // Convert to hex for easier comparison
+      const resultHex = Array.from(result)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      const expectedHex = '14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b';
+      expect(resultHex).toBe(expectedHex);
+    });
+  });
+
+  describe('doubleSha256BlockHeaderU8ArrayBytesOf1', () => {
+    it('should update nonce and perform double SHA-256 hash on block header', async () => {
+      // Arrange
+      const blockHeaderAsU8Array = new Uint8Array(80).fill(0); // 80 bytes for block header
+      blockHeaderAsU8Array[0] = 1;
+      console.log("blockHeaderAsU8Array", blockHeaderAsU8Array);
+      // const nonce = 12345;
+
+      // Act
+      const result = await doubleSha256BlockHeaderU8Array(blockHeaderAsU8Array, 0);
+
+      // Assert
+      expect(result).toBeInstanceOf(Uint8Array);
+      expect(result.length).toBe(32); // SHA-256 produces 32 bytes
+
+      // Verify that the nonce was updated in the block header
+      const nonceBytes = blockHeaderAsU8Array.slice(76, 80);
+      const expectedNonceBytes = serializeNonceLE(0);
+      expect(nonceBytes).toEqual(expectedNonceBytes);
+
+      // Convert to hex for easier comparison
+      const resultHex = Array.from(result)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      const expectedHex = '4ddd9f0855d58a375be5a763e5f51ece853d30525fcd9a3e477c2194fedb549f';
+      expect(resultHex).toBe(expectedHex);
+    });
+  });
+
   describe('doubleSha256BlockHeaderU8Array', () => {
     it('should update nonce and perform double SHA-256 hash on block header', async () => {
       // Arrange
@@ -53,4 +111,5 @@ describe('cpuMiningUtils', () => {
       expect(resultHex).toBe(expectedHex);
     });
   });
+
 });
