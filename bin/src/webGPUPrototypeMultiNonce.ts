@@ -51,9 +51,29 @@ function toBigEndianBytes(u32Array: Uint32Array): Uint8Array {
 async function run(): Promise<void> {
   const device = await getDevice();
 
+  const limits = device.limits;
+
+  // Key workgroup-related limits:
+  const maxComputeWorkgroupSizeX = limits.maxComputeWorkgroupSizeX;
+  const maxComputeWorkgroupSizeY = limits.maxComputeWorkgroupSizeY; 
+  const maxComputeWorkgroupSizeZ = limits.maxComputeWorkgroupSizeZ;
+  const maxComputeInvocationsPerWorkgroup = limits.maxComputeInvocationsPerWorkgroup;
+  const maxComputeWorkgroupsPerDimension = limits.maxComputeWorkgroupsPerDimension;
+  console.log("maxComputeWorkgroupSizeX", maxComputeWorkgroupSizeX);
+  console.log("maxComputeWorkgroupSizeY", maxComputeWorkgroupSizeY);
+  console.log("maxComputeWorkgroupSizeZ", maxComputeWorkgroupSizeZ);
+  console.log("maxComputeInvocationsPerWorkgroup", maxComputeInvocationsPerWorkgroup);
+  console.log("maxComputeWorkgroupsPerDimension", maxComputeWorkgroupsPerDimension);
+  // Sample on my M4 mac:
+  // maxComputeWorkgroupSizeX 256
+  // maxComputeWorkgroupSizeY 256
+  // maxComputeWorkgroupSizeZ 64
+  // maxComputeInvocationsPerWorkgroup 256
+  // maxComputeWorkgroupsPerDimension 65535
+
   const blockHeaderAsU8Array = new Uint8Array(80); // 80 bytes for block header
-  const nonce = 12345;
-  blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
+  // const nonce = 12345;
+  // blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
   console.log("blockHeaderAsU8Array", blockHeaderAsU8Array);
   console.log("blockHeaderAsU8Array.length", blockHeaderAsU8Array.length);
 
@@ -74,8 +94,13 @@ async function run(): Promise<void> {
 
   storage.unmap();
 
+  const workgroupSizeX = 2;
+  const workgroupSizeY = 1;
+  const workgroupSizeZ = 1;
+  const messageCount = workgroupSizeX * workgroupSizeY * workgroupSizeZ;
+
   // Output buffer for all hashes (messages.length), each with 8 u32 words
-  const outputSize = 1 * 8 * 4; // 1 message * 8 words * 4 bytes per word
+  const outputSize = messageCount * 8 * 4; // 1 message * 8 words * 4 bytes per word
 
   // Storage buffer for shader output - ensure proper alignment
   const alignedOutputSize = Math.ceil(outputSize / 256) * 256; // Align to 256 bytes for storage buffers
@@ -117,7 +142,7 @@ async function run(): Promise<void> {
   const pass = encoder.beginComputePass();
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bind);
-  pass.dispatchWorkgroups(1);
+  pass.dispatchWorkgroups(workgroupSizeX, workgroupSizeY, workgroupSizeZ);
   pass.end();
 
   // Copy from output buffer to readback buffer
@@ -129,6 +154,7 @@ async function run(): Promise<void> {
   await readback.mapAsync(GPUMapMode.READ);
   const uint32ArrayResult = new Uint32Array(readback.getMappedRange());
   console.log("Uint32Array result", uint32ArrayResult);
+  console.log("uint32ArrayResult.length", uint32ArrayResult.length);
 
   // Print each u32 in hex
   for (let i = 0; i < uint32ArrayResult.length; i++) {
@@ -154,11 +180,13 @@ async function run(): Promise<void> {
 
   // Print results
   console.log("\nSHA-256 Results:");
-  const hashStart = 0 * 8;
-  const hash = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
-  const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
-  console.log(`Hash 1 (block header with nonce):`);
-  console.log(`  ${hashHex}`);
+  for (let i = 0; i < messageCount; i++) {
+    const hashStart = i * 8;
+    const hash = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
+    const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
+    console.log(`Hash ${i + 1} (block header with nonce):`);
+    console.log(`  ${hashHex}`);
+  }
 
   readback.unmap();
 
