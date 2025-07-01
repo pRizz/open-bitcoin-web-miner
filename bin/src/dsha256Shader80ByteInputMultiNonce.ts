@@ -307,6 +307,7 @@ fn padHashBlock(hash: array<u32, 8>) -> array<u32, 16> {
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x; // Get the unique index for this work item
+    let nonce = index;
     
     // Each message is 20 u32 words (80 bytes = 640 bits)
     let messageOffset = index * 20u;
@@ -318,6 +319,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         // but input data from JavaScript on typical systems is little-endian.
         header[i] = byteSwap(input[messageOffset + i]);
     }
+    
+    // Set the last four bytes (header[19]) to the nonce value in little endian
+    // The nonce is already in little endian from the input, so we just need to byte-swap it
+    // to convert it to big-endian for SHA-256 processing
+    header[19] = byteSwap(nonce);
     
     // --- First SHA-256 Pass ---
     // The 80-byte message is split into two 64-byte (16-word) blocks for SHA-256 processing.

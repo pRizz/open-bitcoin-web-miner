@@ -84,6 +84,34 @@ describe('cpuMiningUtils', () => {
     });
   });
 
+  describe('doubleSha256BlockHeaderU8ArrayNonceOf1', () => {
+    it('should update nonce and perform double SHA-256 hash on block header with nonce 1', async () => {
+      // Arrange
+      const blockHeaderAsU8Array = new Uint8Array(80).fill(0); // 80 bytes for block header
+      const nonce = 1;
+
+      // Act
+      const result = await doubleSha256BlockHeaderU8Array(blockHeaderAsU8Array, nonce);
+
+      // Assert
+      expect(result).toBeInstanceOf(Uint8Array);
+      expect(result.length).toBe(32); // SHA-256 produces 32 bytes
+
+      // Verify that the nonce was updated in the block header
+      const nonceBytes = blockHeaderAsU8Array.slice(76, 80);
+      const expectedNonceBytes = serializeNonceLE(nonce);
+      expect(nonceBytes).toEqual(expectedNonceBytes);
+
+      // Convert to hex for easier comparison
+      const resultHex = Array.from(result)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      const expectedHex = '30fc9ca5affa113da33982d0212963bcd792ddbb4d4f975cf0943b554c8af369';
+      expect(resultHex).toBe(expectedHex);
+    });
+  });
+
   describe('doubleSha256BlockHeaderU8Array', () => {
     it('should update nonce and perform double SHA-256 hash on block header', async () => {
       // Arrange
