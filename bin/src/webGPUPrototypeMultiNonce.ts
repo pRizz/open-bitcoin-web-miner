@@ -51,22 +51,7 @@ function toBigEndianBytes(u32Array: Uint32Array): Uint8Array {
 async function run(): Promise<void> {
   const device = await getDevice();
 
-  // 2. prepare data - two messages: empty string and "abc"
-  // https://www.di-mgt.com.au/sha_testvectors.html
-  //   const messages = [
-  //     "", // empty string
-  //     "abc", // string "abc" = 0x616263
-  //     "hello",
-  //     "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits // wrong
-  //     "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits // wrong
-  //     "", // empty string
-  //     "", // empty string
-  //   ];
-
   const blockHeaderAsU8Array = new Uint8Array(80); // 80 bytes for block header
-//   blockHeaderAsU8Array[0] = 1;
-  // blockHeaderAsU8Array.set(serializeNonceLE(1), 0);
-  // const nonce = 0;
   const nonce = 12345;
   blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
   console.log("blockHeaderAsU8Array", blockHeaderAsU8Array);
@@ -74,21 +59,8 @@ async function run(): Promise<void> {
 
   // Flatten the blocks into a single array
   const inputData = blockHeaderAsU8Array;
-  //   console.log("inputData", inputData);
-  // should be doubleSha256BlockHeaderU8Array: blockHeaderAsU8Array Uint8Array(80) [
-  //   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
-  //   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
-  //   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
-  //   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
-  //   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
-  //   0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0, 0,
-  //   0, 0, 0, 0, 57, 48, 0, 0
-  // ]
-  //   const inputBuffer = new Uint32Array(inputData);
   const byteLength = inputData.byteLength;
-  //   const alignedByteLength = Math.ceil(byteLength / 256) * 256; // Align to 256 bytes for storage buffers
 
-  // console.log(`Input buffer: ${byteLength} bytes, aligned to ${alignedByteLength} bytes`);
   console.log(`Input buffer: ${byteLength} bytes`);
   console.log(`Input data length: ${inputData.length} bytes`);
 
@@ -98,17 +70,6 @@ async function run(): Promise<void> {
     mappedAtCreation: true,
   });
 
-  // Option 1: Convert Uint8Array to Uint32Array for proper storage
-  //   const uint32Data = new Uint32Array(byteLength / 4); // 80 bytes = 20 u32 words
-  //   const dataView = new DataView(inputData.buffer, inputData.byteOffset, inputData.byteLength);
-
-  //   for (let i = 0; i < uint32Data.length; i++) {
-  //     uint32Data[i] = dataView.getUint32(i * 4, true); // true for little-endian
-  //   }
-
-  //   new Uint32Array(storage.getMappedRange()).set(uint32Data);
-
-  // Option 2: Alternative - use Uint8Array view directly
   new Uint8Array(storage.getMappedRange()).set(inputData);
 
   storage.unmap();
