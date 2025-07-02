@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { bytesToBuffer, doubleSha256, createBlockFromTemplate } from './RewardVerifier';
 import { calculateRequiredLeadingBinaryZeroes } from './miningCopy';
 import { readFileSync } from 'fs';
-import { webGPUPrototypeMain } from './webGPUPrototypeMultiNonce';
+import { webGPUPrototypeMain } from './webGPUPrototypeTwoNonceSnapshot';
 // import { updateAWSDomainAddressesMain } from './updateAWSDomainAddresses';
 
 // Run with:
