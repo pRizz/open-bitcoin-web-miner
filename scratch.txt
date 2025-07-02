@@ -1,0 +1,54 @@
+2025-07-02
+
+Hash 1023 (block header with nonce):
+  0x28e5643e 0x296a64ee 0x87e331b4 0xe37564fb 0x999d4a29 0x02877e25 0x572fd7a3 0x5d3bbdea
+Hash 1024 (block header with nonce):
+  0x0e0757e0 0x93bab2aa 0xeaf253f6 0x5260439e 0xbce15330 0x30a50337 0x69d7b645 0x66aaed9f
+
+testing webgpu prototype with 256 workgroups
+
+@compute @workgroup_size(256)
+
+  const workgroupSizeX = 256;
+  const workgroupSizeY = 2;
+  const workgroupSizeZ = 2;
+
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x; // Get the unique index for this work item
+    let nonce = index;
+
+
+Hash 1023 (block header with nonce):
+  0x28e5643e 0x296a64ee 0x87e331b4 0xe37564fb 0x999d4a29 0x02877e25 0x572fd7a3 0x5d3bbdea
+Hash 1024 (block header with nonce):
+  0x9fcc50d4 0x4390f555 0x1d514a2c 0x93dc0976 0xb010f4dd 0x4f3b5b9e 0x6fba5cf7 0x91fc6481
+
+The last hash, at index 1024, comes from somewhere I don't understand.
+Hash 1023 corresponds to nonce 03ff
+supposed to be 
+4e33adc89bb1e5492bb0f30e8ff543899d932aee247722e408c1f3f6f7ec3113
+
+
+nonce efff
+Hash 61439 (block header with nonce):
+  0xc9464227 0xf222dbe8 0x7aa8e52c 0xf4dfd7c8 0x096da4dc 0xbfff27f3 0x8c665301 0x88c2c0af
+
+
+nonce feff
+Hash 65279 (block header with nonce):
+  0x6c12ec71 0x160d6804 0xa34e99c2 0x66c5e1de 0xa5339530 0x388aa3f6 0x70215f44 0x090c80e2
+
+nonce fffe
+Hash 65534 (block header with nonce):
+  0xfbfc7988 0x202ded92 0x04f7f87b 0xb62e5b6f 0xb94b0925 0x01167ae1 0xc13e8cc0 0x2502da06
+
+nonce ffff
+Hash 65535 (block header with nonce):
+  0xfe6f95c7 0xa0d194da 0x4ff4e756 0x5bc23a59 0x2edf208e 0xf4319baa 0x07fb75f3 0x98245062
+
+
+
+
+
+
+Hash 65536 (block header with nonce):
