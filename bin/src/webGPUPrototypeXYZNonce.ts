@@ -94,9 +94,9 @@ async function run(): Promise<void> {
 
   storage.unmap();
 
-  const workgroupSizeX = 2;
-  const workgroupSizeY = 1;
-  const workgroupSizeZ = 1;
+  const workgroupSizeX = 256;
+  const workgroupSizeY = 256; // 256*256 = 65536 = 2^16
+  const workgroupSizeZ = 1; // If 2, does not work; get all zeroes result
   const messageCount = workgroupSizeX * workgroupSizeY * workgroupSizeZ;
 
   // Output buffer for all hashes (messages.length), each with 8 u32 words
@@ -157,9 +157,9 @@ async function run(): Promise<void> {
   console.log("uint32ArrayResult.length", uint32ArrayResult.length);
 
   // Print each u32 in hex
-  for (let i = 0; i < uint32ArrayResult.length; i++) {
-    console.log(`u32[${i}] = ${uint32ArrayResult[i].toString(16).padStart(8, '0')}`);
-  }
+  // for (let i = 0; i < uint32ArrayResult.length; i++) {
+  //   console.log(`u32[${i}] = ${uint32ArrayResult[i].toString(16).padStart(8, '0')}`);
+  // }
 
   // U8 view of result
   const resultU8 = toBigEndianBytes(uint32ArrayResult);
@@ -173,18 +173,18 @@ async function run(): Promise<void> {
   console.log("reversedResultU8", reversedResultU8);
 
   // Convert to hex for easier comparison
-  const resultHex = Array.from(reversedResultU8)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-  console.log("resultHex", resultHex);
+  // const resultHex = Array.from(reversedResultU8)
+  //   .map(b => b.toString(16).padStart(2, '0'))
+  //   .join('');
+  // console.log("resultHex", resultHex);
 
   // Print results
-  console.log("\nSHA-256 Results:");
+  console.log("\nSHA-256 Results (count: " + messageCount + "):");
   for (let i = 0; i < messageCount; i++) {
     const hashStart = i * 8;
     const hash = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
     const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
-    console.log(`Hash ${i + 1} (block header with nonce):`);
+    console.log(`Hash ${i} (block header with nonce):`);
     console.log(`  ${hashHex}`);
   }
 

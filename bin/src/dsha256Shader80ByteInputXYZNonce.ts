@@ -1,4 +1,7 @@
-// TODO: audit
+const workgroupSizeX = 256;
+const workgroupSizeY = 2;
+const workgroupSizeZ = 2;
+
 export const computeShaderCode = `
 // WebGPU Compute Shader for Double SHA-256 Hashing
 // This shader takes an 80-byte input (interpreted as 20 u32 words)
@@ -304,9 +307,22 @@ fn padHashBlock(hash: array<u32, 8>) -> array<u32, 16> {
 
 // Main compute shader entry point.
 // Each workgroup processes one 80-byte message.
+// fn main(
+//   @builtin(global_invocation_id)  global_id: vec3<u32>,
+//   @builtin(num_workgroups) workgroup_counts: vec3<u32>
+// ) {
+//     let gridSizeX = workgroup_counts.x * workgroupSizeX;
+//     let gridSizeY = workgroup_counts.y * workgroupSizeY;
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x; // Get the unique index for this work item
+
+    // Doesn't work: https://chatgpt.com/c/68647bdb-4cfc-8002-a60c-a7a22aa3aea5
+    // let index = 
+    //   global_id.z * (gridSizeX * gridSizeY) +
+    //   global_id.y * gridSizeX +
+    //   global_id.x;
+
     let nonce = index;
     
     // Each message is 20 u32 words (80 bytes = 640 bits)
