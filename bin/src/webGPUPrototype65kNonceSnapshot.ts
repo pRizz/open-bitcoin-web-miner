@@ -1,5 +1,5 @@
 import { create, globals } from "webgpu";
-import { computeShaderCode } from "./dsha256Shader80ByteInputXYZNonce";
+import { computeShaderCode } from "./dsha256Shader80ByteInput65kNonceSnapshot";
 
 // 1. expose WebGPU globals in Node
 Object.assign(globalThis, globals);
