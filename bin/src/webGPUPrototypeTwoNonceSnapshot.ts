@@ -55,7 +55,7 @@ async function run(): Promise<void> {
 
   // Key workgroup-related limits:
   const maxComputeWorkgroupSizeX = limits.maxComputeWorkgroupSizeX;
-  const maxComputeWorkgroupSizeY = limits.maxComputeWorkgroupSizeY; 
+  const maxComputeWorkgroupSizeY = limits.maxComputeWorkgroupSizeY;
   const maxComputeWorkgroupSizeZ = limits.maxComputeWorkgroupSizeZ;
   const maxComputeInvocationsPerWorkgroup = limits.maxComputeInvocationsPerWorkgroup;
   const maxComputeWorkgroupsPerDimension = limits.maxComputeWorkgroupsPerDimension;

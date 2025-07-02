@@ -64,7 +64,7 @@ async function run(): Promise<void> {
   //   ];
 
   const blockHeaderAsU8Array = new Uint8Array(80); // 80 bytes for block header
-//   blockHeaderAsU8Array[0] = 1;
+  //   blockHeaderAsU8Array[0] = 1;
   // blockHeaderAsU8Array.set(serializeNonceLE(1), 0);
   // const nonce = 0;
   const nonce = 12345;

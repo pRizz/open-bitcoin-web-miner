@@ -1,6 +1,3 @@
-const workgroupSizeX = 256;
-const workgroupSizeY = 2;
-const workgroupSizeZ = 2;
 
 export const computeShaderCode = `
 // WebGPU Compute Shader for Double SHA-256 Hashing
