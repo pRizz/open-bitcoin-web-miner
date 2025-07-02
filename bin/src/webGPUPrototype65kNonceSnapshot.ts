@@ -56,7 +56,7 @@ async function run(): Promise<void> {
 
   // Key workgroup-related limits:
   const maxComputeWorkgroupSizeX = limits.maxComputeWorkgroupSizeX;
-  const maxComputeWorkgroupSizeY = limits.maxComputeWorkgroupSizeY; 
+  const maxComputeWorkgroupSizeY = limits.maxComputeWorkgroupSizeY;
   const maxComputeWorkgroupSizeZ = limits.maxComputeWorkgroupSizeZ;
   const maxComputeInvocationsPerWorkgroup = limits.maxComputeInvocationsPerWorkgroup;
   const maxComputeWorkgroupsPerDimension = limits.maxComputeWorkgroupsPerDimension;
@@ -80,13 +80,13 @@ async function run(): Promise<void> {
 
   // Flatten the blocks into a single array
   const inputData = blockHeaderAsU8Array;
-  const byteLength = inputData.byteLength;
+  const inputByteLength = inputData.byteLength;
 
-  console.log(`Input buffer: ${byteLength} bytes`);
+  console.log(`Input buffer: ${inputByteLength} bytes`);
   console.log(`Input data length: ${inputData.length} bytes`);
 
   const storage = device.createBuffer({
-    size: byteLength,
+    size: inputByteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     mappedAtCreation: true,
   });
