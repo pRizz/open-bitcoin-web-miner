@@ -49,6 +49,7 @@ function toBigEndianBytes(u32Array: Uint32Array): Uint8Array {
 }
 
 async function run(): Promise<void> {
+  const startTime = Date.now();
   const device = await getDevice();
 
   const limits = device.limits;
@@ -108,10 +109,15 @@ async function run(): Promise<void> {
   console.log(`Output buffer: ${outputSize} bytes, aligned to ${alignedOutputSize} bytes`);
   console.log(`Expected output: 1 hash, 8 u32 words total`);
 
+  const beforeOutputBufferTime = Date.now();
+
   const outputBuffer = device.createBuffer({
     size: alignedOutputSize,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
+
+  const afterOutputBufferTime = Date.now();
+  console.log(`Time taken to create output buffer: ${afterOutputBufferTime - beforeOutputBufferTime}ms`);
 
   // Readback buffer for CPU access
   const readback = device.createBuffer({
@@ -138,6 +144,7 @@ async function run(): Promise<void> {
   });
 
   // 4. record commands
+  const beforePassTime = Date.now();
   const encoder = device.createCommandEncoder();
   const pass = encoder.beginComputePass();
   pass.setPipeline(pipeline);
@@ -145,13 +152,28 @@ async function run(): Promise<void> {
   pass.dispatchWorkgroups(workgroupSizeX, workgroupSizeY, workgroupSizeZ);
   pass.end();
 
-  // Copy from output buffer to readback buffer
-  encoder.copyBufferToBuffer(outputBuffer, 0, readback, 0, outputSize);
+  const afterPassTime = Date.now();
+  console.log(`Time taken to dispatch workgroups: ${afterPassTime - beforePassTime}ms`);
 
+  // Copy from output buffer to readback buffer
+  const beforeCopyTime = Date.now();
+  encoder.copyBufferToBuffer(outputBuffer, 0, readback, 0, outputSize);
+  const afterCopyTime = Date.now();
+  console.log(`Time taken to copy output buffer to readback buffer: ${afterCopyTime - beforeCopyTime}ms`);
+
+  const beforeSubmitTime = Date.now();
   device.queue.submit([encoder.finish()]);
 
+  const afterSubmitTime = Date.now();
+  console.log(`Time taken to submit command buffer: ${afterSubmitTime - beforeSubmitTime}ms`);
+
   // 5. read & log
+  const beforeMapTime = Date.now();
   await readback.mapAsync(GPUMapMode.READ);
+  const afterMapTime = Date.now();
+  // Sampled at 40-50ms with 65k nonces; so roughly 1.6MH/s
+  console.log(`Time taken to map readback buffer: ${afterMapTime - beforeMapTime}ms`);
+
   const uint32ArrayResult = new Uint32Array(readback.getMappedRange());
   console.log("Uint32Array result", uint32ArrayResult);
   console.log("uint32ArrayResult.length", uint32ArrayResult.length);
@@ -179,14 +201,14 @@ async function run(): Promise<void> {
   // console.log("resultHex", resultHex);
 
   // Print results
-  console.log("\nSHA-256 Results (count: " + messageCount + "):");
-  for (let i = 0; i < messageCount; i++) {
-    const hashStart = i * 8;
-    const hash = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
-    const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
-    console.log(`Hash ${i} (block header with nonce):`);
-    console.log(`  ${hashHex}`);
-  }
+  // console.log("\nSHA-256 Results (count: " + messageCount + "):");
+  // for (let i = 0; i < messageCount; i++) {
+  //   const hashStart = i * 8;
+  //   const hash = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
+  //   const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
+  //   console.log(`Hash ${i} (block header with nonce):`);
+  //   console.log(`  ${hashHex}`);
+  // }
 
   readback.unmap();
 
