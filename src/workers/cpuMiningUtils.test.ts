@@ -140,4 +140,38 @@ describe('cpuMiningUtils', () => {
     });
   });
 
+  // 000000208c0ce5d43932d7c46c90bed40a6992a92817a278060901000000000000000000112e11b5fd3a0c9b2de42a1097c029c5b50755d0b36f86fe71f64086a85560434494666816680217ff010000
+  // LE hex cefcd151b2e16ac4ef3c2a00f412cf1d105fc73f6291ae1ce334872614fe1216
+
+  describe('doubleSha256BlockHeaderU8Array', () => {
+    it('should update nonce and perform double SHA-256 hash on block header, sample1', async () => {
+      // Arrange
+      const blockHeaderAsHex = "000000208c0ce5d43932d7c46c90bed40a6992a92817a278060901000000000000000000a06298d5c0032cfae66b293235966cc0f04ca8c33223f1ed2e52d19f240190352f95666816680217ff010000";
+      const blockHeaderAsU8Array = new Uint8Array(80); // 80 bytes for block header
+      blockHeaderAsU8Array.set(new Uint8Array(blockHeaderAsHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))), 0);
+      const nonce = 511;
+
+      // Act
+      const result = await doubleSha256BlockHeaderU8Array(blockHeaderAsU8Array, nonce);
+
+      // Assert
+      expect(result).toBeInstanceOf(Uint8Array);
+      expect(result.length).toBe(32); // SHA-256 produces 32 bytes
+
+      // Verify that the nonce was updated in the block header
+      const nonceBytes = blockHeaderAsU8Array.slice(76, 80);
+      const expectedNonceBytes = serializeNonceLE(nonce);
+      expect(nonceBytes).toEqual(expectedNonceBytes);
+
+      // Convert to hex for easier comparison
+      const resultHex = Array.from(result)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      const expectedLittleEndianHex = 'cefcd151b2e16ac4ef3c2a00f412cf1d105fc73f6291ae1ce334872614fe1216';
+      const expectedBigEndianHex = expectedLittleEndianHex.match(/.{1,2}/g).reverse().join(''); // split every 2 chars, reverse, join
+      expect(resultHex).toBe(expectedBigEndianHex);
+    });
+  });
+
 });

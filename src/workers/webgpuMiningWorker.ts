@@ -5,6 +5,14 @@ import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 import { dsha256Shader80ByteInput } from "./webgpuShader";
 
+// 2025-07-05: runs about about 180k to 205k hashes per second
+// Optimizations:
+// - use atomics to only send back hashes/nonces that meet the target difficulty
+// - don't destroy the buffers every mining loop
+// - try to increase workgroup size / count
+// - clean up Output struct from extraneous fields
+// - etc.
+
 let running = false;
 let hashCount = 0;
 let startTime = performance.now();
@@ -12,10 +20,107 @@ let miningSpeed = 100;
 let cumulativeHashes = 0;
 const HASH_RATE_UPDATE_INTERVAL = 1000;
 
-const maybeGPUDevice: GPUDevice | null = null;
+let maybeGPUDevice: GPUDevice | null = null;
 let maybeGPUComputePipeline: GPUComputePipeline | null = null;
 let maybeCurrentChallenge: MiningChallenge | null = null;
 let maybeGPUInitSuccessResult: GPUInitSuccessResult | null = null;
+
+// Maps to shader struct:
+// struct Output {
+//   hash: array<u32, 8>,
+// //   header: array<u32, 20>,
+//   nonce: u32,
+//   globalIdX: u32,
+//   globalIdY: u32,
+//   globalIdZ: u32,
+//   nonceOffset: u32,
+//   workgroup_count_x: u32,
+//   workgroup_count_y: u32,
+//   workgroup_count_z: u32,
+//   local_invocation_index: u32,
+//   local_invocation_id_x: u32,
+//   local_invocation_id_y: u32,
+//   local_invocation_id_z: u32,
+//   workgroup_id_x: u32,
+//   workgroup_id_y: u32,
+//   workgroup_id_z: u32
+// }
+interface OutputStruct {
+  hash: Uint32Array;
+  nonce: number;
+  globalIdX: number;
+  globalIdY: number;
+  globalIdZ: number;
+  nonceOffset: number;
+  workgroup_count_x: number;
+  workgroup_count_y: number;
+  workgroup_count_z: number;
+  local_invocation_index: number;
+  local_invocation_id_x: number;
+  local_invocation_id_y: number;
+  local_invocation_id_z: number;
+  workgroup_id_x: number;
+  workgroup_id_y: number;
+  workgroup_id_z: number;
+}
+
+function outputStructToString(outputStruct: OutputStruct): string {
+  return `
+  hash: ${outputStruct.hash}
+  nonce: ${outputStruct.nonce}
+  globalIdX: ${outputStruct.globalIdX}
+  globalIdY: ${outputStruct.globalIdY}
+  globalIdZ: ${outputStruct.globalIdZ}
+  nonceOffset: ${outputStruct.nonceOffset}
+  workgroup_count_x: ${outputStruct.workgroup_count_x}
+  workgroup_count_y: ${outputStruct.workgroup_count_y}
+  workgroup_count_z: ${outputStruct.workgroup_count_z}
+  local_invocation_index: ${outputStruct.local_invocation_index}
+  local_invocation_id_x: ${outputStruct.local_invocation_id_x}
+  local_invocation_id_y: ${outputStruct.local_invocation_id_y}
+  local_invocation_id_z: ${outputStruct.local_invocation_id_z}
+  workgroup_id_x: ${outputStruct.workgroup_id_x}
+  workgroup_id_y: ${outputStruct.workgroup_id_y}
+  workgroup_id_z: ${outputStruct.workgroup_id_z}
+  `;
+}
+
+function outputStructFromUint32Array(uint32Array: Uint32Array<ArrayBuffer>, startIndex: number): OutputStruct {
+  const hashU32Words = uint32Array.slice(startIndex, startIndex + 8);
+  const nonceU32 = uint32Array[startIndex + 8];
+  const globalIdX = uint32Array[startIndex + 9];
+  const globalIdY = uint32Array[startIndex + 10];
+  const globalIdZ = uint32Array[startIndex + 11];
+  const nonceOffset = uint32Array[startIndex + 12];
+  const workgroup_count_x = uint32Array[startIndex + 13];
+  const workgroup_count_y = uint32Array[startIndex + 14];
+  const workgroup_count_z = uint32Array[startIndex + 15];
+  const local_invocation_index = uint32Array[startIndex + 16];
+  const local_invocation_id_x = uint32Array[startIndex + 17];
+  const local_invocation_id_y = uint32Array[startIndex + 18];
+  const local_invocation_id_z = uint32Array[startIndex + 19];
+  const workgroup_id_x = uint32Array[startIndex + 20];
+  const workgroup_id_y = uint32Array[startIndex + 21];
+  const workgroup_id_z = uint32Array[startIndex + 22];
+  return {
+    hash: hashU32Words,
+    nonce: nonceU32,
+    globalIdX: globalIdX,
+    globalIdY: globalIdY,
+    globalIdZ: globalIdZ,
+    nonceOffset: nonceOffset,
+    workgroup_count_x: workgroup_count_x,
+    workgroup_count_y: workgroup_count_y,
+    workgroup_count_z: workgroup_count_z,
+    local_invocation_index: local_invocation_index,
+    local_invocation_id_x: local_invocation_id_x,
+    local_invocation_id_y: local_invocation_id_y,
+    local_invocation_id_z: local_invocation_id_z,
+    workgroup_id_x: workgroup_id_x,
+    workgroup_id_y: workgroup_id_y,
+    workgroup_id_z: workgroup_id_z,
+  };
+}
 
 interface WorkerMessage {
   type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
@@ -50,20 +155,25 @@ interface GPUInitSuccessResult {
   // GPUAdapter: GPUAdapter;
 }
 
+// Throws if it fails to initWebGPU
 async function initWebGPU(): Promise<GPUInitSuccessResult> {
+  console.log("peterlog: gpuminingworker: initWebGPU; maybeGPUInitSuccessResult", maybeGPUInitSuccessResult);
   if (maybeGPUInitSuccessResult) {
-    console.log("Using cached GPU init success result");
+    console.log("peterlog: gpuminingworker: initWebGPU; Using cached GPU init success result");
     return maybeGPUInitSuccessResult;
   }
+  console.log("peterlog: gpuminingworker: initWebGPU; maybeGPUInitSuccessResult is null");
 
   if (!navigator.gpu) {
     throw new Error("WebGPU not supported");
   }
+  console.log("peterlog: gpuminingworker: initWebGPU; navigator.gpu", navigator.gpu);
 
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) {
     throw new Error("No appropriate GPUAdapter found");
   }
+  console.log("peterlog: gpuminingworker: initWebGPU; adapter", adapter);
 
   // Get all relevant device limits
   const {
@@ -100,10 +210,13 @@ async function initWebGPU(): Promise<GPUInitSuccessResult> {
     }
   });
 
+  console.log("peterlog: gpuminingworker: initWebGPU; device", device);
+
   // Create compute pipeline
   const shaderModule = device.createShaderModule({
     code: dsha256Shader80ByteInput,
   });
+  console.log("peterlog: gpuminingworker: initWebGPU; shaderModule", shaderModule);
 
   maybeGPUComputePipeline = await device.createComputePipelineAsync({
     layout: 'auto',
@@ -112,13 +225,16 @@ async function initWebGPU(): Promise<GPUInitSuccessResult> {
       entryPoint: 'main',
     },
   });
-
+  console.log("peterlog: gpuminingworker: initWebGPU; maybeGPUComputePipeline", maybeGPUComputePipeline);
   maybeGPUInitSuccessResult = {
     maxBufferSize: maxStorageBufferBindingSize,
     maxComputeWorkgroupsPerDimension,
     // GPUDevice: device,
     // GPUAdapter: adapter
   };
+
+  console.log("peterlog: gpuminingworker: initWebGPU; maybeGPUInitSuccessResult", maybeGPUInitSuccessResult);
+  maybeGPUDevice = device;
 
   return maybeGPUInitSuccessResult;
 }
@@ -138,9 +254,24 @@ function updateHashRate(batchSize: number) {
 }
 
 async function mine() {
+  console.log("peterlog: gpuminingworker: mine; maybeGPUDevice", maybeGPUDevice);
+  console.log("peterlog: gpuminingworker: mine; maybeGPUComputePipeline", maybeGPUComputePipeline);
+  console.log("peterlog: gpuminingworker: mine; maybeCurrentChallenge", maybeCurrentChallenge);
   if (!maybeGPUDevice || !maybeGPUComputePipeline || !maybeCurrentChallenge) return;
 
-  const { maxBufferSize, maxComputeWorkgroupsPerDimension } = await initWebGPU();
+  let maxBufferSize: number;
+  let maxComputeWorkgroupsPerDimension: number;
+  try {
+    const initWebGPUResult = await initWebGPU();
+    maxBufferSize = initWebGPUResult.maxBufferSize;
+    maxComputeWorkgroupsPerDimension = initWebGPUResult.maxComputeWorkgroupsPerDimension;
+  } catch (error) {
+    console.error('Mining error: failed to initWebGPU', error);
+    self.postMessage({ type: "error", data: error.message });
+    running = false;
+    return;
+  }
+
   console.log(`maxBufferSize: ${maxBufferSize}, maxComputeWorkgroupsPerDimension: ${maxComputeWorkgroupsPerDimension}`);
 
   // Calculate optimal batch size based on available memory
@@ -181,11 +312,12 @@ async function mine() {
   console.log("blockHeaderAsU8Array.length", blockHeaderAsU8Array.length);
 
   // Flatten the blocks into a single array
-  const inputData = blockHeaderAsU8Array;
-  const inputByteLength = inputData.byteLength;
+  // const inputData = blockHeaderAsU8Array;
+  const nonceOffsetU32Size = 4;
+  const inputByteLength = blockHeaderAsU8Array.byteLength + nonceOffsetU32Size;
 
   console.log(`Input buffer: ${inputByteLength} bytes`);
-  console.log(`Input data length: ${inputData.length} bytes`);
+  console.log(`blockHeaderAsU8Array length: ${blockHeaderAsU8Array.length} bytes`);
 
   const device = maybeGPUDevice;
 
@@ -196,10 +328,14 @@ async function mine() {
 
   // FIXME: increase time in header between mining loops
 
+  let nonceOffset = 0;
+  const nonceSet = new Set<number>();
+
   const miningLoop = async () => {
     if (!running || !maybeGPUDevice || !maybeGPUComputePipeline || !maybeCurrentChallenge) return;
 
     // const batchSize = WORKGROUP_SIZE * NUM_WORKGROUPS;
+    // TODO: audit
     const sleepTime = Math.floor((100 - miningSpeed) * 15); // Increased sleep multiplier from 10 to 15
 
     try {
@@ -210,24 +346,50 @@ async function mine() {
         mappedAtCreation: true,
       });
 
-      new Uint8Array(inputBuffer.getMappedRange()).set(inputData);
+      const inputDataU8Array = new Uint8Array(inputByteLength);
+      inputDataU8Array.set(blockHeaderAsU8Array);
+      const nonceOffsetU32Array = new Uint32Array([nonceOffset]);
+      console.log("peterlog: nonceOffset", nonceOffset);
+      console.log("peterlog: nonceOffsetU32Array", nonceOffsetU32Array);
+      console.log("peterlog: nonceOffsetU32Array.length", nonceOffsetU32Array.length);
+      const nonceOffsetAsU8Array = new Uint8Array(nonceOffsetU32Array.buffer); // convert to u8 array to set in inputDataU8Array; otherwise the inputDataU8Array.set silently fails
+      inputDataU8Array.set(nonceOffsetAsU8Array, blockHeaderAsU8Array.length);
+      console.log("peterlog: inputDataU8Array", inputDataU8Array);
+      new Uint8Array(inputBuffer.getMappedRange()).set(inputDataU8Array);
 
       inputBuffer.unmap();
 
-      const workgroupSizeX = 256;
-      const workgroupSizeY = 256; // 256*256 = 65536 = 2^16
-      const workgroupSizeZ = 1; // If 2, does not work; get all zeroes result
-      const messageCount = workgroupSizeX * workgroupSizeY * workgroupSizeZ;
-      const hashBatchSize = messageCount;
+      // Need to consider max buffer size because got this warning/error:
+      // Buffer size (603979776) exceeds the max buffer size limit (268435456). This adapter supports a higher maxBufferSize of 4294967296, which can be specified in requiredLimits when calling requestDevice(). Limits differ by hardware, so always check the adapter limits prior to requesting a higher limit.
+      //  - While calling [Device].CreateBuffer([BufferDescriptor]).
+      const mainWorkgroupSizeX = 256; // align with the shader in main()
+      // TODO: investigate if it is faster to distribute this 256 among the y and z axes
+      const workgroupCountX = 256;
+      const workgroupCountY = 1; // If 2, does not work; get all zeroes result after 65k'th result
+      const workgroupCountZ = 1; // If 2, does not work; get all zeroes result after 65k'th result
+      const outputStructCount = workgroupCountX * workgroupCountY * workgroupCountZ * mainWorkgroupSizeX;
+      const hashBatchSize = outputStructCount;
+
+      const outputStructU32Size =
+      8 // hash
+       + 1 // nonce
+       + 3 // globalIdX, globalIdY, globalIdZ
+       + 1 // nonceOffset
+       + 3 // workgroup_count_x, workgroup_count_y, workgroup_count_z
+       + 1 // local_invocation_index
+       + 3 // local_invocation_id_x, local_invocation_id_y, local_invocation_id_z
+       + 3 // workgroup_id_x, workgroup_id_y, workgroup_id_z
+       ;
+      console.log("peterlog: outputStructU32Size", outputStructU32Size);
+      const outputStructByteSize = outputStructU32Size * 4; // output struct size in bytes; 4 bytes per u32
 
       // Output buffer for all hashes (messages.length), each with 8 u32 words
-      const outputSize = messageCount * 8 * 4; // 1 message * 8 words * 4 bytes per word
+      const allOutputSize = outputStructCount * outputStructByteSize; // 1 message * 8 words * 4 bytes per word
 
       // Storage buffer for shader output - ensure proper alignment
-      const alignedOutputSize = Math.ceil(outputSize / 256) * 256; // Align to 256 bytes for storage buffers
+      const alignedOutputSize = Math.ceil(allOutputSize / 256) * 256; // Align to 256 bytes for storage buffers
 
-      console.log(`Output buffer: ${outputSize} bytes, aligned to ${alignedOutputSize} bytes`);
-      console.log(`Expected output: 1 hash, 8 u32 words total`);
+      console.log(`Output buffer: ${allOutputSize} bytes, aligned to ${alignedOutputSize} bytes`);
 
       const beforeOutputBufferTime = Date.now();
 
@@ -241,14 +403,18 @@ async function mine() {
 
       // Readback buffer for CPU access
       const readbackBuffer = device.createBuffer({
-        size: outputSize,
+        size: alignedOutputSize,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
+
+      console.log("making shader");
 
       // 3. WGSL shader
       const shader = device.createShaderModule({
         code: dsha256Shader80ByteInput,
       });
+
+      console.log("making compute pipeline");
 
       // TODO: use maybeGPUComputePipeline
       const computePipeline = device.createComputePipeline({
@@ -270,7 +436,7 @@ async function mine() {
       const computePassEncoder = commandEncoder.beginComputePass();
       computePassEncoder.setPipeline(computePipeline);
       computePassEncoder.setBindGroup(0, gpuBindGroup);
-      computePassEncoder.dispatchWorkgroups(workgroupSizeX, workgroupSizeY, workgroupSizeZ);
+      computePassEncoder.dispatchWorkgroups(workgroupCountX, workgroupCountY, workgroupCountZ);
       computePassEncoder.end();
 
       const afterPassTime = Date.now();
@@ -278,7 +444,7 @@ async function mine() {
 
       // Copy from output buffer to readback buffer
       const beforeCopyTime = Date.now();
-      commandEncoder.copyBufferToBuffer(outputBuffer, 0, readbackBuffer, 0, outputSize);
+      commandEncoder.copyBufferToBuffer(outputBuffer, 0, readbackBuffer, 0, allOutputSize);
       const afterCopyTime = Date.now();
       console.log(`Time taken to copy output buffer to readback buffer: ${afterCopyTime - beforeCopyTime}ms`);
 
@@ -299,64 +465,123 @@ async function mine() {
       console.log("Uint32Array result", uint32ArrayResult);
       console.log("uint32ArrayResult.length", uint32ArrayResult.length);
 
-      // Print each u32 in hex
-      // for (let i = 0; i < uint32ArrayResult.length; i++) {
-      //   console.log(`u32[${i}] = ${uint32ArrayResult[i].toString(16).padStart(8, '0')}`);
-      // }
+      // Process the extracted hash words
+      console.log("peterlog: gpuminingworker: mine; hashCount", outputStructCount);
+      let stopMiningLeft = 0;
+      for (let outputStructIndex = 0; outputStructIndex < outputStructCount; outputStructIndex++) {
+        const outputStructStartIndex = outputStructIndex * outputStructU32Size;
+        const outputStruct = outputStructFromUint32Array(uint32ArrayResult, outputStructStartIndex);
+        const hashU32Words = outputStruct.hash;
+        const nonceU32 = outputStruct.nonce;
+        const globalIdX = outputStruct.globalIdX;
+        const globalIdY = outputStruct.globalIdY;
+        const globalIdZ = outputStruct.globalIdZ;
+        const outputNonceOffset = outputStruct.nonceOffset;
 
-      // U8 view of result
-      const resultU8 = toBigEndianBytes(uint32ArrayResult);
-      console.log("resultU8", resultU8);
+        const hashWordsU8FromLittleEndian = convertUint32ArrayToUint8ArrayLittleEndianToBigEndian(hashU32Words);
 
-      // Reverse the u8 array
-      // TODO: do this in the shader
-      const reversedResultU8 = new Uint8Array(resultU8.length);
-      for (let i = 0; i < resultU8.length; i++) {
-        reversedResultU8[i] = resultU8[resultU8.length - i - 1];
-      }
-      console.log("reversedResultU8", reversedResultU8);
-
-      // Convert to hex for easier comparison
-      // const resultHex = Array.from(reversedResultU8)
-      //   .map(b => b.toString(16).padStart(2, '0'))
-      //   .join('');
-      // console.log("resultHex", resultHex);
-
-      // Print results
-      // console.log("\nSHA-256 Results (count: " + messageCount + "):");
-      // for (let i = 0; i < messageCount; i++) {
-      //   const hashStart = i * 8;
-      //   const hash = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
-      //   const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
-      //   console.log(`Hash ${i} (block header with nonce):`);
-      //   console.log(`  ${hashHex}`);
-      // }
-
-      readbackBuffer.unmap();
-
-      for (let i = 0; i < messageCount; i++) {
-        const hashStart = i * 8;
-        const hashWords = Array.from(uint32ArrayResult.slice(hashStart, hashStart + 8));
-        // FIXME: might need to reverse the words; check endianness; read as u8 instead of u32
-
-        // const hashHex = hash.map(x => "0x" + x.toString(16).padStart(8, '0')).join(' ');
-        // console.log(`Hash ${i} (block header with nonce):`);
-        // console.log(`  ${hashHex}`);
-
-        const hashString = Array.from(hashWords)
-          .map(word => word.toString(16).padStart(8, '0'))
+        const hashStringFromLittleEndian = Array.from(hashWordsU8FromLittleEndian)
+          .map(word => word.toString(16).padStart(2, '0'))
           .join('');
 
-        const { leadingBinaryZeroes } = calculateLeadingZeroesFromHexString(hashString);
+        const hashStringFromLittleEndianReversed = hashStringFromLittleEndian.match(/.{1,2}/g).reverse().join(''); // split every 2 chars, reverse, join
+        const { leadingBinaryZeroes } = calculateLeadingZeroesFromHexString(hashStringFromLittleEndianReversed);
 
-        if (leadingBinaryZeroes >= maybeCurrentChallenge.targetZeros) {
+        if (nonceSet.has(nonceU32)) {
+          // stopMining = true;
+          if(stopMiningLeft === 0) {
+            stopMiningLeft = 5;
+          }
+          // sample: Mining error: Error: peterlog: gpuminingworker: mine; nonce already seen; nonceU32 0, hashIndex 65536, skipping
+          console.log("peterlog: nonceOffset", nonceOffset);
+          console.log("peterlog: outputNonceOffset", outputNonceOffset);
+          console.log("peterlog: globalIdX", globalIdX);
+          console.log("peterlog: globalIdY", globalIdY);
+          console.log("peterlog: globalIdZ", globalIdZ);
+          console.log(`peterlog: gpuminingworker: mine; nonce already seen; nonceU32 ${nonceU32}, hashIndex ${outputStructIndex}, hashCount ${outputStructCount}, skipping`);
+          console.log("hashStringFromLittleEndian", hashStringFromLittleEndian);
+          console.log("hashStringFromLittleEndianReversed", hashStringFromLittleEndianReversed);
+          console.error("peterlog: outputStruct", outputStructToString(outputStruct));
+          console.error(`peterlog: gpuminingworker: mine; nonce already seen; nonceU32 ${nonceU32}, hashIndex ${outputStructIndex}, hashCount ${outputStructCount}, skipping`)
+          // throw new Error(`peterlog: gpuminingworker: mine; nonce already seen; nonceU32 ${nonceU32}, hashIndex ${outputStructIndex}, hashCount ${outputStructCount}, skipping`);
+        }
+        nonceSet.add(nonceU32);
+
+        ////// TEMP
+
+        // const shouldLog = Math.log2(outputStructIndex) % 1 === 0 || Math.log2(outputStructIndex - 1) % 1 === 0 || Math.log2(outputStructIndex + 1) % 1 === 0;
+        // if(shouldLog) {
+        //   console.log("peterlog: outputStructIndex", outputStructIndex);
+        //   console.log("peterlog: outputStruct", outputStructToString(outputStruct));
+        // }
+
+        // if(stopMiningLeft > 0) {
+        //   stopMiningLeft--;
+        //   console.log("peterlog: stopMiningLeft", stopMiningLeft);
+        //   console.log("peterlog: outputStructIndex", outputStructIndex);
+        //   console.log("peterlog: outputStruct", outputStructToString(outputStruct));
+        // }
+        // if(stopMiningLeft === 1) {
+        //   console.log("peterlog: stopMiningLeft is 1; stopping mining");
+        //   throw new Error("peterlog: stopMiningLeft is 1; stopping mining");
+        // }
+
+        // console.log("peterlog: nonceOffset", nonceOffset);
+        // console.log("peterlog: outputNonceOffset", outputNonceOffset);
+        // console.log("peterlog: globalIdX", globalIdX);
+        // console.log("peterlog: globalIdY", globalIdY);
+        // console.log("peterlog: globalIdZ", globalIdZ);
+        // console.log(`peterlog: gpuminingworker: mine; nonce already seen; nonceU32 ${nonceU32}, hashIndex ${outputStructIndex}, hashCount ${outputStructCount}, skipping`);
+        // console.log("hashStringFromLittleEndian", hashStringFromLittleEndian);
+
         // Calculate the nonce for this solution
         // TODO: audit
-          const solutionNonce = i;
+        // const solutionNonce = nonceU32;
+        // const noncedBlockHeader = serializeNoncelessBlockHeader(maybeCurrentChallenge.noncelessBlockHeader, solutionNonce);
+        // // const nonceVecU8 = serializeNonceLE(solutionNonce);
+        // // noncedBlockHeader.set(nonceVecU8, 76);
+        // console.log("blockHeaderWithNonce", noncedBlockHeader);
+        // const blockHeaderAsHex = Array.from(noncedBlockHeader)
+        //   .map(byte => byte.toString(16).padStart(2, '0'))
+        //   .join('');
+        // console.log("blockHeaderAsHex", blockHeaderAsHex);
+        // console.log(`debug got solution with nonce ${solutionNonce}`);
+        // console.log(`hashStringFromLittleEndian: ${hashStringFromLittleEndian}`);
+        // // console.log(`hashStringFromBigEndian: ${hashStringFromBigEndian}`);
+        // console.log(`leadingBinaryZeroes: ${leadingBinaryZeroes}`);
+        // console.log(`maybeCurrentChallenge.targetZeros: ${maybeCurrentChallenge.targetZeros}`);
+        // if (hashIndex == 530) {
+        //   console.log("got 530 hashes; returning");
+        //   return;
+        // }
+
+        /////// TEMP
+
+        if (leadingBinaryZeroes >= maybeCurrentChallenge.targetZeros) {
+          console.log("hashU32Words", hashU32Words);
+
+          // Calculate the nonce for this solution
+          // TODO: audit
+          // const solutionNonce = hashIndex;
+          const solutionNonce = nonceU32;
           console.log(`Found solution with nonce ${solutionNonce}`);
+          console.log(`hashStringFromLittleEndian: ${hashStringFromLittleEndian}`);
+          console.log(`hashStringFromLittleEndianReversed: ${hashStringFromLittleEndianReversed}`);
+          // console.log(`hashStringFromBigEndian: ${hashStringFromBigEndian}`);
+          // console.log(`hashStringFromLittleEndianReversed: ${hashStringFromLittleEndianReversed}`);
+          console.log(`leadingBinaryZeroes: ${leadingBinaryZeroes}`);
+          console.log(`maybeCurrentChallenge.targetZeros: ${maybeCurrentChallenge.targetZeros}`);
+          const noncedBlockHeader = serializeNoncelessBlockHeader(maybeCurrentChallenge.noncelessBlockHeader, solutionNonce);
+          // const nonceVecU8 = serializeNonceLE(solutionNonce);
+          // noncedBlockHeader.set(nonceVecU8, 76);
+          console.log("blockHeaderWithNonce", noncedBlockHeader);
+          const blockHeaderAsHex = Array.from(noncedBlockHeader)
+            .map(byte => byte.toString(16).padStart(2, '0'))
+            .join('');
+          console.log("blockHeaderAsHex", blockHeaderAsHex);
 
           const solution: MiningSolution = {
-            hash: hashString,
+            hash: hashStringFromLittleEndianReversed,
             nonceVecU8: serializeNonceLE(solutionNonce),
             noncelessBlockHeader: maybeCurrentChallenge.noncelessBlockHeader,
             cumulativeHashes: cumulativeHashes
@@ -367,49 +592,19 @@ async function mine() {
           });
           cumulativeHashes = 0; // Reset after sending
         }
+
+      } // looping through hashes loop
+
+      console.log("peterlog: gpuminingworker: mine; nonceSet.size", nonceSet.size);
+      nonceOffset += outputStructCount;
+      console.log("peterlog: gpuminingworker: mine; nonceOffset updated to", nonceOffset);
+      const maxU32 = 4294967295; // 2^32 - 1
+      if (nonceOffset >= maxU32) {
+        console.log("peterlog: gpuminingworker: mine; nonceOffset >= maxU32; resetting");
+        nonceOffset = 0;
+        // TODO: increment time or something
+        throw new Error("peterlog: gpuminingworker: mine; nonceOffset >= maxU32; resetting");
       }
-
-      // for (let offset = 0; offset < batchSize; offset += CHUNK_SIZE) {
-      //   const chunkSize = Math.min(CHUNK_SIZE, batchSize - offset);
-      //   const chunkStart = offset * 8 * 4;
-      //   const chunkEnd = (offset + chunkSize) * 8 * 4;
-
-      //   // Contains a series of 256 hashes, which must be read in chunks of 8 32-bit words each.
-      //   const resultsChunk = new Uint32Array(mappedRange.slice(chunkStart, chunkEnd));
-
-      //   // Process results for this chunk
-      //   for (let i = 0; i < chunkSize; i++) {
-      //     const hashWords = Array.from(resultsChunk.slice(i * 8, (i + 1) * 8))
-      //       .map(word => word.toString(16).padStart(8, '0'))
-      //       .join('');
-
-      //     const { leadingBinaryZeroes } = calculateLeadingZeroesFromHexString(hashWords);
-
-      //     if (leadingBinaryZeroes >= maybeCurrentChallenge.targetZeros) {
-      //       // Calculate the nonce for this solution
-      //       // TODO: audit
-      //       const solutionNonce = nonce[0] - batchSize + offset + i;
-
-      //       const solution: MiningSolution = {
-      //         hash: hashWords,
-      //         nonceVecU8: serializeNonceLE(solutionNonce),
-      //         noncelessBlockHeader: maybeCurrentChallenge.noncelessBlockHeader,
-      //         cumulativeHashes: cumulativeHashes
-      //       };
-      //       self.postMessage({
-      //         type: "hash",
-      //         data: solution
-      //       });
-      //       cumulativeHashes = 0; // Reset after sending
-      //     }
-      //   }
-      // }
-
-      // Cleanup
-      // readBuffer.unmap();
-      // inputBuffer.destroy();
-      // outputBuffer.destroy();
-      // readBuffer.destroy();
 
       // 6. Cleanup all WebGPU resources
       console.log("\nStarting cleanup...");
@@ -431,6 +626,7 @@ async function mine() {
 
       // Use setTimeout instead of requestAnimationFrame for more consistent timing
       setTimeout(() => miningLoop(), 0);
+      // TODO: Increase time when nonceOffset is exhausted
     } catch (error) {
       console.error('Mining error:', error);
       self.postMessage({ type: "error", data: error.message });
@@ -443,6 +639,7 @@ async function mine() {
 
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed } = e.data;
+  console.log("peterlog: gpuminingworker: onmessage", e.data);
 
   if (type === "start" && challenge) {
     try {
@@ -451,7 +648,17 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       startTime = performance.now();
 
       if (!maybeGPUDevice || !maybeGPUComputePipeline) {
-        await initWebGPU();
+        try {
+          await initWebGPU();
+        } catch (error) {
+          // when using workgroup_size(256, 2)
+          //  Failed to initWebGPU: GPUPipelineError: The total number of workgroup invocations (512) exceeds the maximum allowed (256). This adapter supports a higher maxComputeInvocationsPerWorkgroup of 1024, which can be specified in requiredLimits when calling requestDevice(). Limits differ by hardware, so always check the adapter limits prior to requesting a higher limit.
+
+          console.error('Failed to initWebGPU:', error);
+          self.postMessage({ type: "error", data: `Failed to initWebGPU: ${error.message}` });
+          running = false;
+          return;
+        }
       }
 
       miningSpeed = newSpeed ?? 100;
@@ -465,6 +672,8 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         type: "error",
         data: `Failed to start mining: ${error.message}`
       });
+      // FIXME: if there is an error in the above and we catch, the mining controls still shows "mining" even if we send this message
+      // self.postMessage({ type: "stopped" });
       running = false;
     }
   } else if (type === "stop") {
@@ -479,7 +688,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   }
 };
 
-function toBigEndianBytes(u32Array: Uint32Array): Uint8Array {
+function convertUint32ArrayToUint8ArrayLittleEndianToBigEndian(u32Array: Uint32Array): Uint8Array {
   const out = new Uint8Array(u32Array.length * 4);
   for (let i = 0; i < u32Array.length; i++) {
     const u32Val = u32Array[i];
@@ -490,3 +699,19 @@ function toBigEndianBytes(u32Array: Uint32Array): Uint8Array {
   }
   return out;
 }
+
+// function convertUint32ArrayToUint8ArrayBigEndianToBigEndian(u32Array: Uint32Array): Uint8Array {
+//   const out = new Uint8Array(u32Array.length * 4);
+//   for (let i = 0; i < u32Array.length; i++) {
+//     const u32Val = u32Array[i];
+//     out[i * 4 + 0] = (u32Val >>> 0) & 0xFF; // Most significant byte
+//     out[i * 4 + 1] = (u32Val >>> 8) & 0xFF;
+//     out[i * 4 + 2] = (u32Val >>> 16) & 0xFF;
+//     out[i * 4 + 3] = (u32Val >>> 24) & 0xFF;          // Least significant byte
+//     // out[i * 4 + 0] = u32Val & 0xFF000000; // Most significant byte
+//     // out[i * 4 + 1] = u32Val & 0x00FF0000;
+//     // out[i * 4 + 2] = u32Val & 0x0000FF00;
+//     // out[i * 4 + 3] = u32Val & 0x000000FF;          // Least significant byte
+//   }
+//   return out;
+// }
