@@ -5,7 +5,8 @@ export const dsha256Shader80ByteInput = `
 
 struct Input {
   header: array<u32, 20>,
-  nonceOffset: u32
+  nonceOffset: u32,
+  targetMinimumLeadingZeroes: u32
 }
 
 struct Output {
@@ -33,6 +34,7 @@ struct Output {
 @group(0) @binding(0) var<storage, read> input: array<Input>;
 // Output buffer: array of Output structs, where each Output contains an 8-word SHA-256 hash.
 @group(0) @binding(1) var<storage, read_write> output: array<Output>;
+@group(0) @binding(2) var<storage, read_write> counter: atomic<u32>;
 
 // SHA-256 Round Constants (K_t)
 const K: array<u32, 64> = array(
@@ -61,6 +63,59 @@ fn swapEndianness(val: u32) -> u32 {
            ((val & 0x00FF0000u) >> 8u)  |
            ((val & 0x0000FF00u) << 8u)  |
            ((val & 0x000000FFu) << 24u);
+}
+
+// https://chatgpt.com/c/6869a041-8f40-8002-bb38-dc1385e8fbbe
+// Swap byte‐order of a single 32-bit word.
+fn swapEndian32(x: u32) -> u32 {
+    // Mask out each byte and shift it to its reversed position.
+    let b0 = (x & 0x000000FFu) << 24u;
+    let b1 = (x & 0x0000FF00u) << 8u;
+    let b2 = (x & 0x00FF0000u) >> 8u;
+    let b3 = (x & 0xFF000000u) >> 24u;
+    return b0 | b1 | b2 | b3;
+}
+
+// https://chatgpt.com/c/6869a041-8f40-8002-bb38-dc1385e8fbbe
+// Take an array<u32, 8> and byte-swap each element.
+// fn swapEndianArray(words: array<u32, 8>) -> array<u32, 8> {
+//     var out: array<u32, 8>;
+//     // Loop unrolled by the compiler
+//     for (var i: u32 = 0u; i < 8u; i = i + 1u) {
+//         out[i] = swapEndian32(words[i]);
+//     }
+//     return out;
+// }
+
+// https://chatgpt.com/c/6869a041-8f40-8002-bb38-dc1385e8fbbe
+// Reverse all 32 bytes across an array<u32, 8>.
+// I.e. byte 0 ↔ byte 31, 1 ↔ 30, …, 15 ↔ 16.
+fn reverseBytes256(inputWords: array<u32, 8>) -> array<u32, 8> {
+    // Initialize result words to zero
+    var result: array<u32, 8> = array<u32, 8>(
+        0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u
+    );
+
+    // Loop over each 32-bit word...
+    for (var wordIndex: u32 = 0u; wordIndex < 8u; wordIndex = wordIndex + 1u) {
+        // ...and each of its 4 bytes
+        for (var byteIndex: u32 = 0u; byteIndex < 4u; byteIndex = byteIndex + 1u) {
+            // Extract the byte
+            let byteValue: u32 =
+                (inputWords[wordIndex] >> (byteIndex * 8u)) & 0xFFu;
+
+            // Compute where that byte goes in the reversed 256-bit buffer
+            let targetWordIndex: u32 = 7u - wordIndex;
+            let targetByteIndex: u32 = 3u - byteIndex;
+
+            // Place it into the result
+            result[targetWordIndex] =
+                result[targetWordIndex] |
+                (byteValue << (targetByteIndex * 8u));
+        }
+    }
+
+    return result;
 }
 
 // Right Rotate (ROTR) operation
@@ -322,6 +377,26 @@ fn padHashBlock(hash: array<u32, 8>) -> array<u32, 16> {
     return messageBlock;
 }
 
+// https://chatgpt.com/c/6869a041-8f40-8002-bb38-dc1385e8fbbe
+// Counts the number of leading zero bits in a 256-bit value.
+// words[0] is the high-order word; words[7] is the low-order word.
+fn countLeadingZeros256(words: array<u32, 8>) -> u32 {
+    var zeros: u32 = 0u;
+    // Iterate from most-significant word downwards
+    for (var i: u32 = 0u; i < 8u; i = i + 1u) {
+        let w = words[i];
+        if (w == 0u) {
+            // entire 32 bits are zero
+            zeros = zeros + 32u;
+        } else {
+            // use the built-in countLeadingZeros for this word
+            zeros = zeros + countLeadingZeros(w);
+            break;
+        }
+    }
+    return zeros;
+}
+
 // Main compute shader entry point.
 // Each workgroup processes one 80-byte message.
 // fn main(
@@ -351,6 +426,7 @@ fn main(
 
     let inputHeader = input[0].header;
     let nonceOffset = input[0].nonceOffset;
+    let targetMinimumLeadingZeroes = input[0].targetMinimumLeadingZeroes;
 
     let nonceU32 = nonceOffset + index;
     
@@ -396,23 +472,30 @@ fn main(
     // Perform the second SHA-256 hash on the padded 'firstHash'.
     // This gives the final double SHA-256 result.
     let finalHash = sha256(paddedFirstHash);
-    
+
+    // Swap the byte order of the final hash
+    let reversedFinalHash = reverseBytes256(finalHash);
+
     // Store the final double SHA-256 hash in the output buffer.
-    output[index].hash = finalHash;
-    output[index].nonce = nonceU32;
-    output[index].globalIdX = global_id.x;
-    output[index].globalIdY = global_id.y;
-    output[index].globalIdZ = global_id.z;
-    output[index].nonceOffset = nonceOffset;
-    output[index].workgroup_count_x = workgroup_counts.x;
-    output[index].workgroup_count_y = workgroup_counts.y;
-    output[index].workgroup_count_z = workgroup_counts.z;
-    output[index].local_invocation_index = local_invocation_index;
-    output[index].local_invocation_id_x = local_id.x;
-    output[index].local_invocation_id_y = local_id.y;
-    output[index].local_invocation_id_z = local_id.z;
-    output[index].workgroup_id_x = workgroup_id.x;
-    output[index].workgroup_id_y = workgroup_id.y;
-    output[index].workgroup_id_z = workgroup_id.z;
+    let leadingZeroes = countLeadingZeros256(reversedFinalHash);
+    if (leadingZeroes >= targetMinimumLeadingZeroes) {
+        let outIndex = atomicAdd(&counter, 1u);
+        output[outIndex].hash = finalHash; // todo: pass back reversedFinalHash instead of finalHash
+        output[outIndex].nonce = nonceU32;
+        output[outIndex].globalIdX = global_id.x;
+        output[outIndex].globalIdY = global_id.y;
+        output[outIndex].globalIdZ = global_id.z;
+        output[outIndex].nonceOffset = nonceOffset;
+        output[outIndex].workgroup_count_x = workgroup_counts.x;
+        output[outIndex].workgroup_count_y = workgroup_counts.y;
+        output[outIndex].workgroup_count_z = workgroup_counts.z;
+        output[outIndex].local_invocation_index = local_invocation_index;
+        output[outIndex].local_invocation_id_x = local_id.x;
+        output[outIndex].local_invocation_id_y = local_id.y;
+        output[outIndex].local_invocation_id_z = local_id.z;
+        output[outIndex].workgroup_id_x = workgroup_id.x;
+        output[outIndex].workgroup_id_y = workgroup_id.y;
+        output[outIndex].workgroup_id_z = workgroup_id.z;
+    }
 }
 `;
