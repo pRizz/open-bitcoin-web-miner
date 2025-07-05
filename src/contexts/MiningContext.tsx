@@ -9,6 +9,7 @@ import { useDebug } from "./DebugContext";
 import { MiningSubmission, serializeNoncelessBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse, BlockTemplateUpdate, WebSocketMiningState } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { useMiningEvents } from "./mining/MiningEventsContext";
+import { loadMiningMode, saveMiningMode } from "@/utils/localStorage";
 
 function getMiningContextMiningStateFromWebSocketMiningState(webSocketMiningState: WebSocketMiningState): MiningContextMiningState {
   switch (webSocketMiningState) {
@@ -63,7 +64,11 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
   const [isMining, setIsMining] = useState(false);
   const [miningSpeed, setMiningSpeed] = useState(100);
-  const [miningMode, setMiningMode] = useState<MiningMode>("cpu");
+  const [miningMode, setMiningMode] = useState<MiningMode>(() => {
+    // Load mining mode from localStorage on initialization
+    const maybeSavedMode = loadMiningMode();
+    return maybeSavedMode || "cpu";
+  });
   const [miningHistory, setMiningHistory] = useState<MiningHistoryItem[]>([]);
   const [maybeMostRecentMiningStartTime, setMaybeMostRecentMiningStartTime] = useState<number | null>(null);
   const { maxThreads, threadCount, setThreadCount: setThreadCountState } = useInitialThreadCount();
@@ -245,6 +250,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const startMining = useCallback(() => {
     console.log("Starting mining...");
     addLog("Converting electrical energy into digital energy...");
+    console.log("peterlog: miningcontext: startMining: miningMode", miningMode);
     const modeString = miningMode.toUpperCase();
     const withThreadInfo = miningMode === "cpu" ? ` with ${threadCount} threads` : "";
     addLog(`Starting ${modeString} mining${withThreadInfo} at ${miningSpeed}% speed`);
@@ -283,6 +289,12 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
     setMiningSpeed(speed);
   }, [isMining, addLog]);
 
+  const handleSetMiningMode = useCallback((mode: MiningMode) => {
+    setMiningMode(mode);
+    saveMiningMode(mode);
+    addLog(`Mining mode set to ${mode.toUpperCase()}`);
+  }, [addLog]);
+
   useEffect(() => {
     return () => {
       disconnectWebSocket();
@@ -302,7 +314,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         maybeMostRecentMiningStartTime,
         setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
-        setMiningMode,
+        setMiningMode: handleSetMiningMode,
         startMining,
         stopMining,
         resetData: miningState.resetStats,

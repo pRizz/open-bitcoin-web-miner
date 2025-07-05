@@ -3,13 +3,34 @@ export const dsha256Shader80ByteInput = `
 // This shader takes an 80-byte input (interpreted as 20 u32 words)
 // and performs a double SHA-256 hash.
 
+struct Input {
+  header: array<u32, 20>,
+  nonceOffset: u32
+}
+
 struct Output {
-  hash: array<u32, 8>
+  hash: array<u32, 8>,
+//   header: array<u32, 20>,
+  nonce: u32,
+  globalIdX: u32,
+  globalIdY: u32,
+  globalIdZ: u32,
+  nonceOffset: u32,
+  workgroup_count_x: u32,
+  workgroup_count_y: u32,
+  workgroup_count_z: u32,
+  local_invocation_index: u32,
+  local_invocation_id_x: u32,
+  local_invocation_id_y: u32,
+  local_invocation_id_z: u32,
+  workgroup_id_x: u32,
+  workgroup_id_y: u32,
+  workgroup_id_z: u32
 }
 
 // Input buffer: array of u32 words, representing the 80-byte message blocks.
 // Each message is 20 u32 words long (80 bytes).
-@group(0) @binding(0) var<storage, read> input: array<u32>;
+@group(0) @binding(0) var<storage, read> input: array<Input>;
 // Output buffer: array of Output structs, where each Output contains an 8-word SHA-256 hash.
 @group(0) @binding(1) var<storage, read_write> output: array<Output>;
 
@@ -35,7 +56,7 @@ const K: array<u32, 64> = array(
 
 // Byte-swap utility function to convert between endianness.
 // SHA-256 expects big-endian words, while WebGPU u32 will be host-endian (often little-endian).
-fn byteSwap(val: u32) -> u32 {
+fn swapEndianness(val: u32) -> u32 {
     return ((val & 0xFF000000u) >> 24u) |
            ((val & 0x00FF0000u) >> 8u)  |
            ((val & 0x0000FF00u) << 8u)  |
@@ -310,32 +331,41 @@ fn padHashBlock(hash: array<u32, 8>) -> array<u32, 16> {
 //     let gridSizeX = workgroup_counts.x * workgroupSizeX;
 //     let gridSizeY = workgroup_counts.y * workgroupSizeY;
 @compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let index = global_id.x; // Get the unique index for this work item
+fn main(
+    @builtin(global_invocation_id) global_id: vec3<u32>,
+    @builtin(num_workgroups) workgroup_counts: vec3<u32>,
+    @builtin(workgroup_id) workgroup_id: vec3<u32>,
+    @builtin(local_invocation_id) local_id: vec3<u32>,
+    @builtin(local_invocation_index) local_invocation_index: u32
+) {
+    // let index = global_id.x; // Get the unique index for this work item
+    let gridSizeX: u32 = 256;
+    let gridSizeY: u32 = 1;
 
     // Doesn't work: https://chatgpt.com/c/68647bdb-4cfc-8002-a60c-a7a22aa3aea5
-    // let index = 
-    //   global_id.z * (gridSizeX * gridSizeY) +
-    //   global_id.y * gridSizeX +
-    //   global_id.x;
+    // y and z seem to always be 0
+    let index = 
+      global_id.z * (gridSizeX * gridSizeY) +
+      global_id.y * gridSizeX +
+      global_id.x;
 
-    let nonce = index;
+    let inputHeader = input[0].header;
+    let nonceOffset = input[0].nonceOffset;
+
+    let nonceU32 = nonceOffset + index;
     
     // Each message is 20 u32 words (80 bytes = 640 bits)
-    let messageOffset = index * 20u;
     
     // Extract the 80-byte header for this thread
     var header: array<u32, 20>;
     for (var i = 0u; i < 20u; i++) {
         // Apply byte-swap because SHA-256 expects big-endian,
         // but input data from JavaScript on typical systems is little-endian.
-        header[i] = byteSwap(input[messageOffset + i]);
+        header[i] = swapEndianness(inputHeader[i]);
     }
     
     // Set the last four bytes (header[19]) to the nonce value in little endian
-    // The nonce is already in little endian from the input, so we just need to byte-swap it
-    // to convert it to big-endian for SHA-256 processing
-    header[19] = byteSwap(nonce);
+    header[19] = swapEndianness(nonceU32);
     
     // --- First SHA-256 Pass ---
     // The 80-byte message is split into two 64-byte (16-word) blocks for SHA-256 processing.
@@ -369,5 +399,20 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     
     // Store the final double SHA-256 hash in the output buffer.
     output[index].hash = finalHash;
+    output[index].nonce = nonceU32;
+    output[index].globalIdX = global_id.x;
+    output[index].globalIdY = global_id.y;
+    output[index].globalIdZ = global_id.z;
+    output[index].nonceOffset = nonceOffset;
+    output[index].workgroup_count_x = workgroup_counts.x;
+    output[index].workgroup_count_y = workgroup_counts.y;
+    output[index].workgroup_count_z = workgroup_counts.z;
+    output[index].local_invocation_index = local_invocation_index;
+    output[index].local_invocation_id_x = local_id.x;
+    output[index].local_invocation_id_y = local_id.y;
+    output[index].local_invocation_id_z = local_id.z;
+    output[index].workgroup_id_x = workgroup_id.x;
+    output[index].workgroup_id_y = workgroup_id.y;
+    output[index].workgroup_id_z = workgroup_id.z;
 }
 `;

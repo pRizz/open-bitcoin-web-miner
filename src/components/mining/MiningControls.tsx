@@ -171,7 +171,7 @@ export function MiningControls() {
           <SelectContent>
             <SelectItem value="cpu">CPU Mining (JavaScript Implementation)</SelectItem>
             <SelectItem disabled value="cpuWasm">CPU Mining (WebAssembly Implementation) (Coming Soon)</SelectItem>
-            <SelectItem disabled value="webgpu">WebGPU Mining (Coming Soon)</SelectItem>
+            <SelectItem value="webgpu">WebGPU Mining</SelectItem>
             <SelectItem disabled value="bitaxe">Bitaxe Mining (Coming Soon)</SelectItem>
           </SelectContent>
         </Select>

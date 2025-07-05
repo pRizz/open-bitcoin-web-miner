@@ -112,10 +112,7 @@ export class WorkerPool {
 
   private createWorker(url: URL): Worker {
     try {
-      // new URL('./cpuMiningWorker.ts', import.meta.url)
-      // const worker = new Worker(url, { type: 'module' });
-      // FIXME: This is a hack to get the worker to work in production.
-      const worker = new Worker(new URL('./cpuMiningWorker.ts', import.meta.url), { type: 'module' });
+      const worker = workerForMode(this.currentMode);
 
       worker.onerror = (error: ErrorEvent) => {
         // Ensure we pass a meaningful error message
@@ -194,6 +191,7 @@ export class WorkerPool {
   }
 
   private createWebGPUWorker() {
+    console.log("peterlog: workerpool: createWebGPUWorker");
     try {
       this.maybeWebGPUWorker = this.createWorker(
         new URL('./webgpuMiningWorker.ts', import.meta.url)
@@ -366,5 +364,16 @@ export class WorkerPool {
     this.cpuWorkers.forEach(worker => worker.postMessage(message));
     if (this.maybeWebGLWorker) this.maybeWebGLWorker.postMessage(message);
     if (this.maybeWebGPUWorker) this.maybeWebGPUWorker.postMessage(message);
+  }
+}
+
+function workerForMode(mode: MiningMode): Worker {
+  switch (mode) {
+  case "cpu":
+    return new Worker(new URL('./cpuMiningWorker.ts', import.meta.url), { type: 'module' });
+  case "webgl":
+    return new Worker(new URL('./webglMiningWorker.ts', import.meta.url), { type: 'module' });
+  case "webgpu":
+    return new Worker(new URL('./webgpuMiningWorker.ts', import.meta.url), { type: 'module' });
   }
 }

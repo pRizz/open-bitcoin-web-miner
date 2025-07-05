@@ -1,11 +1,13 @@
 import { validateBitcoinAddress } from "./mining";
 import { validateBlockchainMessage } from "./blockchainMessage";
+import { MiningMode } from "@/types/mining";
 
 export const STORAGE_KEYS = {
   MINER_ADDRESS: 'minerAddress',
   BLOCKCHAIN_MESSAGE: 'blockchainMessage',
   LEADERBOARD_USERNAME: 'username',
-  LEADERBOARD_MESSAGE: 'leaderboardMessage'
+  LEADERBOARD_MESSAGE: 'leaderboardMessage',
+  MINING_MODE: 'miningMode'
 } as const;
 
 // Username validation (1-20 alphanumeric characters)
@@ -16,6 +18,12 @@ function validateUsername(username: string): boolean {
 // Leaderboard message validation (up to 120 characters)
 function validateLeaderboardMessage(message: string): boolean {
   return message.length <= 120;
+}
+
+// Mining mode validation
+// TODO: update if MiningMode ever changes
+function validateMiningMode(maybeMode: string): maybeMode is MiningMode {
+  return ['cpu', 'webgl', 'webgpu'].includes(maybeMode);
 }
 
 export function loadLeaderboardUsername(): string | null {
@@ -79,5 +87,21 @@ export function saveBlockchainMessage(maybeMessage: string | null): void {
     localStorage.setItem(STORAGE_KEYS.BLOCKCHAIN_MESSAGE, maybeMessage);
   } else {
     localStorage.removeItem(STORAGE_KEYS.BLOCKCHAIN_MESSAGE);
+  }
+}
+
+export function loadMiningMode(): MiningMode | null {
+  const maybeMode = localStorage.getItem(STORAGE_KEYS.MINING_MODE);
+  if (maybeMode && validateMiningMode(maybeMode)) {
+    return maybeMode;
+  }
+  return null;
+}
+
+export function saveMiningMode(maybeMode: MiningMode | null): void {
+  if (maybeMode && validateMiningMode(maybeMode)) {
+    localStorage.setItem(STORAGE_KEYS.MINING_MODE, maybeMode);
+  } else {
+    localStorage.removeItem(STORAGE_KEYS.MINING_MODE);
   }
 }
