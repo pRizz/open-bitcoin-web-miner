@@ -10,9 +10,9 @@ export const STORAGE_KEYS = {
   MINING_MODE: 'miningMode'
 } as const;
 
-// Username validation (1-20 alphanumeric characters)
-function validateUsername(username: string): boolean {
-  return /^[a-zA-Z0-9]{1,20}$/.test(username);
+// Username validation (1-20 alphanumeric characters and inner spaces only)
+export function validateUsername(username: string): boolean {
+  return /^[a-zA-Z0-9][a-zA-Z0-9\s]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/.test(username) && username.length <= 20;
 }
 
 // Leaderboard message validation (up to 120 characters)
