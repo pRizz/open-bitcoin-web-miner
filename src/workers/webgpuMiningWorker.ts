@@ -9,6 +9,7 @@ import { dsha256Shader80ByteInput } from "./webgpuShader";
 // 2025-07-05: Up to 12.7Mh/s after atomic counter optimization!
 // 2025-07-05: up to 15.4MH/s with 24 leading zeros after cleaning up a bunch of extraneous logging
 // 2025-07-05: after a warmup, and caching the input data better, goes up to 16.1MH/s
+// 2025-07-06: caching the shader and pipeline we are up to 22MH/s
 // Optimizations:
 // [x] use atomics to only send back hashes/nonces that meet the target difficulty
 // [ ] don't destroy the buffers every mining loop
@@ -32,6 +33,36 @@ let maybeGPUInitSuccessResult: GPUInitSuccessResult | null = null;
 
 let blockHeaderAsU8Array: Uint8Array | null = null;
 let inputByteLength: number | null = null;
+
+// Need to consider max buffer size because got this warning/error:
+// Buffer size (603979776) exceeds the max buffer size limit (268435456). This adapter supports a higher maxBufferSize of 4294967296, which can be specified in requiredLimits when calling requestDevice(). Limits differ by hardware, so always check the adapter limits prior to requesting a higher limit.
+//  - While calling [Device].CreateBuffer([BufferDescriptor]).
+const mainWorkgroupSizeX = 256; // align with the shader in main()
+// TODO: investigate if it is faster to distribute this 256 among the y and z axes
+const workgroupCountX = 256;
+const workgroupCountY = 1; // If 2, does not work; get all zeroes result after 65k'th result
+const workgroupCountZ = 1; // If 2, does not work; get all zeroes result after 65k'th result
+const outputStructCount = workgroupCountX * workgroupCountY * workgroupCountZ * mainWorkgroupSizeX;
+const hashBatchSize = outputStructCount;
+
+const outputStructU32Size =
+8 // hash
+ + 1 // nonce
+ + 3 // globalIdX, globalIdY, globalIdZ
+ + 1 // nonceOffset
+ + 3 // workgroup_count_x, workgroup_count_y, workgroup_count_z
+ + 1 // local_invocation_index
+ + 3 // local_invocation_id_x, local_invocation_id_y, local_invocation_id_z
+ + 3 // workgroup_id_x, workgroup_id_y, workgroup_id_z
+ ;
+// console.log("peterlog: outputStructU32Size", outputStructU32Size);
+const outputStructByteSize = outputStructU32Size * 4; // output struct size in bytes; 4 bytes per u32
+
+// Output buffer for all hashes (messages.length), each with 8 u32 words
+const allOutputSize = outputStructCount * outputStructByteSize; // 1 message * 8 words * 4 bytes per word
+
+// Storage buffer for shader output - ensure proper alignment
+const alignedOutputSize = Math.ceil(allOutputSize / 256) * 256; // Align to 256 bytes for storage buffers
 
 // Maps to shader Input struct:
 // struct Input {
@@ -259,6 +290,7 @@ async function initWebGPU(): Promise<GPUInitSuccessResult> {
   return maybeGPUInitSuccessResult;
 }
 
+// TODO: audit
 function updateHashRate(batchSize: number) {
   const currentTime = performance.now();
   const elapsedTime = currentTime - startTime;
@@ -277,13 +309,8 @@ function createInputU8Array(blockHeaderAsU8Array: Uint8Array, nonceOffset: numbe
   const inputDataU8Array = new Uint8Array(inputByteLength);
   inputDataU8Array.set(blockHeaderAsU8Array);
   const nonceOffsetU32Array = new Uint32Array([nonceOffset]);
-  // console.log("peterlog: nonceOffset", nonceOffset);
-  // console.log("peterlog: nonceOffsetU32Array", nonceOffsetU32Array);
-  // console.log("peterlog: nonceOffsetU32Array.length", nonceOffsetU32Array.length);
   const nonceOffsetAsU8Array = new Uint8Array(nonceOffsetU32Array.buffer); // convert to u8 array to set in inputDataU8Array; otherwise the inputDataU8Array.set silently fails
   inputDataU8Array.set(nonceOffsetAsU8Array, blockHeaderAsU8Array.length);
-  // console.log("peterlog: inputDataU8Array", inputDataU8Array);
-  // console.log("peterlog: targetMinimumLeadingZeroes", targetMinimumLeadingZeroes);
   const targetMinimumLeadingZeroesU32Array = new Uint32Array([targetMinimumLeadingZeroes]);
   const targetMinimumLeadingZeroesAsU8Array = new Uint8Array(targetMinimumLeadingZeroesU32Array); // convert to u8 array to set in inputDataU8Array; otherwise the inputDataU8Array.set silently fails
   inputDataU8Array.set(targetMinimumLeadingZeroesAsU8Array, blockHeaderAsU8Array.length + nonceOffsetAsU8Array.length);
@@ -334,47 +361,21 @@ async function mine() {
   }
 
   console.log(`maxBufferSize: ${maxBufferSize}, maxComputeWorkgroupsPerDimension: ${maxComputeWorkgroupsPerDimension}`);
-
-  // Calculate optimal batch size based on available memory
-  // Each hash needs: 4 bytes (input) + 32 bytes (output) = 36 bytes ?
-  // Leave 25% memory free for other operations
-  // Also ensure we don't exceed the maximum buffer size of 16MB (reduced from 32MB)
-  // const MAX_BUFFER_SIZE = 16 * 1024 * 1024; // 16MB in bytes
-  // const effectiveMaxBufferSize = Math.min(maxBufferSize * 0.75, MAX_BUFFER_SIZE);
-  // const maxHashes = Math.floor(effectiveMaxBufferSize / 36);
-
-  // Ensure we don't exceed workgroup limits
-  // const WORKGROUP_SIZE = 256;  // Keep at 256 as it's optimal for most GPUs
-  // const MAX_WORKGROUPS = Math.min(
-  //   maxComputeWorkgroupsPerDimension,
-  //   Math.floor(maxHashes / WORKGROUP_SIZE)
-  // );
-
-  // Calculate number of workgroups to stay within buffer limits
-  // Target around 8MB of GPU memory usage (reduced from 16MB)
-  // const TARGET_MEMORY_USAGE = 8 * 1024 * 1024; // 8MB in bytes
-  // const NUM_WORKGROUPS = Math.min(
-  //   MAX_WORKGROUPS,
-  //   Math.floor(TARGET_MEMORY_USAGE / (36 * WORKGROUP_SIZE))
-  // );
-
-  // const NUM_WORKGROUPS = 65536; // 2^16
-  // console.log(`Running with ${NUM_WORKGROUPS} workgroups, processing ${NUM_WORKGROUPS * WORKGROUP_SIZE} hashes in parallel`);
-
-  // let nonce = Math.floor(Math.random() * 0xFFFFFFFF);
-  // Nonce will be generated by the shader id
-
   const device = maybeGPUDevice;
-
-  // Small delay to ensure GPU resources are fully released
-  // await new Promise(resolve => setTimeout(resolve, 100));
-  // console.log("Cleanup completed");
-  // console.log("end of run()");
-
-  // FIXME: increase time in header between mining loops
 
   let nonceOffset = 0;
   const nonceSet = new Set<number>();
+
+  // WGSL shader
+  const shader = device.createShaderModule({
+    code: dsha256Shader80ByteInput,
+  });
+  
+  // TODO: use maybeGPUComputePipeline
+  const computePipeline = device.createComputePipeline({
+    layout: "auto",
+    compute: { module: shader, entryPoint: "main" },
+  });
 
   const miningLoop = async () => {
     if (!running || !maybeGPUDevice || !maybeGPUComputePipeline || !maybeCurrentChallenge) return;
@@ -395,57 +396,21 @@ async function mine() {
 
       new Uint8Array(inputBuffer.getMappedRange()).set(inputDataU8Array);
 
+      // Do we need to unmap and create every time?
       inputBuffer.unmap();
 
-      // Need to consider max buffer size because got this warning/error:
-      // Buffer size (603979776) exceeds the max buffer size limit (268435456). This adapter supports a higher maxBufferSize of 4294967296, which can be specified in requiredLimits when calling requestDevice(). Limits differ by hardware, so always check the adapter limits prior to requesting a higher limit.
-      //  - While calling [Device].CreateBuffer([BufferDescriptor]).
-      const mainWorkgroupSizeX = 256; // align with the shader in main()
-      // TODO: investigate if it is faster to distribute this 256 among the y and z axes
-      const workgroupCountX = 256;
-      const workgroupCountY = 1; // If 2, does not work; get all zeroes result after 65k'th result
-      const workgroupCountZ = 1; // If 2, does not work; get all zeroes result after 65k'th result
-      const outputStructCount = workgroupCountX * workgroupCountY * workgroupCountZ * mainWorkgroupSizeX;
-      const hashBatchSize = outputStructCount;
-
-      const outputStructU32Size =
-      8 // hash
-       + 1 // nonce
-       + 3 // globalIdX, globalIdY, globalIdZ
-       + 1 // nonceOffset
-       + 3 // workgroup_count_x, workgroup_count_y, workgroup_count_z
-       + 1 // local_invocation_index
-       + 3 // local_invocation_id_x, local_invocation_id_y, local_invocation_id_z
-       + 3 // workgroup_id_x, workgroup_id_y, workgroup_id_z
-       ;
-      // console.log("peterlog: outputStructU32Size", outputStructU32Size);
-      const outputStructByteSize = outputStructU32Size * 4; // output struct size in bytes; 4 bytes per u32
-
-      // Output buffer for all hashes (messages.length), each with 8 u32 words
-      const allOutputSize = outputStructCount * outputStructByteSize; // 1 message * 8 words * 4 bytes per word
-
-      // Storage buffer for shader output - ensure proper alignment
-      const alignedOutputSize = Math.ceil(allOutputSize / 256) * 256; // Align to 256 bytes for storage buffers
-
       // console.log(`Output buffer: ${allOutputSize} bytes, aligned to ${alignedOutputSize} bytes`);
-
-      const beforeOutputBufferTime = Date.now();
 
       const outputBuffer = device.createBuffer({
         size: alignedOutputSize,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
       });
 
-      // const counterGPUBuffer = device.createBuffer({
-      //   size: 4,
-      //   usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-      // });
       const counterGPUBuffer = makeGPUBuffer(device, 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
 
       // zero the counter before each dispatch
       device.queue.writeBuffer(counterGPUBuffer, 0, new Uint32Array([0]));
 
-      const afterOutputBufferTime = Date.now();
       // Always 0ms
       // console.log(`Time taken to create output buffer: ${afterOutputBufferTime - beforeOutputBufferTime}ms`);
 
@@ -453,21 +418,6 @@ async function mine() {
       const readbackBuffer = device.createBuffer({
         size: alignedOutputSize,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      });
-
-      // console.log("making shader");
-
-      // 3. WGSL shader
-      const shader = device.createShaderModule({
-        code: dsha256Shader80ByteInput,
-      });
-
-      // console.log("making compute pipeline");
-
-      // TODO: use maybeGPUComputePipeline
-      const computePipeline = device.createComputePipeline({
-        layout: "auto",
-        compute: { module: shader, entryPoint: "main" },
       });
 
       const gpuBindGroup = device.createBindGroup({
@@ -640,6 +590,7 @@ async function mine() {
       nonceOffset += outputStructCount;
       // console.log("peterlog: gpuminingworker: mine; nonceOffset updated to", nonceOffset);
       const maxU32 = 4294967295; // 2^32 - 1
+      // Gets here after about 4.5 minutes of mining
       if (nonceOffset >= maxU32) {
         console.log("peterlog: gpuminingworker: mine; nonceOffset >= maxU32; resetting");
         nonceOffset = 0;
