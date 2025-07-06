@@ -450,13 +450,23 @@ async function mine() {
       // Always 0ms
       // console.log(`Time taken to copy output buffer to readback buffer: ${afterCopyTime - beforeCopyTime}ms`);
 
+      // const resultCountArray = new Uint32Array(await readBuffer(device, counterGPUBuffer, 4)); // 1 element
+      const counterByteSize = 4;
+      const readCounterBuffer = makeGPUBuffer(device, counterByteSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+      computeCommandEncoder.copyBufferToBuffer(counterGPUBuffer, 0, readCounterBuffer, 0, counterByteSize);
+
       device.queue.submit([computeCommandEncoder.finish()]);
+
+      await readCounterBuffer.mapAsync(GPUMapMode.READ);
+      const counterCopyBuffer = readCounterBuffer.getMappedRange().slice(0);
+      readCounterBuffer.unmap();
+
+      const resultCountArray = new Uint32Array(counterCopyBuffer);
+      const resultCount = resultCountArray[0];
+
       // Always 0ms
       // console.log(`Time taken to submit command buffer: ${afterSubmitTime - beforeSubmitTime}ms`);
 
-      // 5. read & log
-      const resultCountArray = new Uint32Array(await readBuffer(device, counterGPUBuffer, 4)); // 1 element
-      const resultCount = resultCountArray[0];
       // console.log("peterlog: gpuminingworker: mine; resultCount", resultCount);
       if (resultCount === 0) {
         // console.log("peterlog: gpuminingworker: mine; no valid solutions found");
@@ -464,9 +474,7 @@ async function mine() {
         // return;
       }
 
-      const beforeMapTime = Date.now();
       await readbackBuffer.mapAsync(GPUMapMode.READ);
-      const afterMapTime = Date.now();
       // Sampled at 40-50ms with 65k nonces; so roughly 1.6MH/s
       // console.log(`Time taken to map readback buffer: ${afterMapTime - beforeMapTime}ms`);
 
@@ -729,17 +737,18 @@ function makeGPUBuffer(
 }
 
 // https://chatgpt.com/c/6866ab6b-b9a0-8002-b2a5-c6a9a57ad8e6
-async function readBuffer(
-  device: GPUDevice,
-  gpuBuffer: GPUBuffer,
-  byteSize: number
-): Promise<ArrayBuffer> {
-  const readGPUBuffer = makeGPUBuffer(device, byteSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-  const commandEncoder  = device.createCommandEncoder();
-  commandEncoder.copyBufferToBuffer(gpuBuffer, 0, readGPUBuffer, 0, byteSize);
-  device.queue.submit([commandEncoder.finish()]);
-  await readGPUBuffer.mapAsync(GPUMapMode.READ);
-  const copyBuffer = readGPUBuffer.getMappedRange().slice(0);
-  readGPUBuffer.unmap();
-  return copyBuffer;
-}
+// Try not to use this because doing another command encoder seems to be slower.
+// async function readBuffer(
+//   device: GPUDevice,
+//   gpuBuffer: GPUBuffer,
+//   byteSize: number
+// ): Promise<ArrayBuffer> {
+//   const readGPUBuffer = makeGPUBuffer(device, byteSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+//   const commandEncoder  = device.createCommandEncoder();
+//   commandEncoder.copyBufferToBuffer(gpuBuffer, 0, readGPUBuffer, 0, byteSize);
+//   device.queue.submit([commandEncoder.finish()]);
+//   await readGPUBuffer.mapAsync(GPUMapMode.READ);
+//   const copyBuffer = readGPUBuffer.getMappedRange().slice(0);
+//   readGPUBuffer.unmap();
+//   return copyBuffer;
+// }
