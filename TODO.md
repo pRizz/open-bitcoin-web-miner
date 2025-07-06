@@ -35,6 +35,9 @@ General TODO before first public release:
 -[] add social media links, and search for Bright Builds LLC and Peter Ryszkiewicz in the project and add links
 -[] search project and fix this: "FIXME: Uncaught Error: useNavigate()"
 -[] do automatic reconnects of websocket problems
+-[] fix bug with user tag not persisting when hitting refresh on page
+-[] fix nonceOffset >= maxU32 in gpu mining
+-[] increase rejection limit and behavior check limit
 
 Share to:
 -[x] orange pill app
