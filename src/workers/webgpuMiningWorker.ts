@@ -33,7 +33,10 @@ let maybeCurrentChallenge: MiningChallenge | null = null;
 let maybeGPUInitSuccessResult: GPUInitSuccessResult | null = null;
 
 let blockHeaderAsU8Array: Uint8Array | null = null;
-let inputByteLength: number | null = null;
+const blockHeaderByteSize = 80;
+const nonceOffsetByteSize = 4;
+const targetMinimumLeadingZeroesByteSize = 4;
+const inputByteLength = blockHeaderByteSize + nonceOffsetByteSize + targetMinimumLeadingZeroesByteSize;
 
 // Need to consider max buffer size because got this warning/error:
 // Buffer size (603979776) exceeds the max buffer size limit (268435456). This adapter supports a higher maxBufferSize of 4294967296, which can be specified in requiredLimits when calling requestDevice(). Limits differ by hardware, so always check the adapter limits prior to requesting a higher limit.
@@ -306,7 +309,7 @@ function updateHashRate(batchSize: number) {
   hashCount += batchSize;
 }
 
-function createInputU8Array(blockHeaderAsU8Array: Uint8Array, nonceOffset: number, inputByteLength: number, targetMinimumLeadingZeroes: number): Uint8Array {
+function createInputU8Array(blockHeaderAsU8Array: Uint8Array, nonceOffset: number, targetMinimumLeadingZeroes: number): Uint8Array {
   const inputDataU8Array = new Uint8Array(inputByteLength);
   inputDataU8Array.set(blockHeaderAsU8Array);
   const nonceOffsetU32Array = new Uint32Array([nonceOffset]);
@@ -334,11 +337,7 @@ function setGlobalInputData() {
 
   // Flatten the blocks into a single array
   // const inputData = blockHeaderAsU8Array;
-  const nonceOffsetByteSize = 4;
-  const targetMinimumLeadingZeroesByteSize = 4;
-  inputByteLength = blockHeaderAsU8Array.byteLength + nonceOffsetByteSize + targetMinimumLeadingZeroesByteSize;
 
-  console.log(`Input buffer: ${inputByteLength} bytes`);
   console.log(`blockHeaderAsU8Array length: ${blockHeaderAsU8Array.length} bytes`);
 }
 
@@ -393,7 +392,7 @@ async function mine() {
       });
 
       const targetMinimumLeadingZeroes = maybeCurrentChallenge.targetZeros;
-      const inputDataU8Array = createInputU8Array(blockHeaderAsU8Array, nonceOffset, inputByteLength, targetMinimumLeadingZeroes);
+      const inputDataU8Array = createInputU8Array(blockHeaderAsU8Array, nonceOffset, targetMinimumLeadingZeroes);
 
       new Uint8Array(inputBuffer.getMappedRange()).set(inputDataU8Array);
 
