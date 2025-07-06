@@ -19,6 +19,7 @@ export function LeaderboardForm() {
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUsername = e.target.value;
+    // FIXME: still allows invalid usernames to be sent to the backend; only validates when saving to local storage
     setLeaderboardUsername(newUsername);
     saveLeaderboardUsername(newUsername);
   };
