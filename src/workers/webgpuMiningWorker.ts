@@ -718,13 +718,13 @@ function convertUint32ArrayToUint8ArrayLittleEndianToBigEndian(u32Array: Uint32A
 // https://chatgpt.com/c/6866ab6b-b9a0-8002-b2a5-c6a9a57ad8e6
 function makeGPUBuffer(
   device: GPUDevice,
-  dataOrSize: ArrayBufferView | number,
+  dataOrByteSize: ArrayBufferView | number,
   usage: GPUBufferUsageFlags
 ): GPUBuffer {
-  const size = typeof dataOrSize === 'number' ? dataOrSize : dataOrSize.byteLength;
-  const gpuBuffer  = device.createBuffer({ size, usage, mappedAtCreation: !!(dataOrSize instanceof Uint8Array) });
-  if (dataOrSize instanceof Uint8Array) {
-    new Uint8Array(gpuBuffer.getMappedRange()).set(new Uint8Array(dataOrSize.buffer, dataOrSize.byteOffset, dataOrSize.byteLength));
+  const byteSize = typeof dataOrByteSize === 'number' ? dataOrByteSize : dataOrByteSize.byteLength;
+  const gpuBuffer  = device.createBuffer({ size: byteSize, usage, mappedAtCreation: !!(dataOrByteSize instanceof Uint8Array) });
+  if (dataOrByteSize instanceof Uint8Array) {
+    new Uint8Array(gpuBuffer.getMappedRange()).set(new Uint8Array(dataOrByteSize.buffer, dataOrByteSize.byteOffset, dataOrByteSize.byteLength));
     gpuBuffer.unmap();
   }
   return gpuBuffer;
@@ -734,11 +734,11 @@ function makeGPUBuffer(
 async function readBuffer(
   device: GPUDevice,
   gpuBuffer: GPUBuffer,
-  size: number
+  byteSize: number
 ): Promise<ArrayBuffer> {
-  const readGPUBuffer = makeGPUBuffer(device, size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+  const readGPUBuffer = makeGPUBuffer(device, byteSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
   const commandEncoder  = device.createCommandEncoder();
-  commandEncoder.copyBufferToBuffer(gpuBuffer, 0, readGPUBuffer, 0, size);
+  commandEncoder.copyBufferToBuffer(gpuBuffer, 0, readGPUBuffer, 0, byteSize);
   device.queue.submit([commandEncoder.finish()]);
   await readGPUBuffer.mapAsync(GPUMapMode.READ);
   const copyBuffer = readGPUBuffer.getMappedRange().slice(0);
