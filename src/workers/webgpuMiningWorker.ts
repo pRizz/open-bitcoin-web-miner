@@ -10,6 +10,7 @@ import { dsha256Shader80ByteInput } from "./webgpuShader";
 // 2025-07-05: up to 15.4MH/s with 24 leading zeros after cleaning up a bunch of extraneous logging
 // 2025-07-05: after a warmup, and caching the input data better, goes up to 16.1MH/s
 // 2025-07-06: caching the shader and pipeline we are up to 22MH/s
+// 2025-07-06: limiting the readback buffer size to 50 results, we are up to 25.5MH/s
 // Optimizations:
 // [x] use atomics to only send back hashes/nonces that meet the target difficulty
 // [ ] don't destroy the buffers every mining loop
@@ -370,7 +371,7 @@ async function mine() {
   const shader = device.createShaderModule({
     code: dsha256Shader80ByteInput,
   });
-  
+
   // TODO: use maybeGPUComputePipeline
   const computePipeline = device.createComputePipeline({
     layout: "auto",
@@ -414,12 +415,6 @@ async function mine() {
       // Always 0ms
       // console.log(`Time taken to create output buffer: ${afterOutputBufferTime - beforeOutputBufferTime}ms`);
 
-      // Readback buffer for CPU access
-      const readbackBuffer = device.createBuffer({
-        size: alignedOutputSize,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      });
-
       const gpuBindGroup = device.createBindGroup({
         layout: computePipeline.getBindGroupLayout(0),
         entries: [
@@ -431,8 +426,8 @@ async function mine() {
 
       // 4. record commands
       const beforePassTime = Date.now();
-      const commandEncoder = device.createCommandEncoder();
-      const computePassEncoder = commandEncoder.beginComputePass();
+      const computeCommandEncoder = device.createCommandEncoder();
+      const computePassEncoder = computeCommandEncoder.beginComputePass();
       computePassEncoder.setPipeline(computePipeline);
       computePassEncoder.setBindGroup(0, gpuBindGroup);
       computePassEncoder.dispatchWorkgroups(workgroupCountX, workgroupCountY, workgroupCountZ);
@@ -442,17 +437,20 @@ async function mine() {
       // Always 0ms
       // console.log(`Time taken to dispatch workgroups: ${afterPassTime - beforePassTime}ms`);
 
+      // Use much smaller size for readback buffer
+      const readbackBufferByteSize = 50 * outputStructByteSize; // Assume max of 50 results
+      // Readback buffer for CPU access
+      const readbackBuffer = device.createBuffer({
+        size: readbackBufferByteSize,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      });
+
       // Copy from output buffer to readback buffer
-      const beforeCopyTime = Date.now();
-      commandEncoder.copyBufferToBuffer(outputBuffer, 0, readbackBuffer, 0, allOutputSize);
-      const afterCopyTime = Date.now();
+      computeCommandEncoder.copyBufferToBuffer(outputBuffer, 0, readbackBuffer, 0, readbackBufferByteSize);
       // Always 0ms
       // console.log(`Time taken to copy output buffer to readback buffer: ${afterCopyTime - beforeCopyTime}ms`);
 
-      const beforeSubmitTime = Date.now();
-      device.queue.submit([commandEncoder.finish()]);
-
-      const afterSubmitTime = Date.now();
+      device.queue.submit([computeCommandEncoder.finish()]);
       // Always 0ms
       // console.log(`Time taken to submit command buffer: ${afterSubmitTime - beforeSubmitTime}ms`);
 
