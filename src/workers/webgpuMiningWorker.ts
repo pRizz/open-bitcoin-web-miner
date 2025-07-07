@@ -3,6 +3,7 @@ import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
 import { serializeNonceLE, serializeNoncelessBlockHeader } from "@/types/websocket";
 import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
+import { WorkerMessage } from "./WorkerPool";
 import { dsha256Shader80ByteInput } from "./webgpuShader";
 
 // 2025-07-05: runs about about 180k to 205k hashes per second
@@ -175,12 +176,6 @@ function outputStructFromUint32Array(uint32Array: Uint32Array<ArrayBuffer>, star
     workgroup_id_y: workgroup_id_y,
     workgroup_id_z: workgroup_id_z,
   };
-}
-
-interface WorkerMessage {
-  type: 'start' | 'stop' | 'updateSpeed' | 'updateChallenge';
-  maybeChallenge?: MiningChallenge;
-  maybeMiningSpeed?: number;
 }
 
 // Example hash of height 881375; 20 hex zeros so that's 80 leading binary zeros
@@ -561,6 +556,7 @@ async function mine() {
           // const solutionNonce = hashIndex;
           const solutionNonce = nonceU32;
           console.log(`Found solution with nonce ${solutionNonce}`);
+          console.log(`Found solution with leadingBinaryZeroes: ${leadingBinaryZeroes}; targetZeros: ${maybeCurrentChallenge.targetZeros}`);
           console.log(`hashStringFromLittleEndian: ${hashStringFromLittleEndian}`);
           console.log(`hashStringFromLittleEndianReversed: ${hashStringFromLittleEndianReversed}`);
           // console.log(`hashStringFromBigEndian: ${hashStringFromBigEndian}`);
@@ -637,7 +633,7 @@ async function mine() {
 // const overrideTargetZeros = 26;
 
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
-  const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed } = e.data;
+  const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed, maybeNewDifficulty } = e.data;
   console.log("peterlog: gpuminingworker: onmessage", e.data);
 
   if (type === "start" && challenge) {
@@ -688,6 +684,11 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     // maybeCurrentChallenge.targetZeros = overrideTargetZeros;
     setGlobalInputData();
     // No need to restart mining, the loop will pick up the new challenge
+  } else if (type === "updateDifficulty" && maybeNewDifficulty) {
+    maybeCurrentChallenge.targetZeros = maybeNewDifficulty;
+    setGlobalInputData();
+  } else {
+    console.error(`Unknown message type: ${type}, data: ${JSON.stringify(e.data)}`);
   }
 };
 
