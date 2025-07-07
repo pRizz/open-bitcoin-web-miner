@@ -633,8 +633,8 @@ async function mine() {
   miningLoop();
 }
 
-// FIXME: remove
-const overrideTargetZeros = 26;
+// // FIXME: remove
+// const overrideTargetZeros = 26;
 
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { type, maybeChallenge: challenge, maybeMiningSpeed: newSpeed } = e.data;
@@ -663,7 +663,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       miningSpeed = newSpeed ?? 100;
       running = true;
       maybeCurrentChallenge = challenge;
-      maybeCurrentChallenge.targetZeros = overrideTargetZeros;
+      // maybeCurrentChallenge.targetZeros = overrideTargetZeros;
       setGlobalInputData();
       mine();
       self.postMessage({ type: "started" });
@@ -685,7 +685,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     miningSpeed = newSpeed ?? 100;
   } else if (type === "updateChallenge" && challenge) {
     maybeCurrentChallenge = challenge;
-    maybeCurrentChallenge.targetZeros = overrideTargetZeros;
+    // maybeCurrentChallenge.targetZeros = overrideTargetZeros;
     setGlobalInputData();
     // No need to restart mining, the loop will pick up the new challenge
   }
