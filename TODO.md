@@ -39,6 +39,7 @@ General TODO before first public release:
 -[] fix nonceOffset >= maxU32 in gpu mining
 -[] increase rejection limit and behavior check limit
 -[] reconnect on basic disconnects, not rejection
+-[] fix/audit mining speed in webgpu worker
 
 Share to:
 -[x] orange pill app
