@@ -599,8 +599,7 @@ async function mine() {
       if (nonceOffset >= maxU32) {
         console.log("peterlog: gpuminingworker: mine; nonceOffset >= maxU32; resetting");
         nonceOffset = 0;
-        // TODO: increment time or something
-        throw new Error("peterlog: gpuminingworker: mine; nonceOffset >= maxU32; resetting");
+        addOneSecondToMiningChallenge(maybeCurrentChallenge);
       }
 
       // 6. Cleanup all WebGPU resources
@@ -751,3 +750,152 @@ function makeGPUBuffer(
 //   readGPUBuffer.unmap();
 //   return copyBuffer;
 // }
+
+// TODO: move these to utils
+// https://chatgpt.com/c/686c0791-db1c-8002-9f07-09fce6f8b257
+
+// ────────────────────────────────────────────────────────────────────────────
+// Constants & tiny helpers
+// ────────────────────────────────────────────────────────────────────────────
+const BLOCK_HEADER_LEN   = 80;   // bytes
+const TIMESTAMP_OFFSET   = 68;   // first byte of the 4-byte field
+const TIMESTAMP_FIELD_SZ = 4;    // bytes
+
+/** Quick LE 32-bit read that keeps nesting shallow. */
+function readUint32LE(buf: Uint8Array, offset: number): number {
+  return (
+    (buf[offset]      ) |
+    (buf[offset + 1] <<  8) |
+    (buf[offset + 2] << 16) |
+    (buf[offset + 3] << 24)
+  ) >>> 0;  // convert to unsigned 32-bit
+}
+
+/** Guard helper so errors happen early and clearly. */
+function ensureHeaderIsComplete(header: Uint8Array): void {
+  if (header.length < BLOCK_HEADER_LEN) {
+    throw new RangeError(
+      `Block header too short: expected ${BLOCK_HEADER_LEN} bytes, got ${header.length}`,
+    );
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Public API
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Extracts the 4-byte little-endian UNIX timestamp from a Bitcoin block header.
+ * @returns Seconds since 1970-01-01 UTC.
+ */
+function extractTimeFromBlockHeader(header: Uint8Array): number {
+  // ensureHeaderIsComplete(header);
+  return readUint32LE(header, TIMESTAMP_OFFSET);
+}
+
+/**
+ * Convenience wrapper that returns a JavaScript Date in the local runtime TZ.
+ */
+function extractDateFromBlockHeader(header: Uint8Array): Date {
+  const seconds = extractTimeFromBlockHeader(header);
+  return new Date(seconds * 1_000); // JS Date expects milliseconds
+}
+
+function writeUint32LE(buf: Uint8Array, offset: number, value: number): void {
+  // value is treated modulo 2^32 so wrap-around is automatic.
+  buf[offset    ] =  value         & 0xff;
+  buf[offset + 1] = (value >>>  8) & 0xff;
+  buf[offset + 2] = (value >>> 16) & 0xff;
+  buf[offset + 3] = (value >>> 24) & 0xff;
+}
+
+/**
+ * Adds one second to the in-header UNIX timestamp **in place**.
+ * Side-effect only; returns nothing.
+ */
+function addOneSecondToBlockHeader(header: Uint8Array): void {
+  // ensureHeaderIsComplete(header);
+
+  const current = readUint32LE(header, TIMESTAMP_OFFSET);
+  const updated = (current + 1) >>> 0;        // wrap on 2³² overflow
+  writeUint32LE(header, TIMESTAMP_OFFSET, updated);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Tiny helpers
+// ────────────────────────────────────────────────────────────────────────────
+const TIMESTAMP_HEX_LEN = 8; // 4 bytes  × 2 hex chars
+
+/** Validate & strip leading “0x” if present. */
+function normalizeHex(str: string): { hex: string; keepPrefix: boolean } {
+  const keepPrefix = str.startsWith("0x") || str.startsWith("0X");
+  const hex = keepPrefix ? str.slice(2) : str;
+
+  if (hex.length !== TIMESTAMP_HEX_LEN || /[^0-9a-f]/i.test(hex)) {
+    throw new RangeError(
+      `Timestamp hex must be exactly ${TIMESTAMP_HEX_LEN} hex chars` +
+        ` (optionally prefixed with 0x). Got “${str}”.`,
+    );
+  }
+  return { hex: hex.toLowerCase(), keepPrefix };
+}
+
+/** Assemble a 32-bit unsigned integer from 4 little-endian bytes. */
+function leBytesToUint32(b0: number, b1: number, b2: number, b3: number): number {
+  return (b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)) >>> 0;
+}
+
+/** Split a uint32 into little-endian bytes and return an 8-char hex string. */
+function uint32ToLeHex(u32: number): string {
+  const bytes = [
+    (u32 >>> 0) & 0xff,
+    (u32 >>> 8) & 0xff,
+    (u32 >>> 16) & 0xff,
+    (u32 >>> 24) & 0xff,
+  ];
+  return bytes.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Public API
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Reads the UNIX-epoch seconds from an 8-hex-char little-endian timestamp.
+ */
+export function readTimeFromTimestampHexString(tsHex: string): number {
+  const { hex } = normalizeHex(tsHex);
+
+  const b0 = parseInt(hex.slice(0, 2), 16);
+  const b1 = parseInt(hex.slice(2, 4), 16);
+  const b2 = parseInt(hex.slice(4, 6), 16);
+  const b3 = parseInt(hex.slice(6, 8), 16);
+
+  return leBytesToUint32(b0, b1, b2, b3);
+}
+
+/**
+ * Same as above but returned as a JavaScript `Date` (local TZ).
+ */
+export function readDateFromTimestampHexString(tsHex: string): Date {
+  return new Date(readTimeFromTimestampHexString(tsHex) * 1_000);
+}
+
+/**
+ * Adds exactly one second and returns **a new** hex string in the
+ * same little-endian layout.  If the input had a “0x” prefix, the
+ * output keeps it; otherwise it does not.
+ */
+export function addOneSecondToTimestampHexString(tsHex: string): string {
+  const { hex, keepPrefix } = normalizeHex(tsHex);
+  const current = readTimeFromTimestampHexString(hex);
+  const updated = (current + 1) >>> 0; // wrap at 2³²
+
+  const out = uint32ToLeHex(updated);
+  return keepPrefix ? "0x" + out : out;
+}
+
+function addOneSecondToMiningChallenge(challenge: MiningChallenge): void {
+  challenge.noncelessBlockHeader.timestamp_hex = addOneSecondToTimestampHexString(challenge.noncelessBlockHeader.timestamp_hex);
+  setGlobalInputData();
+}

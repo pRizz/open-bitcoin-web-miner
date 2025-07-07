@@ -38,6 +38,7 @@ General TODO before first public release:
 -[] fix bug with user tag not persisting when hitting refresh on page
 -[] fix nonceOffset >= maxU32 in gpu mining
 -[] increase rejection limit and behavior check limit
+-[] reconnect on basic disconnects, not rejection
 
 Share to:
 -[x] orange pill app
