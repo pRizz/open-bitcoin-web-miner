@@ -33,7 +33,7 @@ const defaultContext: MiningContextType = {
   miningSpeed: 100,
   threadCount: 1,
   maxThreads: 1,
-  miningMode: "cpu",
+  miningMode: "webgpu",
   miningContextMiningState: MiningContextMiningState.NOT_MINING,
   maybeMostRecentMiningStartTime: null,
   setMiningSpeed: () => {},
