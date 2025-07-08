@@ -3,7 +3,8 @@ import { formatHashRateWithShortSIUnits, calculateSecondsToFindBlock, formatTime
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { useMining } from "@/contexts/MiningContext";
 import { useEffect, useState } from "react";
 import { DEFAULT_CONFIDENCE_LEVELS } from "./MiningTimeRequiredStats";
@@ -223,24 +224,20 @@ export function HashRateGauge() {
                   const tickPosition = getLogScale(value);
                   const isMainTick = MAGNITUDE_TICKS.includes(value);
                   return (
-                    <TooltipProvider key={value}>
-                      <Tooltip delayDuration={0}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="absolute -translate-x-1/2"
-                            style={{ left: `${tickPosition}%` }}
-                          >
-                            <div className={`h-${isMainTick ? '4' : '2'} w-px bg-gray-600`} />
-                            <div className={`absolute ${isMainTick ? 'text-xs' : 'hidden'} text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap translate-x-2`}>
-                              {formatHashRateWithoutDecimals(value)}
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" align="center">
-                          {formatHashRateWithLongSIAndNumericUnitsWithoutDecimals(value)}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <MobileFriendlyTooltip
+                      key={value}
+                      content={formatHashRateWithLongSIAndNumericUnitsWithoutDecimals(value)}
+                    >
+                      <div
+                        className="absolute -translate-x-1/2"
+                        style={{ left: `${tickPosition}%` }}
+                      >
+                        <div className={`h-${isMainTick ? '4' : '2'} w-px bg-gray-600`} />
+                        <div className={`absolute ${isMainTick ? 'text-xs' : 'hidden'} text-gray-500 mt-1 rotate-45 origin-top-left whitespace-nowrap translate-x-2`}>
+                          {formatHashRateWithoutDecimals(value)}
+                        </div>
+                      </div>
+                    </MobileFriendlyTooltip>
                   );
                 })}
               </div>

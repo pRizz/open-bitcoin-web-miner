@@ -13,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { motion } from "framer-motion";
 import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import { messageTooltip, nameTagTooltip, blockchainMessageTooltip } from "./LeaderboardConstants";
@@ -56,58 +57,42 @@ export function DesktopLeaderboard({
               </TableHead>
               <TableHead className="text-center">
                 Name Tag
-                <TooltipProvider>
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger>
-                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px]">
-                      <p>{nameTagTooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <MobileFriendlyTooltip
+                  content={<p>{nameTagTooltip}</p>}
+                  className="max-w-[300px]"
+                >
+                  <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                </MobileFriendlyTooltip>
               </TableHead>
               <TableHead className="text-center">
                 Message
-                <TooltipProvider>
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger>
-                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px]">
-                      <p>{messageTooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <MobileFriendlyTooltip
+                  content={<p>{messageTooltip}</p>}
+                  className="max-w-[300px]"
+                >
+                  <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                </MobileFriendlyTooltip>
               </TableHead>
               <TableHead className="text-center">
                 Blockchain Message
-                <TooltipProvider>
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger>
-                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px]">
-                      <p>{blockchainMessageTooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <MobileFriendlyTooltip
+                  content={<p>{blockchainMessageTooltip}</p>}
+                  className="max-w-[300px]"
+                >
+                  <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                </MobileFriendlyTooltip>
               </TableHead>
               <TableHead
                 className="text-center w-[80px] py-2 cursor-pointer hover:text-primary"
                 onClick={() => onSort("binaryZeroes")}
               >
                 Leading<br />Binary<br />Zeroes <SortIcon field="binaryZeroes" currentField={sortField} direction={sortDirection} />
-                <TooltipProvider>
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger>
-                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px]">
-                      <p>The number of leading binary zeroes in the block hash. The network currently requires at least {maybeRequiredBinaryZeroes} leading binary zeroes to mine a valid Bitcoin block.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <MobileFriendlyTooltip
+                  content={<p>The number of leading binary zeroes in the block hash. The network currently requires at least {maybeRequiredBinaryZeroes} leading binary zeroes to mine a valid Bitcoin block.</p>}
+                  className="max-w-[300px]"
+                >
+                  <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                </MobileFriendlyTooltip>
               </TableHead>
               <TableHead className="text-center w-[80px] py-2">
                 Leading<br />Hex<br />Zeroes
@@ -127,16 +112,12 @@ export function DesktopLeaderboard({
               </TableHead>
               <TableHead className="text-center">
                 Inspect
-                <TooltipProvider>
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger>
-                      <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px]">
-                      <p>View detailed information about this submission</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <MobileFriendlyTooltip
+                  content={<p>View detailed information about this submission</p>}
+                  className="max-w-[300px]"
+                >
+                  <HelpCircle className="inline ml-1 h-4 w-4 text-muted-foreground" />
+                </MobileFriendlyTooltip>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -171,7 +152,7 @@ export function DesktopLeaderboard({
                   <TooltipProvider>
                     <Tooltip delayDuration={0}>
                       <TooltipTrigger className="cursor-help font-mono text-xs truncate max-w-[120px] whitespace-normal break-words">
-                        0x{entry.hash}
+                      0x{entry.hash}
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="font-mono text-xs">0x{entry.hash}</p>
@@ -194,16 +175,13 @@ export function DesktopLeaderboard({
                   )}
                 </TableCell>
                 <TableCell className="text-center">
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger className="cursor-help">
-                        {new Date(entry.createdAt).toLocaleDateString()}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {new Date(entry.createdAt).toLocaleString()}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <MobileFriendlyTooltip
+                    content={new Date(entry.createdAt).toLocaleString()}
+                  >
+                    <span className="cursor-help">
+                      {new Date(entry.createdAt).toLocaleDateString()}
+                    </span>
+                  </MobileFriendlyTooltip>
                 </TableCell>
                 <TableCell className="text-center">
                   <a

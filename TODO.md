@@ -24,6 +24,7 @@ General TODO before first public release:
 -[x] mining bug with using duplicate timestamps
 -[x] fix wgpu not being default in incognito
 -[x] fix "webgpu not supported" error on iPhone
+-[] when viewing hash details on iPhone, can't close modal
 -[] show coinbase address outputs in Proof Of Reward page
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] GPU mining
