@@ -448,7 +448,9 @@ export const MiningStatePanel = () => {
                 <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </MobileFriendlyTooltip>
             </span>
-            <FlashingText value={miningStats.maybeRequiredBinaryZeroes} />
+            <div className="pl-4">
+              <FlashingText value={miningStats.maybeRequiredBinaryZeroes} />
+            </div>
           </div>
         </div>
       </div>
