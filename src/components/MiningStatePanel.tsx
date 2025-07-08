@@ -16,6 +16,7 @@ import { TypedLink } from "@/components/TypedLink";
 import { MiningPickaxe } from "./MiningPickaxe";
 import { OddsExplanation } from "./OddsExplanation";
 import { MiningContextMiningState } from "@/contexts/mining/types";
+import MobileFriendlyTooltip from "./ui/mobile-friendly-tooltip";
 
 const StatusIndicator = ({ isConnected }: { isConnected: boolean }) => (
   <div className="flex items-center gap-2 text-muted-foreground border-b border-muted-foreground/20 pb-1">
@@ -183,22 +184,22 @@ export const MiningStatePanel = () => {
           The Bitcoin Network
         </h3>
         <div className="space-y-2 text-sm">
+
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               Current Block Reward
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[300px]">
-                    <p>This is the sum of the base block reward and the transaction fees included in the block template.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <MobileFriendlyTooltip
+                content={<p>This is the sum of the base block reward and the transaction fees included in the block template.</p>}
+                className="max-w-[300px]"
+              >
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </MobileFriendlyTooltip>
             </span>
-            <FlashingText value={maybeBaseBlockReward ? formatSatsToBTC(maybeBaseBlockReward) : "N/A"} />
+            <div className="ml-4">
+              <FlashingText value={maybeBaseBlockReward ? formatSatsToBTC(maybeBaseBlockReward) : "N/A"} />
+            </div>
           </div>
+
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground">Block Height</span>
             {maybeBlockHeight && (

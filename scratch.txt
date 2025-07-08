@@ -52,3 +52,17 @@ Hash 65535 (block header with nonce):
 
 
 Hash 65536 (block header with nonce):
+
+2025-07-08
+
+<TooltipProvider>
+  <Tooltip delayDuration={0}>
+    <TooltipTrigger>
+      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+    </TooltipTrigger>
+    <TooltipContent className="max-w-[300px]">
+      <p>This is the sum of the base block reward and the transaction fees included in the block template.</p>
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
+
