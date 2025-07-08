@@ -1,3 +1,4 @@
+import { GPUCapabilities } from "@/contexts/mining/types";
 import { MiningMode, MiningSolution, MiningChallenge } from "@/types/mining";
 import { NoncelessBlockHeader } from "@/types/websocket";
 
@@ -26,7 +27,7 @@ export class WorkerPool {
   onHashRate: (hashRate: number) => void = () => {};
   onSolution: (solution: MiningSolution) => void = () => {};
   onError: (error: string) => void = () => {};
-  onGPUCapabilities: (capabilities: any) => void = () => {};
+  onGPUCapabilities: (capabilities: GPUCapabilities) => void = () => {};
 
   constructor(
   ) {
@@ -223,6 +224,7 @@ export class WorkerPool {
       } else if (type === "error" && this.onError) {
         this.onError(data);
       } else if (type === "gpuCapabilities" && this.onGPUCapabilities) {
+        console.log("peterlog: workerpool: onGPUCapabilities", data);
         this.onGPUCapabilities(data);
       } else if (type === "nonceRollover") {
         // Send updated challenge with new timestamp

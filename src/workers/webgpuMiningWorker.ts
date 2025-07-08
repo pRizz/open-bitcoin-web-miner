@@ -5,6 +5,7 @@ import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
 import { WorkerMessage } from "./WorkerPool";
 import { dsha256Shader80ByteInput } from "./webgpuShader";
+import { GPUCapabilities } from "@/contexts/mining/types";
 
 // 2025-07-05: runs about about 180k to 205k hashes per second
 // 2025-07-05: Up to 12.7Mh/s after atomic counter optimization!
@@ -237,20 +238,29 @@ async function initWebGPU(): Promise<GPUInitSuccessResult> {
   } = adapter.limits;
 
   // Send GPU capabilities to UI
+  console.log("peterlog: gpuminingworker: initWebGPU; sending gpu capabilities to UI");
+  const gpuCapabilities: GPUCapabilities = {
+    maxStorageBufferSize: formatBytes(maxStorageBufferBindingSize),
+    maxWorkgroupsPerDimension: formatNumber(maxComputeWorkgroupsPerDimension),
+    maxWorkgroupSize: {
+      x: formatNumber(maxComputeWorkgroupSizeX),
+      y: formatNumber(maxComputeWorkgroupSizeY),
+      z: formatNumber(maxComputeWorkgroupSizeZ)
+    },
+    maxInvocationsPerWorkgroup: formatNumber(maxComputeInvocationsPerWorkgroup),
+    maxTextureDimension2D: formatNumber(maxTextureDimension2D),
+    adapterInfo: adapter.toString(),
+    // limits: adapter.limits // Cannot be cloned from the worker side
+    gpuAdapterInfo: {
+      vendor: adapter.info.vendor,
+      architecture: adapter.info.architecture,
+      device: adapter.info.device,
+      description: adapter.info.description
+    }
+  }
   self.postMessage({
     type: "gpuCapabilities",
-    data: {
-      maxStorageBufferSize: formatBytes(maxStorageBufferBindingSize),
-      maxWorkgroupsPerDimension: formatNumber(maxComputeWorkgroupsPerDimension),
-      maxWorkgroupSize: {
-        x: formatNumber(maxComputeWorkgroupSizeX),
-        y: formatNumber(maxComputeWorkgroupSizeY),
-        z: formatNumber(maxComputeWorkgroupSizeZ)
-      },
-      maxInvocationsPerWorkgroup: formatNumber(maxComputeInvocationsPerWorkgroup),
-      maxTextureDimension2D: formatNumber(maxTextureDimension2D),
-      adapterInfo: adapter.toString()
-    }
+    data: gpuCapabilities
   });
 
   const device = await adapter.requestDevice({
@@ -650,7 +660,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           //  Failed to initWebGPU: GPUPipelineError: The total number of workgroup invocations (512) exceeds the maximum allowed (256). This adapter supports a higher maxComputeInvocationsPerWorkgroup of 1024, which can be specified in requiredLimits when calling requestDevice(). Limits differ by hardware, so always check the adapter limits prior to requesting a higher limit.
 
           console.error('Failed to initWebGPU:', error);
-          self.postMessage({ type: "error", data: `Failed to initWebGPU: ${error.message}` });
+          self.postMessage({ type: "error", data: `Failed to initialize WebGPU: ${error.message}; navigator.gpu: ${navigator.gpu}` });
           running = false;
           return;
         }

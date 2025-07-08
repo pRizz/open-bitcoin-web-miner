@@ -8,18 +8,12 @@ import { validateBitcoinAddress } from "@/utils/mining";
 import { showError } from "@/utils/notifications";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
-import { GPUCapabilities } from "../GPUCapabilities";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { GPUCapabilitiesComponent } from "../GPUCapabilities";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { validateBlockchainMessage, getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
 import { getRandomBitcoinPhrase } from "@/utils/bitcoinPhrases";
 import { ShareControls } from "./ShareControls";
+import { MiningModeSelector } from "./MiningModeSelector";
 
 const randomPhrase = getRandomBitcoinPhrase();
 
@@ -162,19 +156,8 @@ export function MiningControls() {
       )}
 
       {/* Mining Mode Selection */}
-      <div className="space-y-2">
-        <Label>Mining Mode</Label>
-        <Select value={miningMode} onValueChange={setMiningMode}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select mining mode" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="webgpu">WebGPU Mining</SelectItem>
-            <SelectItem value="cpu">CPU Mining (JavaScript Implementation)</SelectItem>
-            <SelectItem disabled value="cpuWasm">CPU Mining (WebAssembly Implementation) (Coming Soon)</SelectItem>
-            <SelectItem disabled value="bitaxe">Bitaxe Mining (Coming Soon)</SelectItem>
-          </SelectContent>
-        </Select>
+      <div>
+        <MiningModeSelector />
       </div>
 
       {/* Thread Count Control (CPU Only) */}
@@ -257,14 +240,15 @@ export function MiningControls() {
           )}
         </div>
 
+        {/* GPU Capabilities */}
+        {miningMode === "webgpu" && (
+          <GPUCapabilitiesComponent capabilities={gpuCapabilities} />
+        )}
+
         <ShareControls />
 
       </div>
 
-      {/* GPU Capabilities */}
-      {miningMode === "webgpu" && (
-        <GPUCapabilities capabilities={gpuCapabilities} />
-      )}
     </div>
   );
 }
