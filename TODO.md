@@ -24,10 +24,13 @@ General TODO before first public release:
 -[x] mining bug with using duplicate timestamps
 -[x] fix wgpu not being default in incognito
 -[x] fix "webgpu not supported" error on iPhone
--[] when viewing hash details on iPhone, can't close modal
+-[x] fix bug with user tag not persisting when hitting refresh on page
+-[x] GPU mining
+-[x] fix nonceOffset >= maxU32 in gpu mining
+-[x] when viewing hash details on iPhone, can't close modal
+-[x] increase rejection limit and behavior check limit
 -[] show coinbase address outputs in Proof Of Reward page
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
--[] GPU mining
 -[] allow sorting leaderboard by date found
 -[] personal best hashes found seems to not add when a better leading binary hash is found
 -[] add a link to global hashrate graph website
@@ -37,11 +40,7 @@ General TODO before first public release:
 -[] add firebase
 -[] add social media links, and search for Bright Builds LLC and Peter Ryszkiewicz in the project and add links
 -[] search project and fix this: "FIXME: Uncaught Error: useNavigate()"
--[] do automatic reconnects of websocket problems
--[] fix bug with user tag not persisting when hitting refresh on page
--[] fix nonceOffset >= maxU32 in gpu mining
--[] increase rejection limit and behavior check limit
--[] reconnect on basic disconnects, not rejection
+-[] do automatic reconnects of websocket problems / reconnect on basic disconnects, not rejection
 -[] fix/audit mining speed in webgpu worker
 
 Share to:
@@ -51,7 +50,7 @@ Share to:
 -[x] X
 
 Future features:
--[] gpu mining
+-[x] gpu mining
 -[] rust cpu mining
 -[] open source all cpu and gpu mining
 -[] add captcha's maybe
