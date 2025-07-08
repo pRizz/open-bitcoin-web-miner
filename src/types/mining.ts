@@ -24,6 +24,7 @@ export interface HashSolution {
   id: string;
   hash: string;
   nonceNumber: number;
+  // in milliseconds since 1970 epoch
   timestamp: number;
   merkleRootHex: string;
   previousBlockHex: string;

@@ -20,6 +20,7 @@ import { GlobalLeaderboardProvider } from "./contexts/GlobalLeaderboardContext";
 import { MiningEventsProvider } from "@/contexts/mining/MiningEventsContext";
 import { routes } from "./routes";
 import { isMobileSync } from "@/hooks/use-mobile";
+import HashDetailsPage from "@/pages/hashDetails/[hash]";
 
 const queryClient = new QueryClient();
 // Session-only variable to track if user has visited home page in this session
@@ -76,6 +77,10 @@ const router = createBrowserRouter([
       {
         path: routes.submission.routerPath,
         element: <SubmissionPage />,
+      },
+      {
+        path: routes.hashDetails.routerPath,
+        element: <HashDetailsPage />,
       },
       {
         path: routes.about.routerPath,

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { HashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
 import { HashDetailsDialog } from "./HashDetailsDialog";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 
 import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { formatTimestamp, getEffectiveStatus, getStatusIcon, getStatusText } from "@/utils/submittedSolutionsUtils";
@@ -68,8 +68,16 @@ export function MobileHashCard({ hashSolution }: MobileHashCardProps) {
               {hashSolution.hash}
             </div>
           </div>
+          <div className="text-muted-foreground text-sm mb-2">
+            Found at: {new Date(hashSolution.timestamp).toLocaleString()}
+          </div>
           <div className="flex justify-end">
-            <HashDetailsDialog hash={hashSolution} />
+            <a href={`/hash-details/${hashSolution.hash}`} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm">
+                <Search className="h-4 w-4" />
+                Inspect
+              </Button>
+            </a>
           </div>
         </div>
       )}

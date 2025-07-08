@@ -68,6 +68,16 @@ export const routes = {
     icon: Info,
     keyName: 'submission',
   },
+  hashDetails: {
+    type: 'dynamic' as const,
+    path: (params: { hash: string }) => `/hash-details/${params.hash}`,
+    routerPath: '/hash-details/:hash',
+    sidebarTitle: 'Hash Details',
+    topBarTitle: 'Hash Details',
+    paramName: 'hash' as const,
+    icon: Info,
+    keyName: 'hashDetails',
+  },
   about: {
     type: 'static' as const,
     path: '/about',
