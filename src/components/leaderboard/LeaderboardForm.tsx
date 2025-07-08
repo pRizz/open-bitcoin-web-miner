@@ -4,12 +4,8 @@ import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { getMessageByteLength, MAX_MESSAGE_BYTES } from "@/utils/blockchainMessage";
 import { saveLeaderboardUsername, saveLeaderboardMessage } from "@/utils/localStorage";
 import { useMining } from "@/contexts/MiningContext";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
+import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { HelpCircle } from "lucide-react";
 import { messageTooltip, nameTagTooltip, blockchainMessageTooltip } from "./LeaderboardConstants";
 
@@ -35,16 +31,12 @@ export function LeaderboardForm() {
       <div className="space-y-2">
         <Label htmlFor="username" className="flex items-center gap-2">
           Name Tag (1-20 alphanumeric characters)
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[300px]">
-                <p>{nameTagTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <MobileFriendlyTooltip
+            content={<p>{nameTagTooltip}</p>}
+            className="max-w-[300px]"
+          >
+            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+          </MobileFriendlyTooltip>
         </Label>
         <div className="space-y-1">
           <Input
@@ -63,16 +55,12 @@ export function LeaderboardForm() {
       <div className="space-y-2">
         <Label htmlFor="leaderboardMessage" className="flex items-center gap-2">
           Leaderboard Message (up to 120 characters)
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[300px]">
-                <p>{messageTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <MobileFriendlyTooltip
+            content={<p>{messageTooltip}</p>}
+            className="max-w-[300px]"
+          >
+            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+          </MobileFriendlyTooltip>
         </Label>
         <div className="space-y-1">
           <Input
@@ -91,16 +79,12 @@ export function LeaderboardForm() {
       <div className="space-y-2">
         <Label htmlFor="blockchainMessage" className="flex items-center gap-2">
           Blockchain Message (up to {MAX_MESSAGE_BYTES} bytes)
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[300px]">
-                <p>{blockchainMessageTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <MobileFriendlyTooltip
+            content={<p>{blockchainMessageTooltip}</p>}
+            className="max-w-[300px]"
+          >
+            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+          </MobileFriendlyTooltip>
         </Label>
         <div className="space-y-1">
           <Input

@@ -5,12 +5,8 @@ import { HashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
 import { HashDetailsDialog } from "./HashDetailsDialog";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
+import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { formatTimestamp, getEffectiveStatus, getStatusIcon, getStatusText } from "@/utils/submittedSolutionsUtils";
 
 interface MobileHashCardProps {
@@ -29,16 +25,11 @@ export function MobileHashCard({ hashSolution }: MobileHashCardProps) {
           <span className="text-sm font-mono text-muted-foreground">
             {formatTimestamp(hashSolution.timestamp)}
           </span>
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger>
-                {getStatusIcon(effectiveStatus)}
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{getStatusText(effectiveStatus, hashSolution.status)}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <MobileFriendlyTooltip
+            content={<p>{getStatusText(effectiveStatus, hashSolution.status)}</p>}
+          >
+            {getStatusIcon(effectiveStatus)}
+          </MobileFriendlyTooltip>
         </div>
         <Button
           variant="ghost"

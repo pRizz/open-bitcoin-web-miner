@@ -333,7 +333,7 @@ export const MiningStatePanel = () => {
                   className="flex items-center gap-2"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Reset Stats
+              Reset Stats
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -346,21 +346,21 @@ export const MiningStatePanel = () => {
           <div className="flex justify-between border-b border-muted-foreground/20 pb-1">
             <span className="text-muted-foreground flex items-center gap-2">
               Status
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[300px]">
+              <MobileFriendlyTooltip
+                content={
+                  <div>
                     <p>Possible mining states:</p>
                     <ul className="list-disc pl-4 mt-1 space-y-1">
                       <li><strong>Not Mining:</strong> The miner is inactive</li>
                       <li><strong>Behavior Check:</strong> The miner is verifying compliant behavior before mining with your BTC address. This is done in order to mitigate misbehaving clients.</li>
                       <li><strong>Mining:</strong> The miner is actively searching for solutions using your BTC address. If a block is found, your address will be rewarded with 1 Bitcoin!</li>
                     </ul>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  </div>
+                }
+                className="max-w-[300px]"
+              >
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </MobileFriendlyTooltip>
             </span>
             <span className="text-muted-foreground flex items-center gap-2">
               {miningStateText}
@@ -404,21 +404,21 @@ export const MiningStatePanel = () => {
             <span className="text-muted-foreground flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500" />
               Rejected Solutions
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[300px]">
+              <MobileFriendlyTooltip
+                content={
+                  <div>
                     <p>Solutions may be rejected if:</p>
                     <ul className="list-disc pl-4 mt-1 space-y-1">
                       <li>A solution was attempted to be submitted while a difficulty update was sent to the client</li>
                       <li>A solution was attempted to be submitted while a block update was sent to the client</li>
                       <li>The solution does not meet the current difficulty requirements</li>
                     </ul>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  </div>
+                }
+                className="max-w-[300px]"
+              >
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </MobileFriendlyTooltip>
             </span>
             <FlashingText value={miningStats.rejectedSolutions || "0"} />
           </div>
@@ -427,16 +427,12 @@ export const MiningStatePanel = () => {
             <span className="text-muted-foreground flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-500" />
               Rejected Rate (%)
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[300px]">
-                    <p>The percentage of solutions that were rejected.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <MobileFriendlyTooltip
+                content={<p>The percentage of solutions that were rejected.</p>}
+                className="max-w-[300px]"
+              >
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </MobileFriendlyTooltip>
             </span>
             <FlashingText value={`${((miningStats.rejectedSolutions / (miningStats.maybeTotalSolutions || 1)) * 100 || 0).toFixed(2)}%`} />
           </div>
@@ -445,16 +441,12 @@ export const MiningStatePanel = () => {
             <span className="text-muted-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-yellow-500" />
               Required Leading Binary Zeros
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[400px] z-50">
-                    <p>This value is dynamically adjusted based on your computer's mining speed to maintain an optimal solution submission rate.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <MobileFriendlyTooltip
+                content={<p>This value is dynamically adjusted based on your computer's mining speed to maintain an optimal solution submission rate.</p>}
+                className="max-w-[400px] z-50"
+              >
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </MobileFriendlyTooltip>
             </span>
             <FlashingText value={miningStats.maybeRequiredBinaryZeroes} />
           </div>

@@ -14,6 +14,7 @@ import { validateBlockchainMessage, getMessageByteLength, MAX_MESSAGE_BYTES } fr
 import { getRandomBitcoinPhrase } from "@/utils/bitcoinPhrases";
 import { ShareControls } from "./ShareControls";
 import { MiningModeSelector } from "./MiningModeSelector";
+import { MINING_REWARD_BTC_AMOUNT } from "@/constants/mining";
 
 const randomPhrase = getRandomBitcoinPhrase();
 
@@ -98,7 +99,7 @@ export function MiningControls() {
               />
             </TooltipTrigger>
             <TooltipContent className="max-w-[300px]">
-              <p>If you successfully mine a block, you will receive 1 BTC as a reward at this address.</p>
+              <p>If you successfully mine a block, you will receive {MINING_REWARD_BTC_AMOUNT} BTC as a reward at this address.</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

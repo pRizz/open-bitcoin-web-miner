@@ -1,23 +1,29 @@
 
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+
+type MobileFriendlyTooltipProps = {
+  children: React.ReactNode
+  content: React.ReactNode,
+  className?: string
+  tooltipProviderKey?: string
+}
 
 export function MobileFriendlyTooltip({
   children,
   content,
   className,
-}: {
-  children: React.ReactNode
-  content: React.ReactNode,
-  className?: string
-}) {
+  tooltipProviderKey,
+}: MobileFriendlyTooltipProps) {
   const hasHover = window.matchMedia('(hover: hover)').matches
-  
+
   return hasHover ? (
-    <Tooltip delayDuration={0}>
-      <TooltipTrigger>{children}</TooltipTrigger>
-      <TooltipContent className={className}>{content}</TooltipContent>
-    </Tooltip>
+    <TooltipProvider key={tooltipProviderKey}>
+      <Tooltip delayDuration={0} key={tooltipProviderKey}>
+        <TooltipTrigger>{children}</TooltipTrigger>
+        <TooltipContent className={className}>{content}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   ) : (
     <Popover>
       <PopoverTrigger>{children}</PopoverTrigger>

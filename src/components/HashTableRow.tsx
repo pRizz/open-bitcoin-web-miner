@@ -2,12 +2,8 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { HashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
 import { HashDetailsDialog } from "./HashDetailsDialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
+import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { formatTimestamp, getEffectiveStatus, getStatusIcon, getStatusText } from "@/utils/submittedSolutionsUtils";
 
 interface HashTableRowProps {
@@ -36,16 +32,11 @@ export function HashTableRow({ hashSolution }: HashTableRowProps) {
       </TableCell>
       <TableCell className="text-center">
         {hashSolution.status && (
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger>
-                {getStatusIcon(effectiveStatus)}
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{getStatusText(effectiveStatus, hashSolution.status)}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <MobileFriendlyTooltip
+            content={<p>{getStatusText(effectiveStatus, hashSolution.status)}</p>}
+          >
+            {getStatusIcon(effectiveStatus)}
+          </MobileFriendlyTooltip>
         )}
       </TableCell>
       <TableCell className="text-center">

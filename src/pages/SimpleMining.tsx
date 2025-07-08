@@ -13,6 +13,7 @@ import { getDescriptionStatement } from "@/utils/probabilityPhrases";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatLargeNumber } from "@/utils/formatters";
 import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
+import { MINING_REWARD_BTC_AMOUNT } from "@/constants/mining";
 
 const SimpleMining = () => {
   const {
@@ -68,7 +69,7 @@ const SimpleMining = () => {
                   />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[300px]">
-                  <p>If you successfully mine a block, you will receive 1 BTC as a reward at this address.</p>
+                  <p>If you successfully mine a block, you will receive {MINING_REWARD_BTC_AMOUNT} BTC as a reward at this address.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
