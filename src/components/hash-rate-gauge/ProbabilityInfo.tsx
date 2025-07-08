@@ -19,6 +19,7 @@ export function ProbabilityInfo({ hashRate }: ProbabilityInfoProps) {
     <div className="text-right text-sm text-gray-400">
       <div className="font-semibold mb-1 flex items-center justify-end gap-2">
         Chances of Finding a Block Solution
+        {/* FIXME: bugged on mobile; behind header */}
         <Dialog>
           <DialogTrigger>
             <HelpCircle className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-300" />

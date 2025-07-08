@@ -142,12 +142,12 @@ export function HashDetailsContent({ hash }: HashDetailsContentProps) {
       <div>
         <div className="text-gray-400">Timestamp</div>
         <div className="flex items-center gap-2">
-          <div>{new Date(hash.timestamp * 1000).toLocaleString()}</div>
+          <div>{new Date(hash.timestamp).toLocaleString()}</div>
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6"
-            onClick={() => handleCopy(new Date(hash.timestamp * 1000).toLocaleString(), "Timestamp")}
+            onClick={() => handleCopy(new Date(hash.timestamp).toLocaleString(), "Timestamp")}
           >
             <Copy className="h-4 w-4" />
           </Button>
