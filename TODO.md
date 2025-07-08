@@ -22,6 +22,8 @@ General TODO before first public release:
 -[x] verify the bitaxe probabilities and other probabilities in production mainnet
 -[x] fix username and blockchain message not being set in the database; leaderboardMessage does not update websocket req on change
 -[x] mining bug with using duplicate timestamps
+-[x] fix wgpu not being default in incognito
+-[x] fix "webgpu not supported" error on iPhone
 -[] show coinbase address outputs in Proof Of Reward page
 -[] cache the user's best hashes found to localStorage or indexDB; load on app start; allow clearing
 -[] GPU mining
@@ -90,3 +92,8 @@ doing sentry source maps
 
    If the guide doesn't help or you encounter a bug, please let us know:
    https://github.com/getsentry/sentry-javascript/issues
+
+2025-07-07
+
+went from 190kh/s for cpu to about 25Mh/s for gpu
+this is 130x speedup

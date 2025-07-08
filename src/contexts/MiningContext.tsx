@@ -11,6 +11,9 @@ import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { useMiningEvents } from "./mining/MiningEventsContext";
 import { loadMiningMode, saveMiningMode } from "@/utils/localStorage";
 
+export const isWebGPUSupported = typeof navigator.gpu !== 'undefined';
+const defaultMiningMode: MiningMode = isWebGPUSupported ? "webgpu" : "cpu";
+
 function getMiningContextMiningStateFromWebSocketMiningState(webSocketMiningState: WebSocketMiningState): MiningContextMiningState {
   switch (webSocketMiningState) {
   case WebSocketMiningState.MINING:
@@ -33,7 +36,7 @@ const defaultContext: MiningContextType = {
   miningSpeed: 100,
   threadCount: 1,
   maxThreads: 1,
-  miningMode: "webgpu",
+  miningMode: defaultMiningMode,
   miningContextMiningState: MiningContextMiningState.NOT_MINING,
   maybeMostRecentMiningStartTime: null,
   setMiningSpeed: () => {},
@@ -67,7 +70,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const [miningMode, setMiningMode] = useState<MiningMode>(() => {
     // Load mining mode from localStorage on initialization
     const maybeSavedMode = loadMiningMode();
-    return maybeSavedMode || "cpu";
+    return maybeSavedMode || defaultMiningMode;
   });
   const [miningHistory, setMiningHistory] = useState<MiningHistoryItem[]>([]);
   const [maybeMostRecentMiningStartTime, setMaybeMostRecentMiningStartTime] = useState<number | null>(null);
@@ -312,6 +315,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         miningMode,
         miningContextMiningState,
         maybeMostRecentMiningStartTime,
+        gpuCapabilities: workerPool.gpuCapabilities,
         setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
         setMiningMode: handleSetMiningMode,

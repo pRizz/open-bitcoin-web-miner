@@ -1,6 +1,14 @@
 import { MiningStats, MiningMode } from "@/types/mining";
 import { MiningSubmission, NoncelessBlockHeader, ProofOfReward } from "@/types/websocket";
 
+// Needed because the underlying GPUAdapterInfo object cannot be cloned from the worker side
+export interface LocalGPUAdapterInfo {
+  vendor: string;
+  architecture: string;
+  device: string;
+  description: string;
+}
+
 export interface GPUCapabilities {
   maxStorageBufferSize: string;
   maxWorkgroupsPerDimension: string;
@@ -12,6 +20,8 @@ export interface GPUCapabilities {
   maxInvocationsPerWorkgroup: string;
   maxTextureDimension2D: string;
   adapterInfo: string;
+  // limits: GPUSupportedLimits; // Cannot be cloned from the worker side
+  gpuAdapterInfo: LocalGPUAdapterInfo;
 }
 
 export interface MiningHistoryItem {

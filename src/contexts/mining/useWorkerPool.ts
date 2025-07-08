@@ -30,6 +30,7 @@ export const useWorkerPool = (
     stopMining();
   };
   workerPool.current.onGPUCapabilities = (capabilities) => {
+    console.log("peterlog: useWorkerPool: onGPUCapabilities", capabilities);
     setGpuCapabilities(capabilities);
   };
 
