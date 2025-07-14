@@ -12,5 +12,3 @@ git tag "$TAG_NAME"
 git push origin "$TAG_NAME"
 
 echo "Successfully created and pushed tag: $TAG_NAME"
-
-
