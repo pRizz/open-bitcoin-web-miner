@@ -175,7 +175,7 @@ export const MiningStatePanel = () => {
 
   return (
     <Card className="p-6 glass-card">
-      <h2 className="text-2xl font-bold mb-4">Mining State (under maintenance)</h2>
+      <h2 className="text-2xl font-bold mb-4">Mining State</h2>
 
       {/* Bitcoin Network Section */}
       <div className="mb-2 p-4 border rounded-lg relative z-10 bg-background">
