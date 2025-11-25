@@ -117,7 +117,7 @@ export function NetworkStats() {
     <Card className="p-6 glass-card" style={{ zIndex: 9 }}>
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Network Stats (under maintenance)</h2>
+        <h2 className="text-2xl font-bold">Network Stats</h2>
 
         {import.meta.env.DEV && (
           <div className="flex items-center gap-2">
