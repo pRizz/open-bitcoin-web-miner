@@ -74,6 +74,8 @@ This project is built with .
 
 Simply open [Lovable](https://lovable.dev/projects/d92f5bad-8918-4827-a7b9-d4b9e8b466e9) and click on Share -> Publish.
 
+To have **win3bitcoin.com** redirect to the app, see [S3 redirect setup](docs/s3-redirect-setup.md) (one-time bucket + DNS; use `./scripts/setup-redirect.sh` as the orchestrator or call the step scripts directly under `./scripts/redirect/`).
+
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
