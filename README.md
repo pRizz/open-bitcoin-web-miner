@@ -1,5 +1,7 @@
 # Welcome to your Lovable project
 
+[![GitHub Stars](https://img.shields.io/github/stars/pRizz/leading-zero-lab)](https://github.com/pRizz/leading-zero-lab)
+
 ## Common Commands
 
 ```sh
