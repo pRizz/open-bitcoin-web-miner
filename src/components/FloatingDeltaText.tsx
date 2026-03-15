@@ -42,11 +42,12 @@ const UpwardsLinearDiv = ({ children }: { children: React.ReactNode }) => {
 
 export const FloatingDeltaText = ({ value, prevValue, className, enableGreenDelta = false }: FloatingDeltaTextProps) => {
   const [activeTexts, setActiveTexts] = useState<FloatingText[]>([]);
-  if (!enableGreenDelta) {
-    return null;
-  }
 
   useEffect(() => {
+    if (!enableGreenDelta) {
+      return;
+    }
+
     // Early return if values are the same or either is undefined/null
     if (value === prevValue || value === undefined || value === null ||
         prevValue === undefined || prevValue === null) {
@@ -92,7 +93,7 @@ export const FloatingDeltaText = ({ value, prevValue, className, enableGreenDelt
     return () => clearTimeout(timeout);
   }, [value, prevValue]);
 
-  if (activeTexts.length === 0) return null;
+  if (!enableGreenDelta || activeTexts.length === 0) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1000, top: 0, right: 0 }}>

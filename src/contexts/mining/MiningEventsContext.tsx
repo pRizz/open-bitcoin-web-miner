@@ -8,14 +8,15 @@ export type MiningEventType =
 
 export type SubmissionResponse = {
   accepted: boolean;
-  hash: string;
+  hash?: string;
 };
 
-type MiningEventCallback = (eventType: MiningEventType, data?: any) => void;
+type MiningEventData = SubmissionResponse | undefined;
+type MiningEventCallback = (eventType: MiningEventType, data?: MiningEventData) => void;
 
 interface MiningEventsContextType {
   subscribe: (eventType: MiningEventType, callback: MiningEventCallback) => () => void;
-  emit: (eventType: MiningEventType, data?: any) => void;
+  emit: (eventType: MiningEventType, data?: MiningEventData) => void;
 }
 
 const MiningEventsContext = createContext<MiningEventsContextType | null>(null);
@@ -51,7 +52,7 @@ export const MiningEventsProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const emit = useCallback((eventType: MiningEventType, data?: any) => {
+  const emit = useCallback((eventType: MiningEventType, data?: MiningEventData) => {
     console.log("MiningEventsProvider: emit", eventType, data);
     subscribers[eventType].forEach(callback => callback(eventType, data));
   }, [subscribers]);

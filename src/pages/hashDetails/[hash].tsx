@@ -16,12 +16,12 @@ const InvalidHashError = () => {
 };
 
 export default function HashDetailsPage() {
+  const { miningStats } = useMining();
   const { hash } = useParams<{ hash: string }>();
   if (!hash) {
     return <InvalidHashError />;
   }
 
-  const { miningStats } = useMining();
   const submittedHashes = miningStats.maybeSubmittedSolutions || [];
   const hashSolution = findHashSolution(hash, submittedHashes);
 

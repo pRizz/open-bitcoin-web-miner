@@ -1,4 +1,5 @@
 export type NotificationType = 'success' | 'error' | 'warning' | 'info';
+export type NotificationMetadata = Record<string, unknown>;
 
 export interface Notification {
   id: string;
@@ -11,7 +12,7 @@ export interface Notification {
     label: string;
     onClick: () => void;
   };
-  maybeMetadata?: Record<string, any>;
+  maybeMetadata?: NotificationMetadata;
 }
 
 export interface NotificationOptions {
@@ -22,7 +23,7 @@ export interface NotificationOptions {
     label: string;
     onClick: () => void;
   };
-  maybeMetadata?: Record<string, any>;
+  maybeMetadata?: NotificationMetadata;
   maybePersist?: boolean;
   maybeDuration?: number;
 }

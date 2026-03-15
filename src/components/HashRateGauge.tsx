@@ -16,6 +16,7 @@ interface MinerReference {
 }
 
 const MINER_REFERENCES: MinerReference[] = [
+  { hashRate: 50_000_000, name: "Decent GPU Speed" }, // 50 MH/s
   { hashRate: 1e12, name: "Bitaxe", maybeLink: "https://bitaxe.org/" },        // 1 TH/s
   { hashRate: 100e12, name: "Antminer S21" }, // 100 TH/s
   { hashRate: 6e18, name: "OCEAN", maybeLink: "https://www.ocean.xyz/" }, // 6 EH/s

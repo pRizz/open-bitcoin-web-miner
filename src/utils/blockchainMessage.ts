@@ -1,5 +1,12 @@
 export const MAX_MESSAGE_BYTES = 80;
 
+function containsControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const charCode = character.charCodeAt(0);
+    return charCode <= 0x1f || charCode === 0x7f;
+  });
+}
+
 /**
  * Returns an error message if the message is invalid, or undefined if it's valid
  * @param message - The message to validate
@@ -9,7 +16,7 @@ export function validateBlockchainMessage(message: string | null): string | unde
   if (!message) return undefined;
 
   // Check for control characters
-  if (/[\x00-\x1F\x7F]/.test(message)) {
+  if (containsControlCharacter(message)) {
     return "Message cannot contain control characters";
   }
 
