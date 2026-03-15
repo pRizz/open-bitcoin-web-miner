@@ -1,4 +1,4 @@
-import { LucideIcon, Home, Trophy, Info, BarChart, Zap, Bell } from "lucide-react";
+import { LucideIcon, Home, Trophy, Info, BarChart, Zap, Bell, Cpu } from "lucide-react";
 
 type BaseRoute = {
   sidebarTitle: string;
@@ -105,6 +105,15 @@ export const routes = {
     icon: BarChart,
     keyName: 'miningStatistics',
   },
+  homeBitcoinMining: {
+    type: 'static' as const,
+    path: '/home-bitcoin-mining',
+    routerPath: '/home-bitcoin-mining',
+    sidebarTitle: 'Home Mining',
+    topBarTitle: 'Home Bitcoin Mining',
+    icon: Cpu,
+    keyName: 'homeBitcoinMining',
+  },
 } as const;
 
 export type RouteName = keyof typeof routes;
@@ -136,5 +145,6 @@ export const sidebarPages = [
   routes.leaderboard,
   routes.notifications,
   routes.miningStatistics,
+  routes.homeBitcoinMining,
   routes.about,
 ].filter(isStaticRoute);

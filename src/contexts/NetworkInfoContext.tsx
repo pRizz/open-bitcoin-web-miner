@@ -25,6 +25,7 @@ interface WebsocketCountResponse {
 export interface NetworkInfoContextType {
   maybeBlockHeight: number | undefined;
   maybeFormattedNetworkDifficulty: string | undefined;
+  maybeNetworkDifficulty: number | undefined;
   maybeNetworkRequiredLeadingZeroes: number | undefined;
   maybeConnectedWebsocketCount: number | undefined;
   maybeConnectedMinerCount: number | undefined;
@@ -46,6 +47,7 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
   const [networkInfo, setNetworkInfo] = useState<NetworkInfoContextType>({
     maybeBlockHeight: undefined,
     maybeFormattedNetworkDifficulty: undefined,
+    maybeNetworkDifficulty: undefined,
     maybeNetworkRequiredLeadingZeroes: undefined,
     maybeConnectedWebsocketCount: undefined,
     maybeConnectedMinerCount: undefined,
@@ -96,6 +98,7 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
 
         // Only update if values are different
         if (block_height !== networkInfo.maybeBlockHeight ||
+            network_difficulty !== networkInfo.maybeNetworkDifficulty ||
             connected_websocket_count !== networkInfo.maybeConnectedWebsocketCount ||
             connected_miner_count !== networkInfo.maybeConnectedMinerCount ||
             server_starting_min_leading_zero_count !== networkInfo.maybeServerStartingMinLeadingZeroCount ||
@@ -117,6 +120,7 @@ export function NetworkInfoProvider({ children }: { children: React.ReactNode })
           setNetworkInfo({
             maybeBlockHeight: block_height,
             maybeFormattedNetworkDifficulty: formattedDifficulty,
+            maybeNetworkDifficulty: network_difficulty,
             maybeNetworkRequiredLeadingZeroes: requiredZeroes,
             maybeConnectedWebsocketCount: connected_websocket_count,
             maybeConnectedMinerCount: connected_miner_count,

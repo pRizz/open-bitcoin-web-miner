@@ -10,6 +10,9 @@ concurrency:
   group: production-deploy
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     name: Build and Deploy to Production
@@ -36,14 +39,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
+      - name: Run shared verification
+        run: npm run verify
 
-      - name: Run tests
-        run: npm test -- --run
-
-      - name: Build production bundle
-        run: npm run build
+      - name: Build deploy bundle with Sentry upload
+        run: npm run build:deploy
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

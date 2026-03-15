@@ -1,0 +1,5 @@
+npm run verify || {
+  echo
+  echo "Commit blocked: npm run verify failed." >&2
+  exit 1
+}
