@@ -5,8 +5,8 @@
 ## Common Commands
 
 ```sh
-npm run verify
-npm run dev
+bun run verify
+bun run dev
 ```
 
 ## Project info
@@ -27,7 +27,7 @@ Changes made via Lovable will be committed automatically to this repo.
 
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Install [Bun](https://bun.sh/) 1.3.x before working locally. The repo pins `bun@1.3.9`, and the root install also covers the nested `external/` workspace package.
 
 Follow these steps:
 
@@ -39,12 +39,12 @@ git clone <YOUR_GIT_URL>
 cd <YOUR_PROJECT_NAME>
 
 # Step 3: Install the necessary dependencies.
-npm i
+bun install
 
-# Step 3a: Husky installs the pre-commit hook automatically during npm install.
+# Step 3a: Husky installs the pre-commit hook automatically during bun install.
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+bun run dev
 ```
 
 **Edit a file directly in GitHub**
@@ -73,11 +73,11 @@ This project is built with .
 
 ## How can I deploy this project?
 
-Run `npm run verify` before opening a PR or pushing if you want the same typecheck/lint/test/build gate that CI and the Husky pre-commit hook enforce.
+Run `bun run verify` before opening a PR or pushing if you want the same typecheck/lint/test/build gate that CI and the Husky pre-commit hook enforce.
 
 Local development uses HTTPS only when the ignored local cert files are present. On machines without those files, Vite falls back to HTTP automatically, while deploy builds still upload Sentry source maps when `SENTRY_AUTH_TOKEN` is available through the deploy flow.
 
-If you previously used the old custom `.githooks` path and Husky does not trigger, run `git config --unset core.hooksPath` once and then `npm run prepare`.
+If you previously used the old custom `.githooks` path and Husky does not trigger, run `git config --unset core.hooksPath` once and then `bun run prepare`.
 
 Production deploys run automatically on pushes to `main` via [deploy-production.yml](.github/workflows/deploy-production.yml).
 
@@ -98,7 +98,7 @@ For local manual deploys, use:
 Or, if the build already exists and you only want the deploy step:
 
 ```sh
-npm run deploy
+bun run deploy
 ```
 
 The `win3bitcoin.com` redirect infrastructure is separate from the main app deploy and remains unchanged.

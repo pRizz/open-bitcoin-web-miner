@@ -21,5 +21,5 @@ else
   echo "Using SENTRY_AUTH_TOKEN from the current environment"
 fi
 
-echo "Running npm run build-and-deploy"
-npm run build-and-deploy
+echo "Running bun run build-and-deploy"
+bun run build-and-deploy

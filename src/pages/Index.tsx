@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { HashRateGauge } from "@/components/HashRateGauge";
 import { NetworkStats } from "@/components/NetworkStats";

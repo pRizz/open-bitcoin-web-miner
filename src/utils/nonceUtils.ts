@@ -4,7 +4,7 @@
  * @returns Array of four u8s representing the nonce in big-endian order
  * @throws Error if nonce is out of valid u32 range
  */
-export function nonceToU8ArrayBE(nonce: number): Uint8Array {
+export function nonceToU8ArrayBE(nonce: number): Uint8Array<ArrayBuffer> {
   if (!Number.isInteger(nonce) || nonce < 0 || nonce > 0xFFFFFFFF) {
     throw new Error('Nonce must be a positive integer between 0 and 2^32-1');
   }
@@ -23,7 +23,7 @@ export function nonceToU8ArrayBE(nonce: number): Uint8Array {
  * @returns The u32 nonce value
  * @throws Error if input array is not exactly 4 bytes or contains invalid values
  */
-export function u8ArrayBEToNonce(bytes: Uint8Array): number {
+export function u8ArrayBEToNonce(bytes: Uint8Array<ArrayBuffer>): number {
   if (bytes.length !== 4) {
     throw new Error('Input must be exactly 4 bytes');
   }

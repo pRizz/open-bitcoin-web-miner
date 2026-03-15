@@ -8,9 +8,9 @@ import { webGPUPrototypeMain } from './webGPUPrototype65kNonceSnapshot';
 // import { updateAWSDomainAddressesMain } from './updateAWSDomainAddresses';
 
 // Run with:
-// pnpm run bin:dev
+// bun run bin:dev
 // Build to find typescript errors with:
-// pnpm run build:bin
+// bun run build:bin
 
 // await updateAWSDomainAddressesMain();
 

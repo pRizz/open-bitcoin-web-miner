@@ -1,3 +1,4 @@
+import React from "react";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
 
 interface MinerReference {

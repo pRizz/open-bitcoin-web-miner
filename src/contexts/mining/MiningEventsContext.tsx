@@ -1,3 +1,4 @@
+import React from "react";
 import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
 
 export type MiningEventType =

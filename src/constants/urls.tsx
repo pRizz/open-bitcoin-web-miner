@@ -1,3 +1,5 @@
+import React from "react";
+
 export const BITAXE_ORG_URL = "https://bitaxe.org/";
 
 export const BITAXE_ANCHOR_COMPONENT = (

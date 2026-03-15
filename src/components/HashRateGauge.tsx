@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { formatHashRateWithShortSIUnits, calculateSecondsToFindBlock, formatTime, formatHashRateWithNumericUnits, formatHashRateWithLongSIUnits } from "@/utils/mining";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";

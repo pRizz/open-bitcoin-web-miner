@@ -1,3 +1,4 @@
+import React from "react";
 import { CheckCircle2, XCircle, Target, ArrowUpRight, ArrowDownRight, Puzzle, Binary } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MiningEventType } from '@/contexts/mining/MiningEventsContext';

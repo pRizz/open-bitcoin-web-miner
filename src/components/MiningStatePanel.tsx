@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";

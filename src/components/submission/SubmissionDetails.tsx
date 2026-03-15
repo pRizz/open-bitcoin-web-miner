@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { useSubmissionDetails } from "@/hooks/useSubmissionDetails";
 import { Loader2 } from "lucide-react";

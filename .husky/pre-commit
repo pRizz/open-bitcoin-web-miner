@@ -1,5 +1,5 @@
-npm run verify || {
+bun run verify || {
   echo
-  echo "Commit blocked: npm run verify failed." >&2
+  echo "Commit blocked: bun run verify failed." >&2
   exit 1
 }

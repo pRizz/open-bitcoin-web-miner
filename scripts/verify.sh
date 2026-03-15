@@ -20,10 +20,10 @@ run_step() {
   fi
 }
 
-run_step "TypeScript build" npm run tsc
-run_step "Lint" npm run lint
-run_step "Tests" npm test -- --run
-run_step "Production build" npm run build
+run_step "TypeScript build" bun run tsc
+run_step "Lint" bun run lint
+run_step "Tests" bun run test --run
+run_step "Production build" bun run build
 
 echo
 echo "Verification passed."

@@ -1,3 +1,4 @@
+import React from "react";
 
 import { HashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";

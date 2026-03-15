@@ -1,3 +1,4 @@
+import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { HashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";

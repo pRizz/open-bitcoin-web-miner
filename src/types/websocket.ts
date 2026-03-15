@@ -86,7 +86,10 @@ export type WebSocketClientMessage =
       } };
 
 // TODO: wrap the Uint8Array in a more type safe object.
-export function serializeNoncelessBlockHeader(noncelessBlockHeader: NoncelessBlockHeader, nonce: number): Uint8Array {
+export function serializeNoncelessBlockHeader(
+  noncelessBlockHeader: NoncelessBlockHeader,
+  nonce: number,
+): Uint8Array<ArrayBuffer> {
   if (
     noncelessBlockHeader.version_hex.length !== 8 ||
         noncelessBlockHeader.previous_block_hash_hex.length !== 64 ||
@@ -127,7 +130,7 @@ export function serializeNoncelessBlockHeader(noncelessBlockHeader: NoncelessBlo
   return buffer;
 }
 
-export function serializeNonceLE(nonce: number): Uint8Array {
+export function serializeNonceLE(nonce: number): Uint8Array<ArrayBuffer> {
   return new Uint8Array([
     nonce & 0xff,
     (nonce >> 8) & 0xff,

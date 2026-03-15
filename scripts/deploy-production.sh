@@ -43,7 +43,7 @@ for var_name in "${required_vars[@]}"; do
 done
 
 if [[ ! -d dist ]]; then
-  echo "dist/ was not found. Run npm run build before deploying." >&2
+  echo "dist/ was not found. Run bun run build before deploying." >&2
   exit 1
 fi
 

@@ -1,3 +1,4 @@
+import React from "react";
 import { GlobalLeaderboard } from "@/components/GlobalLeaderboard";
 import { TypedLink } from "@/components/TypedLink";
 import { ArrowLeft, ChevronLeft } from "lucide-react";

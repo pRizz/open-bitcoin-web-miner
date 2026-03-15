@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams } from "react-router-dom";
 import { HashSolution } from "@/types/mining";
 import { HashDetailsContent } from "@/components/HashDetailsContent";

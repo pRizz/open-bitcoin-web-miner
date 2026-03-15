@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Share } from "lucide-react";
 import { URL_PARAMS } from "@/constants/mining";
