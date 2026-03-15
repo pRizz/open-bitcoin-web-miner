@@ -5,9 +5,9 @@
 ## Common Commands
 
 ```sh
-pnpm tsc && pnpm lint:fix
-pnpm test
-pnpm run dev
+npm run tsc && npm run lint:fix
+npm test
+npm run dev
 ```
 
 ## Project info
@@ -72,7 +72,29 @@ This project is built with .
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/d92f5bad-8918-4827-a7b9-d4b9e8b466e9) and click on Share -> Publish.
+Production deploys run automatically on pushes to `main` via [deploy-production.yml](.github/workflows/deploy-production.yml).
+
+The workflow uses the GitHub `production` environment and expects:
+
+- Variable `AWS_REGION=us-east-2`
+- Variable `S3_BUCKET=www.winabitco.in`
+- Variable `CLOUDFRONT_DISTRIBUTION_ID=EVH2SH6YOOO76`
+- Variable `AWS_DEPLOY_ROLE_ARN=<oidc-assumable-role-arn>`
+- Secret `SENTRY_AUTH_TOKEN=<production sentry token>`
+
+For local manual deploys, use:
+
+```sh
+./scripts/build-and-deploy-to-s3.sh
+```
+
+Or, if the build already exists and you only want the deploy step:
+
+```sh
+npm run deploy
+```
+
+The `win3bitcoin.com` redirect infrastructure is separate from the main app deploy and remains unchanged.
 
 To have **win3bitcoin.com** redirect to the app, see [S3 redirect setup](docs/s3-redirect-setup.md) (one-time bucket + DNS; use `./scripts/setup-redirect.sh` as the orchestrator or call the step scripts directly under `./scripts/redirect/`).
 
