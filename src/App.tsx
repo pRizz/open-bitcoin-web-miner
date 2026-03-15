@@ -14,6 +14,7 @@ import SubmissionPage from "@/pages/submission/[hash]";
 import About from "@/pages/About";
 import ProofOfRewardPage from "@/pages/ProofOfReward";
 import MiningStatisticsPage from "@/pages/MiningStatistics";
+import HomeBitcoinMiningPage from "@/pages/HomeBitcoinMining";
 import { MiningWebSocketProvider } from "./contexts/mining/useMiningWebSocket";
 import { MinerInfoProvider } from "./contexts/mining/MinerInfoContext";
 import { GlobalLeaderboardProvider } from "./contexts/GlobalLeaderboardContext";
@@ -93,6 +94,10 @@ const router = createBrowserRouter([
       {
         path: routes.miningStatistics.routerPath,
         element: <MiningStatisticsPage />,
+      },
+      {
+        path: routes.homeBitcoinMining.routerPath,
+        element: <HomeBitcoinMiningPage />,
       },
     ],
   },
