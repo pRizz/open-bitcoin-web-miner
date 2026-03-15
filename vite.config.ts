@@ -177,7 +177,7 @@ export default defineConfig(({ command, mode }) => {
         threshold: 10240,
       }),
       // Bundle analyzer - generates stats.html after build
-      // Try with pnpm run analyze
+      // Try with bun run analyze
       // mode === 'production' && visualizer({
       //   filename: 'dist/stats.html',
       //   open: true,
@@ -207,6 +207,8 @@ export default defineConfig(({ command, mode }) => {
     },
     // The below changes were added recently; might be unstable.
     esbuild: {
+      jsx: 'automatic',
+      jsxImportSource: 'react',
       drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
     build: {

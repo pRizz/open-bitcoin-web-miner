@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
 import { FlashingText } from "./FlashingText";

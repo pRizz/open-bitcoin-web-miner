@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BITAXE_ANCHOR_COMPONENT } from "@/constants/urls";
 import { useEffect, useState } from "react";

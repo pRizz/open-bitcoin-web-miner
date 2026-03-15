@@ -1,3 +1,4 @@
+import React from "react";
 import { WebSocketServerMessage, WebSocketClientMessage, MiningSubmission, NoncelessBlockHeader, MiningSubmissionResponse, BlockTemplateUpdate } from "@/types/websocket";
 import API_CONFIG from "@/config/api";
 import { createContext, useContext, useRef, useCallback, useState } from "react";

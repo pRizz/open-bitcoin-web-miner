@@ -1,3 +1,4 @@
+import React from "react";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
 import { cn } from "@/lib/utils";
 import { TypedLink } from "@/components/TypedLink";

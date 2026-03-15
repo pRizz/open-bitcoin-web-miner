@@ -45,7 +45,10 @@ async function _doubleSha256BlockHeaderReturningU8Array(blockHeader: NoncelessBl
 // Potentially not type safe, but it's a hack to avoid serializing the block header every time we hash. TODO: wrap the Uint8Array in a more type safe object.
 // Assumes blockHeaderAsU8Array is already 80 bytes long
 // This runs at about 48kH/s on my M4 Macbook Pro on 1 thread; improves performance by about 20% over doubleSha256BlockHeaderReturningU8Array
-export async function doubleSha256BlockHeaderU8Array(blockHeaderAsU8Array: Uint8Array, nonce: number): Promise<Uint8Array> {
+export async function doubleSha256BlockHeaderU8Array(
+  blockHeaderAsU8Array: Uint8Array<ArrayBuffer>,
+  nonce: number,
+): Promise<Uint8Array> {
   blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
   // console.log("doubleSha256BlockHeaderU8Array: blockHeaderAsU8Array", blockHeaderAsU8Array);
   return new Uint8Array(await doubleSha256(blockHeaderAsU8Array)).reverse();

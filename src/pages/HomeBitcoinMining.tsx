@@ -1,3 +1,4 @@
+import React from "react";
 import { TypedLink } from "@/components/TypedLink";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";

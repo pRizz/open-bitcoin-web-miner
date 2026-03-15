@@ -160,7 +160,10 @@ function mine() {
   miningLoop();
 }
 
-function setNonceOnBlockHeaderAsU8Array(blockHeaderAsU8Array: Uint8Array<ArrayBufferLike>, nonce: number): Uint8Array<ArrayBufferLike> {
+function setNonceOnBlockHeaderAsU8Array(
+  blockHeaderAsU8Array: Uint8Array<ArrayBuffer>,
+  nonce: number,
+): Uint8Array<ArrayBuffer> {
   blockHeaderAsU8Array.set(serializeNonceLE(nonce), 76);
   return blockHeaderAsU8Array;
 }
