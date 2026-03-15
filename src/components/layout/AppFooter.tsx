@@ -1,3 +1,4 @@
+import React from "react";
 import { TypedLink } from "@/components/TypedLink";
 import { buildInfo, formatBuildTimestamp } from "@/lib/buildInfo";
 import type { RouteName } from "@/routes";
@@ -11,7 +12,9 @@ const footerLinks: Array<{ label: string; routeKeyName: RouteName }> = [
 
 export function AppFooter() {
   const formattedBuildTimestamp = formatBuildTimestamp(buildInfo.builtAtIso);
-  const shouldShowCommitLink = Boolean(buildInfo.commitShortSha && buildInfo.commitUrl);
+  const shouldShowCommitLink = Boolean(
+    buildInfo.commitShortSha && buildInfo.commitUrl,
+  );
 
   return (
     <footer className="border-t border-border/80 bg-background/95">
@@ -32,7 +35,9 @@ export function AppFooter() {
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:justify-end">
           <span>v{buildInfo.version}</span>
-          <span title={buildInfo.builtAtIso}>Built {formattedBuildTimestamp}</span>
+          <span title={buildInfo.builtAtIso}>
+            Built {formattedBuildTimestamp}
+          </span>
           {shouldShowCommitLink && (
             <a
               className="transition-colors duration-200 hover:text-foreground"
