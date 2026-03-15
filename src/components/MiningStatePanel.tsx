@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { useMining } from "@/contexts/MiningContext";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
-import { useMiningEvents, MiningEventType } from "@/contexts/mining/MiningEventsContext";
+import { useMiningEvents, MiningEventType, SubmissionResponse } from "@/contexts/mining/MiningEventsContext";
 import { cn } from "@/lib/utils";
 import { Database, Computer, CheckCircle2, XCircle, Target, HelpCircle, RotateCcw, Binary, ChevronRight } from "lucide-react";
 import { formatHashRateWithShortSIUnits } from "@/utils/mining";
@@ -120,7 +120,7 @@ export const MiningStatePanel = () => {
     let lastEventTime = 0;
     const QUEUE_DELAY = 300; // ms between events
 
-    const handleEvent = (eventType: MiningEventType, data?: any) => {
+    const handleEvent = (eventType: MiningEventType, data?: SubmissionResponse) => {
       console.log("handleEvent", eventType, data);
 
       const now = Date.now();

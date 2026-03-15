@@ -18,9 +18,10 @@ import { motion } from "framer-motion";
 import { HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import { messageTooltip, nameTagTooltip, blockchainMessageTooltip } from "./LeaderboardConstants";
 import { type SortField, type SortDirection } from "./types";
+import { type LeaderboardEntry } from "@/contexts/GlobalLeaderboardContext";
 
 interface DesktopLeaderboardProps {
-  sortedLeaderboard: any[];
+  sortedLeaderboard: LeaderboardEntry[];
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;

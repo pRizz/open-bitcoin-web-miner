@@ -21,6 +21,18 @@ export interface NoncelessBlockHeader {
     compact_target: number[];
 }
 
+interface BlockTemplateTransaction {
+  data: string;
+}
+
+interface BlockTemplate {
+  transactions: BlockTemplateTransaction[];
+  version: number;
+  previousblockhash: string;
+  curtime: number;
+  bits: string;
+}
+
 // --- Converts number[] to Buffer ---
 export function bytesToBuffer(bytes: number[]): Buffer {
   return Buffer.from(bytes);
@@ -113,7 +125,7 @@ function computeMerkleRoot(txHashes: Buffer[]): Buffer {
 }
 
 export function createBlockFromTemplate(
-  gbtJSON: any,
+  gbtJSON: BlockTemplate,
   coinbaseTxHex: string
 ): bitcoin.Block {
   const txs: bitcoin.Transaction[] = [];
