@@ -1,14 +1,13 @@
 import { defineConfig, Plugin, ViteDevServer } from "vite";
-import packageVersion from 'vite-plugin-package-version';
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
-import { visualizer } from 'rollup-plugin-visualizer';
 import viteCompression from 'vite-plugin-compression';
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import type { IncomingMessage, ServerResponse } from 'http'
 import fs from 'node:fs';
+import { execSync } from "node:child_process";
 
 const logRequestsPlugin: Plugin = {
   name: 'log-requests',
@@ -58,10 +57,94 @@ function shouldUploadSourcemaps(mode: string): boolean {
   return true;
 }
 
+type BuildMetadata = {
+  packageVersion: string;
+  buildTime: string;
+  commitSha: string;
+  commitShortSha: string;
+  commitUrl: string;
+};
+
+function readPackageVersion(): string {
+  const packageJsonPath = path.resolve(__dirname, 'package.json');
+  const packageJsonRaw = fs.readFileSync(packageJsonPath, 'utf8');
+  const packageJson = JSON.parse(packageJsonRaw) as { version?: string };
+
+  return packageJson.version ?? '0.0.0';
+}
+
+function maybeRunGitCommand(command: string): string | undefined {
+  try {
+    const output = execSync(command, {
+      cwd: __dirname,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim();
+
+    return output || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function normalizeGitHubRemote(remoteUrl: string | undefined): string | undefined {
+  if (!remoteUrl) {
+    return undefined;
+  }
+
+  const normalizedRemote = remoteUrl
+    .replace(/^git@github\.com:/, 'https://github.com/')
+    .replace(/^ssh:\/\/git@github\.com\//, 'https://github.com/')
+    .replace(/\.git$/, '');
+
+  if (!normalizedRemote.startsWith('https://github.com/')) {
+    return undefined;
+  }
+
+  return normalizedRemote;
+}
+
+function resolveCommitSha(): string | undefined {
+  return process.env.GITHUB_SHA
+    || process.env.GIT_COMMIT_SHA
+    || process.env.VERCEL_GIT_COMMIT_SHA
+    || process.env.CF_PAGES_COMMIT_SHA
+    || maybeRunGitCommand('git rev-parse HEAD');
+}
+
+function resolveOriginRemote(): string | undefined {
+  if (process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY) {
+    return `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`;
+  }
+
+  return process.env.GIT_REMOTE_URL || maybeRunGitCommand('git remote get-url origin');
+}
+
+function resolveBuildMetadata(): BuildMetadata {
+  const packageVersion = readPackageVersion();
+  const buildTime = new Date().toISOString();
+  const maybeCommitSha = resolveCommitSha();
+  const commitSha = maybeCommitSha ?? '';
+  const commitShortSha = process.env.GIT_COMMIT_SHORT_SHA || maybeCommitSha?.slice(0, 7) || '';
+  const maybeOriginRemote = resolveOriginRemote();
+  const maybeGitHubRemote = normalizeGitHubRemote(maybeOriginRemote);
+  const commitUrl = maybeGitHubRemote && maybeCommitSha
+    ? `${maybeGitHubRemote}/commit/${maybeCommitSha}`
+    : '';
+
+  return {
+    packageVersion,
+    buildTime,
+    commitSha,
+    commitShortSha,
+    commitUrl,
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   const maybeHttpsConfig = command === 'serve' ? maybeLoadLocalHttpsConfig() : undefined;
   const shouldEnableSentryUpload = shouldUploadSourcemaps(mode);
+  const buildMetadata = resolveBuildMetadata();
 
   return {
     server: {
@@ -75,7 +158,6 @@ export default defineConfig(({ command, mode }) => {
       react(),
       mode === 'development' &&
         componentTagger(),
-      packageVersion(),
       nodePolyfills({
         include: ['buffer', 'process'],
         globals: {
@@ -117,7 +199,11 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     define: {
-      'import.meta.env.BUILD_TIME': JSON.stringify(new Date().toISOString()),
+      'import.meta.env.PACKAGE_VERSION': JSON.stringify(buildMetadata.packageVersion),
+      'import.meta.env.BUILD_TIME': JSON.stringify(buildMetadata.buildTime),
+      'import.meta.env.GIT_COMMIT_SHA': JSON.stringify(buildMetadata.commitSha),
+      'import.meta.env.GIT_COMMIT_SHORT_SHA': JSON.stringify(buildMetadata.commitShortSha),
+      'import.meta.env.GIT_COMMIT_URL': JSON.stringify(buildMetadata.commitUrl),
     },
     // The below changes were added recently; might be unstable.
     esbuild: {

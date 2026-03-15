@@ -1,32 +1,27 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { ShareControls } from "@/components/mining/ShareControls";
-import { useShare } from "@/contexts/ShareContext";
-import { useNetworkInfo } from "@/contexts/NetworkInfoContext";
-import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
-import { getPageTitle } from "@/routes";
+import { getPageTitle, routes } from "@/routes";
 import { useMining } from "@/contexts/MiningContext";
-import { TypedLink } from "@/components/TypedLink";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { routes } from "@/routes";
 import { MinerCountIndicator, MiningStatusIndicator } from "@/components/MinerCountIndicator";
+import { AppFooter } from "./AppFooter";
 
 export function AppLayout() {
   const location = useLocation();
   const { isMining } = useMining();
   const isMobile = useIsMobile();
 
-  // Show ShareControls on home page or simple mining page for mobile users
-  const shouldShowShareControls = location.pathname === "/" ||
-    (isMobile && location.pathname === routes.simpleMining.path);
+  const shouldShowShareControls = location.pathname === "/"
+    || (isMobile && location.pathname === routes.simpleMining.path);
 
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <main className="flex-1">
+        <main className="flex min-h-screen flex-1 flex-col">
           <div className="sticky top-0 z-[150] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-6 relative">
             {isMining && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-[repeating-linear-gradient(-45deg,theme(colors.green.500),theme(colors.green.500)_10px,theme(colors.green.900)_10px,theme(colors.green.900)_20px)] bg-[length:28.4px_100%] animate-stripes">
@@ -48,11 +43,12 @@ export function AppLayout() {
               </div>
             </div>
           </div>
-          <div className="p-6">
+          <div className="flex-1 p-6">
             <AnimatePresence mode="wait">
               <Outlet />
             </AnimatePresence>
           </div>
+          <AppFooter />
         </main>
       </div>
     </SidebarProvider>
