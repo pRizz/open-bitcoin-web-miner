@@ -6,15 +6,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/remote-reporting.sh"
 setup_remote_report "build-and-deploy-to-s3"
 
-if [[ ! -f .env.sentry-build-plugin ]]; then
-  echo "Error: .env.sentry-build-plugin not found. Create it with SENTRY_AUTH_TOKEN for the Sentry Vite plugin."
-  exit 1
+if [[ -z "${SENTRY_AUTH_TOKEN:-}" ]]; then
+  if [[ ! -f .env.sentry-build-plugin ]]; then
+    echo "Error: SENTRY_AUTH_TOKEN is not set and .env.sentry-build-plugin was not found."
+    echo "Create .env.sentry-build-plugin with SENTRY_AUTH_TOKEN or export SENTRY_AUTH_TOKEN before running this script."
+    exit 1
+  fi
+
+  echo "Loading Sentry build environment from .env.sentry-build-plugin"
+  set -a
+  source .env.sentry-build-plugin
+  set +a
+else
+  echo "Using SENTRY_AUTH_TOKEN from the current environment"
 fi
 
-echo "Loading Sentry build environment from .env.sentry-build-plugin"
-set -a
-source .env.sentry-build-plugin
-set +a
-
-echo "Running pnpm build-and-deploy"
-pnpm build-and-deploy
+echo "Running npm run build-and-deploy"
+npm run build-and-deploy
