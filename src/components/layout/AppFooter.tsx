@@ -6,7 +6,7 @@ import type { RouteName } from "@/routes";
 const footerLinks: Array<{ label: string; routeKeyName: RouteName }> = [
   { label: "Home", routeKeyName: "home" },
   { label: "Leaderboard", routeKeyName: "leaderboard" },
-  { label: "Home Mining", routeKeyName: "homeBitcoinMining" },
+  { label: "Mining Viability", routeKeyName: "homeBitcoinMining" },
   { label: "About", routeKeyName: "about" },
 ];
 

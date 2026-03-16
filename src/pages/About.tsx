@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BITAXE_ANCHOR_COMPONENT } from "@/constants/urls";
 import { useEffect, useState } from "react";
+import { ViabilityCallout } from "@/components/ViabilityCallout";
 
 export default function About() {
 
@@ -141,6 +142,13 @@ export default function About() {
           </p>
         </CardContent>
       </Card>
+
+      <ViabilityCallout
+        variant="card"
+        title="Is home mining viable at all?"
+        description="If the About page explains how Bitcoin mining works, the viability breakdown shows the quantitative side of the same story by comparing consumer GPUs, 1 TH/s home miners, and modern ASICs against the scale of today’s network."
+        ctaLabel="Read the viability breakdown"
+      />
 
       <Card>
         <CardHeader>

@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatLargeNumber } from "@/utils/formatters";
 import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
 import { MINING_REWARD_BTC_AMOUNT } from "@/constants/mining";
+import { ViabilityCallout } from "@/components/ViabilityCallout";
 
 const SimpleMining = () => {
   const {
@@ -141,6 +142,12 @@ const SimpleMining = () => {
                 {getDescriptionStatement(maybeRequiredBinaryZeroes) ?? "Loading..."}
               </p>
             </div>
+            <ViabilityCallout
+              variant="compact"
+              title="Want the bigger picture?"
+              description="Compare GPU, 1 TH/s home miners, and ASICs against the Bitcoin network."
+              ctaLabel="Read the viability breakdown"
+            />
           </div>
         </Card>
 
