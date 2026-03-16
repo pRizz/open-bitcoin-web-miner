@@ -16,6 +16,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { MiningStatePanel } from "@/components/MiningStatePanel";
 import { MiningChancesStats, oneDayTimePeriod, oneHourTimePeriod, oneMinuteTimePeriod, oneMonthTimePeriod, oneWeekTimePeriod, oneYearTimePeriod, TimePeriod } from "@/components/MiningChancesStats";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
+import { ViabilityCallout } from "@/components/ViabilityCallout";
 import { showSuccess, showError, showWarning, showInfo, showShort, showLong, showPersistent } from "@/utils/notifications";
 import { BITAXE_ANCHOR_COMPONENT } from "@/constants/urls";
 
@@ -109,6 +110,13 @@ const Index = () => {
           </div>
 
           <HashRateGauge />
+
+          <ViabilityCallout
+            variant="card"
+            title="Is home mining viable?"
+            description="Browser mining is best treated as educational and lottery-style participation; this breakdown compares GPUs, 1 TH/s home miners, and ASICs against the Bitcoin network so you can see where home hardware actually fits."
+            ctaLabel="Read the viability breakdown"
+          />
 
           {/* Personal Probabilities Section */}
           {/* <Card className="p-6 glass-card">
