@@ -50,7 +50,11 @@ fi
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
 echo "Syncing dist/ to s3://$S3_BUCKET/ in region $AWS_REGION"
-aws s3 sync dist "s3://$S3_BUCKET/" --delete --exclude '*.map' "${sync_args[@]}"
+if [[ "$dry_run" -eq 1 ]]; then
+  aws s3 sync dist "s3://$S3_BUCKET/" --delete --exclude '*.map' "${sync_args[@]}"
+else
+  aws s3 sync dist "s3://$S3_BUCKET/" --delete --exclude '*.map'
+fi
 
 if [[ "$dry_run" -eq 1 ]]; then
   echo "Dry run enabled; skipping CloudFront invalidation."
