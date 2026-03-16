@@ -3,6 +3,38 @@
 @tailwind utilities;
 
 @layer base {
+  @font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("./assets/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("./assets/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("./assets/fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("./assets/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2") format("woff2");
+  }
+
   :root {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -39,11 +71,6 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-  }
-  
-  @font-face {
-    font-family: 'JetBrains Mono';
-    src: url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
   }
 }
 
