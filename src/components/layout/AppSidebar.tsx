@@ -18,6 +18,7 @@ import { NotificationBadge } from "@/components/NotificationBadge";
 import { useSidebar } from "@/components/ui/sidebar/sidebar-context";
 import { useNotifications } from "@/hooks/useNotifications";
 import { MinerCountIndicator, MiningStatusIndicatorFull } from "@/components/MinerCountIndicator";
+import { SourceCodeLink } from "@/components/SourceCodeLink";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -86,6 +87,23 @@ export function AppSidebar() {
                   <Trash2 className="h-4 w-4 mr-3" />
                   <span className="font-medium">Clear Data</span>
                 </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-6">
+          <SidebarGroupLabel className="px-6 text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold mb-2">
+            Resources
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem className="px-3">
+                <SourceCodeLink
+                  mode="sidebar"
+                  className="px-3 py-2 w-full transition-colors duration-200"
+                  onClick={handleItemClick}
+                />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

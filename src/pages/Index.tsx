@@ -19,6 +19,7 @@ import { WelcomeBanner } from "@/components/WelcomeBanner";
 import { ViabilityCallout } from "@/components/ViabilityCallout";
 import { showSuccess, showError, showWarning, showInfo, showShort, showLong, showPersistent } from "@/utils/notifications";
 import { BITAXE_ANCHOR_COMPONENT } from "@/constants/urls";
+import { SourceCodeLink } from "@/components/SourceCodeLink";
 
 const ONE_BITAXE_HASH_RATE = 1e12;
 
@@ -79,9 +80,9 @@ const Index = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6 glass-card">
-              <div className="flex items-center justify-between mb-1">
+              <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
                 <h2 className="text-2xl font-bold">Mining Controls</h2>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 justify-end">
                   {/* <Button
                     variant="outline"
                     size="sm"
@@ -90,6 +91,13 @@ const Index = () => {
                   >
                     Test Notifications
                   </Button> */}
+                  <SourceCodeLink
+                    mode="labeled"
+                    labeledDisplay="button"
+                    buttonVariant="outline"
+                    buttonSize="sm"
+                    className="text-xs"
+                  />
                   <Button
                     variant="ghost"
                     size="sm"

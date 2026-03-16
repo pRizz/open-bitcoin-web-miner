@@ -2,6 +2,7 @@ import React from "react";
 import { TypedLink } from "@/components/TypedLink";
 import { buildInfo, formatBuildTimestamp } from "@/lib/buildInfo";
 import type { RouteName } from "@/routes";
+import { SourceCodeLink } from "@/components/SourceCodeLink";
 
 const footerLinks: Array<{ label: string; routeKeyName: RouteName }> = [
   { label: "Home", routeKeyName: "home" },
@@ -32,6 +33,10 @@ export function AppFooter() {
               {link.label}
             </TypedLink>
           ))}
+          <SourceCodeLink
+            mode="labeled"
+            labeledDisplay="link"
+          />
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:justify-end">
           <span>v{buildInfo.version}</span>
