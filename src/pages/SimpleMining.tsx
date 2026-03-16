@@ -16,6 +16,7 @@ import { formatLargeNumber } from "@/utils/formatters";
 import { MiningTimeRequiredStats } from "@/components/MiningTimeRequiredStats";
 import { MINING_REWARD_BTC_AMOUNT } from "@/constants/mining";
 import { ViabilityCallout } from "@/components/ViabilityCallout";
+import { SourceCodeLink } from "@/components/SourceCodeLink";
 
 const SimpleMining = () => {
   const {
@@ -94,6 +95,16 @@ const SimpleMining = () => {
               ⚠️ Warning: You are mining without a Bitcoin address. If you find a block, you will not receive the mining reward.
             </div>
           )}
+
+          <div className="border-t border-border/60 pt-4">
+            <SourceCodeLink
+              mode="labeled"
+              labeledDisplay="button"
+              buttonVariant="outline"
+              buttonSize="sm"
+              className="w-full sm:w-auto"
+            />
+          </div>
         </Card>
 
         {/* Hash Rate Display */}

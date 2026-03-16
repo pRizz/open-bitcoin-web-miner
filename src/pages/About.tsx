@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BITAXE_ANCHOR_COMPONENT } from "@/constants/urls";
 import { useEffect, useState } from "react";
 import { ViabilityCallout } from "@/components/ViabilityCallout";
+import { SourceCodeLink } from "@/components/SourceCodeLink";
 
 export default function About() {
 
@@ -97,6 +98,18 @@ export default function About() {
             <li>Engage with other users via a mining leaderboard</li>
             <li>Provide a fun way to participate in "lottery mining"</li>
           </ul>
+          <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              The source for this project is public if you want to inspect how the browser miner and interface are built.
+            </p>
+            <SourceCodeLink
+              mode="labeled"
+              labeledDisplay="button"
+              buttonVariant="outline"
+              buttonSize="sm"
+              className="w-full sm:w-auto"
+            />
+          </div>
         </CardContent>
       </Card>
 

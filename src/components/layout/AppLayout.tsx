@@ -13,6 +13,7 @@ import {
 } from "@/components/MinerCountIndicator";
 import { AppFooter } from "./AppFooter";
 import { AppScrollManager } from "./AppScrollManager";
+import { SourceCodeLink } from "@/components/SourceCodeLink";
 
 export function AppLayout() {
   const location = useLocation();
@@ -33,19 +34,24 @@ export function AppLayout() {
             {isMining && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-[repeating-linear-gradient(-45deg,theme(colors.green.500),theme(colors.green.500)_10px,theme(colors.green.900)_10px,theme(colors.green.900)_20px)] bg-[length:28.4px_100%] animate-stripes"></div>
             )}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3 md:gap-4">
                 <SidebarTrigger className="h-8 w-8" />
-                <h1 className="text-4xl font-bold">
+                <h1 className="min-w-0 truncate text-2xl font-bold md:text-4xl">
                   {getPageTitle(location.pathname)}
                 </h1>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 md:block hidden">
+              <div className="flex shrink-0 items-center gap-2 md:gap-4">
+                <div className="hidden items-center gap-2 md:flex">
                   <MiningStatusIndicator />
                   <MinerCountIndicator />
                 </div>
                 {shouldShowShareControls && <ShareControls />}
+                <SourceCodeLink
+                  mode="icon"
+                  buttonVariant="outline"
+                  className="h-9 w-9 border-border/70 bg-background/60"
+                />
               </div>
             </div>
           </div>
