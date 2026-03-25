@@ -47,6 +47,11 @@ if [[ ! -d dist ]]; then
   exit 1
 fi
 
+if [[ ! -f dist/build-info.json ]]; then
+  echo "dist/build-info.json was not found. Run bun run build:deploy to generate deploy metadata before deploying." >&2
+  exit 1
+fi
+
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
 echo "Syncing dist/ to s3://$S3_BUCKET/ in region $AWS_REGION"
@@ -62,6 +67,14 @@ if [[ "$dry_run" -eq 1 ]]; then
 fi
 
 echo "Creating CloudFront invalidation for distribution $CLOUDFRONT_DISTRIBUTION_ID"
-aws cloudfront create-invalidation \
+invalidation_id="$(aws cloudfront create-invalidation \
   --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-  --paths '/*'
+  --paths '/*' \
+  --query 'Invalidation.Id' \
+  --output text)"
+
+echo "Created CloudFront invalidation $invalidation_id"
+
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  echo "invalidation_id=$invalidation_id" >> "$GITHUB_OUTPUT"
+fi

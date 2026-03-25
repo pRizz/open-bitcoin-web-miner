@@ -16,6 +16,21 @@ export function AppFooter() {
   const shouldShowCommitLink = Boolean(
     buildInfo.commitShortSha && buildInfo.commitUrl,
   );
+  const provenanceLabel = [buildInfo.branchName, buildInfo.deployHost]
+    .filter(Boolean)
+    .join(" @ ");
+  const provenanceTitle = [
+    buildInfo.branchName ? `Branch: ${buildInfo.branchName}` : undefined,
+    buildInfo.deployHost ? `Canonical host: ${buildInfo.deployHost}` : undefined,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const commitTitle = [
+    buildInfo.commitSha ? `Commit: ${buildInfo.commitSha}` : undefined,
+    provenanceTitle || undefined,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return (
     <footer className="border-t border-border/80 bg-background/95">
@@ -43,13 +58,18 @@ export function AppFooter() {
           <span title={buildInfo.builtAtIso}>
             Built {formattedBuildTimestamp}
           </span>
+          {provenanceLabel && (
+            <span title={provenanceTitle}>
+              {provenanceLabel}
+            </span>
+          )}
           {shouldShowCommitLink && (
             <a
               className="transition-colors duration-200 hover:text-foreground"
               href={buildInfo.commitUrl}
               rel="noreferrer noopener"
               target="_blank"
-              title={buildInfo.commitSha}
+              title={commitTitle}
             >
               Commit {buildInfo.commitShortSha}
             </a>

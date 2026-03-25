@@ -26,9 +26,17 @@ jobs:
       S3_BUCKET: ${{ vars.S3_BUCKET }}
       CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      DEPLOY_HOST: win3bitco.in
+      EXPECTED_PRODUCTION_BRANCH: main
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Validate production ref and capture deploy metadata
+        id: preflight
+        run: ./scripts/ci/production-preflight.sh
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -52,4 +60,16 @@ jobs:
           role-session-name: github-actions-leading-zero-lab-production
 
       - name: Deploy to S3 and invalidate CloudFront
+        id: deploy
         run: ./scripts/deploy-production.sh
+
+      - name: Write deploy summary
+        if: always()
+        env:
+          DEPLOY_BRANCH: ${{ steps.preflight.outputs.branch_name }}
+          DEPLOY_SHA: ${{ steps.preflight.outputs.head_sha }}
+          DEPLOY_SHORT_SHA: ${{ steps.preflight.outputs.head_short_sha }}
+          DEPLOY_COMMIT_DATE: ${{ steps.preflight.outputs.commit_date }}
+          INVALIDATION_ID: ${{ steps.deploy.outputs.invalidation_id }}
+          DEPLOY_STATUS: ${{ job.status }}
+        run: ./scripts/ci/write-deploy-summary.sh

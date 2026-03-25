@@ -81,6 +81,12 @@ If you previously used the old custom `.githooks` path and Husky does not trigge
 
 Production deploys run automatically on pushes to `main` via [deploy-production.yml](.github/workflows/deploy-production.yml).
 
+The canonical production URL is [https://win3bitco.in](https://win3bitco.in). The deploy bucket name `www.winabitco.in` is an infrastructure detail, not the canonical URL for verifying what is live.
+
+Production only reflects commits that exist on GitHub `main`. Local-only commits, detached worktrees, and unpublished SHAs are not eligible for production deploys.
+
+To verify what is live in production, check the footer on `https://win3bitco.in` or inspect [https://win3bitco.in/build-info.json](https://win3bitco.in/build-info.json).
+
 The workflow uses the GitHub `production` environment and expects:
 
 - Variable `AWS_REGION=us-east-2`

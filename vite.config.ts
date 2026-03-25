@@ -32,6 +32,7 @@ const logRequestsPlugin: Plugin = {
 // https://chatgpt.com/c/68605d68-0dec-8002-806c-a3d988076c2b
 const certPath = path.resolve(__dirname, '192.168.0.31.pem');
 const keyPath = path.resolve(__dirname, '192.168.0.31-key.pem');
+const defaultDeployHost = 'win3bitco.in';
 
 function maybeLoadLocalHttpsConfig() {
   if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
@@ -58,12 +59,28 @@ function shouldUploadSourcemaps(mode: string): boolean {
 }
 
 type BuildMetadata = {
-  packageVersion: string;
-  buildTime: string;
+  version: string;
+  builtAtIso: string;
   commitSha: string;
   commitShortSha: string;
   commitUrl: string;
+  branchName: string;
+  deployHost: string;
 };
+
+function buildMetadataPlugin(buildMetadata: BuildMetadata): Plugin {
+  return {
+    name: 'build-metadata',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'build-info.json',
+        source: JSON.stringify(buildMetadata, null, 2),
+      });
+    },
+  };
+}
 
 function readPackageVersion(): string {
   const packageJsonPath = path.resolve(__dirname, 'package.json');
@@ -104,11 +121,45 @@ function normalizeGitHubRemote(remoteUrl: string | undefined): string | undefine
 }
 
 function resolveCommitSha(): string | undefined {
-  return process.env.GITHUB_SHA
+  return maybeRunGitCommand('git rev-parse HEAD')
+    || process.env.GITHUB_SHA
     || process.env.GIT_COMMIT_SHA
     || process.env.VERCEL_GIT_COMMIT_SHA
-    || process.env.CF_PAGES_COMMIT_SHA
-    || maybeRunGitCommand('git rev-parse HEAD');
+    || process.env.CF_PAGES_COMMIT_SHA;
+}
+
+function normalizeBranchName(branchName: string | undefined): string | undefined {
+  if (!branchName) {
+    return undefined;
+  }
+
+  const normalizedBranchName = branchName
+    .trim()
+    .replace(/^refs\/heads\//, '')
+    .replace(/^remotes\/origin\//, '')
+    .replace(/^origin\//, '');
+
+  if (!normalizedBranchName || normalizedBranchName === 'HEAD') {
+    return undefined;
+  }
+
+  return normalizedBranchName;
+}
+
+function resolveBranchName(): string | undefined {
+  return normalizeBranchName(
+    process.env.GIT_BRANCH_NAME
+      || process.env.GITHUB_REF_NAME
+      || process.env.GITHUB_HEAD_REF
+      || process.env.VERCEL_GIT_COMMIT_REF
+      || process.env.CF_PAGES_BRANCH
+      || maybeRunGitCommand('git branch --show-current')
+      || maybeRunGitCommand("git for-each-ref --format='%(refname:short)' --points-at HEAD refs/heads refs/remotes/origin | head -n 1"),
+  );
+}
+
+function resolveDeployHost(): string {
+  return process.env.DEPLOY_HOST?.trim() || defaultDeployHost;
 }
 
 function resolveOriginRemote(): string | undefined {
@@ -120,23 +171,30 @@ function resolveOriginRemote(): string | undefined {
 }
 
 function resolveBuildMetadata(): BuildMetadata {
-  const packageVersion = readPackageVersion();
-  const buildTime = new Date().toISOString();
+  const version = readPackageVersion();
+  const builtAtIso = new Date().toISOString();
   const maybeCommitSha = resolveCommitSha();
   const commitSha = maybeCommitSha ?? '';
-  const commitShortSha = process.env.GIT_COMMIT_SHORT_SHA || maybeCommitSha?.slice(0, 7) || '';
+  const commitShortSha = maybeRunGitCommand('git rev-parse --short=7 HEAD')
+    || process.env.GIT_COMMIT_SHORT_SHA
+    || maybeCommitSha?.slice(0, 7)
+    || '';
   const maybeOriginRemote = resolveOriginRemote();
   const maybeGitHubRemote = normalizeGitHubRemote(maybeOriginRemote);
+  const branchName = resolveBranchName() ?? '';
+  const deployHost = resolveDeployHost();
   const commitUrl = maybeGitHubRemote && maybeCommitSha
     ? `${maybeGitHubRemote}/commit/${maybeCommitSha}`
     : '';
 
   return {
-    packageVersion,
-    buildTime,
+    version,
+    builtAtIso,
     commitSha,
     commitShortSha,
     commitUrl,
+    branchName,
+    deployHost,
   };
 }
 
@@ -158,6 +216,7 @@ export default defineConfig(({ command, mode }) => {
       react(),
       mode === 'development' &&
         componentTagger(),
+      buildMetadataPlugin(buildMetadata),
       nodePolyfills({
         include: ['buffer', 'process'],
         globals: {
@@ -199,11 +258,13 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     define: {
-      'import.meta.env.PACKAGE_VERSION': JSON.stringify(buildMetadata.packageVersion),
-      'import.meta.env.BUILD_TIME': JSON.stringify(buildMetadata.buildTime),
+      'import.meta.env.PACKAGE_VERSION': JSON.stringify(buildMetadata.version),
+      'import.meta.env.BUILD_TIME': JSON.stringify(buildMetadata.builtAtIso),
       'import.meta.env.GIT_COMMIT_SHA': JSON.stringify(buildMetadata.commitSha),
       'import.meta.env.GIT_COMMIT_SHORT_SHA': JSON.stringify(buildMetadata.commitShortSha),
       'import.meta.env.GIT_COMMIT_URL': JSON.stringify(buildMetadata.commitUrl),
+      'import.meta.env.GIT_BRANCH_NAME': JSON.stringify(buildMetadata.branchName),
+      'import.meta.env.DEPLOY_HOST': JSON.stringify(buildMetadata.deployHost),
     },
     // The below changes were added recently; might be unstable.
     esbuild: {

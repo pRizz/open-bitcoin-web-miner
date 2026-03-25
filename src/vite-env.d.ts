@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly GIT_COMMIT_SHA: string;
   readonly GIT_COMMIT_SHORT_SHA: string;
   readonly GIT_COMMIT_URL: string;
+  readonly GIT_BRANCH_NAME: string;
+  readonly DEPLOY_HOST: string;
 }
 
 interface ImportMeta {

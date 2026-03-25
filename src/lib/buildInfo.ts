@@ -4,6 +4,8 @@ export type BuildInfo = {
   commitSha?: string;
   commitShortSha?: string;
   commitUrl?: string;
+  branchName?: string;
+  deployHost?: string;
 };
 
 function maybeBuildValue(value: string): string | undefined {
@@ -26,4 +28,6 @@ export const buildInfo: BuildInfo = {
   commitSha: maybeBuildValue(import.meta.env.GIT_COMMIT_SHA),
   commitShortSha: maybeBuildValue(import.meta.env.GIT_COMMIT_SHORT_SHA),
   commitUrl: maybeBuildValue(import.meta.env.GIT_COMMIT_URL),
+  branchName: maybeBuildValue(import.meta.env.GIT_BRANCH_NAME),
+  deployHost: maybeBuildValue(import.meta.env.DEPLOY_HOST),
 };
