@@ -1,5 +1,6 @@
 import { MiningStats, MiningMode } from "@/types/mining";
 import { MiningSubmission, NoncelessBlockHeader, ProofOfReward } from "@/types/websocket";
+import { WebGPUAvailabilityReason } from "@/utils/miningPolicy";
 
 // Needed because the underlying GPUAdapterInfo object cannot be cloned from the worker side
 export interface LocalGPUAdapterInfo {
@@ -49,10 +50,15 @@ export interface MiningContextType {
   miningMode: MiningMode;
   miningContextMiningState: MiningContextMiningState;
   gpuCapabilities?: GPUCapabilities;
+  isWebGPUSupported: boolean;
+  isWebGPUAllowed: boolean;
+  webGPUAvailabilityReason: WebGPUAvailabilityReason;
+  disableWebGPUMiningOnMobile: boolean;
   maybeMostRecentMiningStartTime: number | null;
   setMiningSpeed: (speed: number) => void;
   setThreadCount: (count: number) => void;
   setMiningMode: (mode: MiningMode) => void;
+  setDisableWebGPUMiningOnMobile: (disabled: boolean) => void;
   startMining: () => void;
   stopMining: () => void;
   resetData: () => void;

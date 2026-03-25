@@ -7,7 +7,8 @@ export const STORAGE_KEYS = {
   BLOCKCHAIN_MESSAGE: 'blockchainMessage',
   LEADERBOARD_USERNAME: 'username',
   LEADERBOARD_MESSAGE: 'leaderboardMessage',
-  MINING_MODE: 'miningMode'
+  MINING_MODE: 'miningMode',
+  DEV_DISABLE_WEBGPU_MINING_ON_MOBILE_OVERRIDE: 'devDisableWebGPUMiningOnMobileOverride',
 } as const;
 
 // Username validation (1-20 alphanumeric characters and inner spaces only)
@@ -104,4 +105,29 @@ export function saveMiningMode(maybeMode: MiningMode | null): void {
   } else {
     localStorage.removeItem(STORAGE_KEYS.MINING_MODE);
   }
+}
+
+function validateBooleanString(maybeValue: string): maybeValue is "true" | "false" {
+  return maybeValue === "true" || maybeValue === "false";
+}
+
+export function loadDevDisableWebGPUMiningOnMobileOverride(): boolean | null {
+  const maybeValue = localStorage.getItem(STORAGE_KEYS.DEV_DISABLE_WEBGPU_MINING_ON_MOBILE_OVERRIDE);
+  if (!maybeValue || !validateBooleanString(maybeValue)) {
+    return null;
+  }
+
+  return maybeValue === "true";
+}
+
+export function saveDevDisableWebGPUMiningOnMobileOverride(maybeValue: boolean | null): void {
+  if (maybeValue === null) {
+    localStorage.removeItem(STORAGE_KEYS.DEV_DISABLE_WEBGPU_MINING_ON_MOBILE_OVERRIDE);
+    return;
+  }
+
+  localStorage.setItem(
+    STORAGE_KEYS.DEV_DISABLE_WEBGPU_MINING_ON_MOBILE_OVERRIDE,
+    maybeValue ? "true" : "false"
+  );
 }

@@ -9,12 +9,21 @@ import {
 
 import { Label } from "@/components/ui/label";
 import { useMining } from "@/contexts/MiningContext";
-import { isWebGPUSupported } from "@/contexts/MiningContext";
 
 export function MiningModeSelector() {
-  const { miningMode, setMiningMode } = useMining();
+  const {
+    miningMode,
+    setMiningMode,
+    isWebGPUAllowed,
+    webGPUAvailabilityReason,
+  } = useMining();
 
-  const webGPUMiningLabel = isWebGPUSupported ? "WebGPU Mining" : "WebGPU Mining (Not Supported)";
+  let webGPUMiningLabel = "WebGPU Mining";
+  if (webGPUAvailabilityReason === "unsupported") {
+    webGPUMiningLabel = "WebGPU Mining (Not Supported)";
+  } else if (webGPUAvailabilityReason === "disabled_on_mobile") {
+    webGPUMiningLabel = "WebGPU Mining (Disabled on Mobile by Config)";
+  }
 
   return (
     <div className="space-y-2">
@@ -24,7 +33,7 @@ export function MiningModeSelector() {
           <SelectValue placeholder="Select mining mode" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="webgpu" disabled={!isWebGPUSupported}>{webGPUMiningLabel}</SelectItem>
+          <SelectItem value="webgpu" disabled={!isWebGPUAllowed}>{webGPUMiningLabel}</SelectItem>
           <SelectItem value="cpu">CPU Mining (JavaScript Implementation)</SelectItem>
           <SelectItem disabled value="cpuWasm">CPU Mining (WebAssembly Implementation) (Coming Soon)</SelectItem>
           <SelectItem disabled value="bitaxe">Bitaxe Mining (Coming Soon)</SelectItem>

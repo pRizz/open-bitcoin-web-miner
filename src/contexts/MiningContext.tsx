@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { HashSolution, MiningChallenge, MiningMode, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
@@ -9,10 +9,21 @@ import { useDebug } from "./DebugContext";
 import { MiningSubmission, serializeNoncelessBlockHeader, deserializeNonceLE, MiningSubmissionStatus, MiningSubmissionResponse, BlockTemplateUpdate, WebSocketMiningState } from "@/types/websocket";
 import { useMiningWebSocket } from "./mining/useMiningWebSocket";
 import { useMiningEvents } from "./mining/MiningEventsContext";
-import { loadMiningMode, saveMiningMode } from "@/utils/localStorage";
-
-export const isWebGPUSupported = typeof navigator.gpu !== 'undefined';
-const defaultMiningMode: MiningMode = isWebGPUSupported ? "webgpu" : "cpu";
+import {
+  loadDevDisableWebGPUMiningOnMobileOverride,
+  loadMiningMode,
+  saveDevDisableWebGPUMiningOnMobileOverride,
+  saveMiningMode,
+} from "@/utils/localStorage";
+import {
+  getDisableWebGPUMiningOnMobileEnvDefault,
+  isWebGPUSupportedSync,
+  resolveDisableWebGPUMiningOnMobile,
+  resolveMiningMode,
+  resolveWebGPUAvailabilityReason,
+  WebGPUAvailabilityReason,
+} from "@/utils/miningPolicy";
+import { isMobileSync, useIsMobile } from "@/hooks/use-mobile";
 
 function getMiningContextMiningStateFromWebSocketMiningState(webSocketMiningState: WebSocketMiningState): MiningContextMiningState {
   switch (webSocketMiningState) {
@@ -36,12 +47,17 @@ const defaultContext: MiningContextType = {
   miningSpeed: 100,
   threadCount: 1,
   maxThreads: 1,
-  miningMode: defaultMiningMode,
+  miningMode: "cpu",
   miningContextMiningState: MiningContextMiningState.NOT_MINING,
+  isWebGPUSupported: false,
+  isWebGPUAllowed: false,
+  webGPUAvailabilityReason: "unsupported",
+  disableWebGPUMiningOnMobile: true,
   maybeMostRecentMiningStartTime: null,
   setMiningSpeed: () => {},
   setThreadCount: () => {},
   setMiningMode: () => {},
+  setDisableWebGPUMiningOnMobile: () => {},
   startMining: () => {},
   stopMining: () => {},
   resetData: () => {},
@@ -51,10 +67,12 @@ const defaultContext: MiningContextType = {
 
 const MiningContext = createContext<MiningContextType>(defaultContext);
 
-function getNumberFromArrayOfBytes(array: number[]): number {
-  return array.reduce((acc, byte, index) => {
-    return acc + (byte << (index * 8));
-  }, 0);
+function getBlockedWebGPUMiningLogMessage(reason: WebGPUAvailabilityReason): string {
+  if (reason === "disabled_on_mobile") {
+    return "WebGPU mining is disabled on mobile devices by config; using CPU mining instead";
+  }
+
+  return "WebGPU mining is not supported in this browser; using CPU mining instead";
 }
 
 export function MiningProvider({ children }: { children: React.ReactNode }) {
@@ -63,14 +81,37 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   const miningWebSocket = useMiningWebSocket();
   const { emit } = useMiningEvents();
   const miningState = useMiningState();
+  const isMobile = useIsMobile() || isMobileSync();
+  const disableWebGPUMiningOnMobileEnvDefault = getDisableWebGPUMiningOnMobileEnvDefault();
+  const isWebGPUSupported = isWebGPUSupportedSync();
   const [miningContextMiningState, setMiningContextMiningState] = useState<MiningContextMiningState>(MiningContextMiningState.NOT_MINING);
 
   const [isMining, setIsMining] = useState(false);
   const [miningSpeed, setMiningSpeed] = useState(100);
-  const [miningMode, setMiningMode] = useState<MiningMode>(() => {
+  const [disableWebGPUMiningOnMobile, setDisableWebGPUMiningOnMobileState] = useState(() => resolveDisableWebGPUMiningOnMobile({
+    maybeEnvValue: import.meta.env.VITE_DISABLE_WEBGPU_MINING_ON_MOBILE,
+    isDev: import.meta.env.DEV,
+    maybeDevOverride: import.meta.env.DEV ? loadDevDisableWebGPUMiningOnMobileOverride() : null,
+  }));
+  const webGPUAvailabilityReason = resolveWebGPUAvailabilityReason({
+    isWebGPUSupported,
+    isMobile,
+    disableWebGPUMiningOnMobile,
+  });
+  const isWebGPUAllowed = webGPUAvailabilityReason === "allowed";
+  const [miningMode, setMiningModeState] = useState<MiningMode>(() => {
     // Load mining mode from localStorage on initialization
     const maybeSavedMode = loadMiningMode();
-    return maybeSavedMode || defaultMiningMode;
+    const resolvedMiningMode = resolveMiningMode({
+      maybePreferredMode: maybeSavedMode,
+      isWebGPUAllowed,
+    });
+
+    if (maybeSavedMode === "webgpu" && resolvedMiningMode !== maybeSavedMode) {
+      saveMiningMode(resolvedMiningMode);
+    }
+
+    return resolvedMiningMode;
   });
   const [miningHistory, setMiningHistory] = useState<MiningHistoryItem[]>([]);
   const [maybeMostRecentMiningStartTime, setMaybeMostRecentMiningStartTime] = useState<number | null>(null);
@@ -293,10 +334,48 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
   }, [isMining, addLog]);
 
   const handleSetMiningMode = useCallback((mode: MiningMode) => {
-    setMiningMode(mode);
-    saveMiningMode(mode);
-    addLog(`Mining mode set to ${mode.toUpperCase()}`);
-  }, [addLog]);
+    const resolvedMiningMode = resolveMiningMode({
+      maybePreferredMode: mode,
+      isWebGPUAllowed,
+    });
+
+    setMiningModeState(resolvedMiningMode);
+    saveMiningMode(resolvedMiningMode);
+
+    if (resolvedMiningMode !== mode) {
+      addLog(getBlockedWebGPUMiningLogMessage(webGPUAvailabilityReason));
+      return;
+    }
+
+    addLog(`Mining mode set to ${resolvedMiningMode.toUpperCase()}`);
+  }, [addLog, isWebGPUAllowed, webGPUAvailabilityReason]);
+
+  const handleSetDisableWebGPUMiningOnMobile = useCallback((disabled: boolean) => {
+    if (!import.meta.env.DEV) {
+      return;
+    }
+
+    setDisableWebGPUMiningOnMobileState(disabled);
+    saveDevDisableWebGPUMiningOnMobileOverride(
+      disabled === disableWebGPUMiningOnMobileEnvDefault ? null : disabled
+    );
+    addLog(`Disable WebGPU on mobile devices ${disabled ? "enabled" : "disabled"} for this browser`);
+  }, [addLog, disableWebGPUMiningOnMobileEnvDefault]);
+
+  useEffect(() => {
+    const resolvedMiningMode = resolveMiningMode({
+      maybePreferredMode: miningMode,
+      isWebGPUAllowed,
+    });
+
+    if (resolvedMiningMode === miningMode) {
+      return;
+    }
+
+    setMiningModeState(resolvedMiningMode);
+    saveMiningMode(resolvedMiningMode);
+    addLog(getBlockedWebGPUMiningLogMessage(webGPUAvailabilityReason));
+  }, [addLog, isWebGPUAllowed, miningMode, webGPUAvailabilityReason]);
 
   useEffect(() => {
     return () => {
@@ -316,9 +395,14 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         miningContextMiningState,
         maybeMostRecentMiningStartTime,
         gpuCapabilities: workerPool.gpuCapabilities,
+        isWebGPUSupported,
+        isWebGPUAllowed,
+        webGPUAvailabilityReason,
+        disableWebGPUMiningOnMobile,
         setMiningSpeed: handleSetMiningSpeed,
         setThreadCount,
         setMiningMode: handleSetMiningMode,
+        setDisableWebGPUMiningOnMobile: handleSetDisableWebGPUMiningOnMobile,
         startMining,
         stopMining,
         resetData: miningState.resetStats,

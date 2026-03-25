@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly GIT_COMMIT_URL: string;
   readonly GIT_BRANCH_NAME: string;
   readonly DEPLOY_HOST: string;
+  readonly VITE_DISABLE_WEBGPU_MINING_ON_MOBILE?: string;
 }
 
 interface ImportMeta {

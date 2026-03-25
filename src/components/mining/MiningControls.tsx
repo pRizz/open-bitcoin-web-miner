@@ -27,9 +27,11 @@ export function MiningControls() {
     maxThreads,
     miningMode,
     gpuCapabilities,
+    disableWebGPUMiningOnMobile,
     setMiningSpeed,
     setThreadCount,
     setMiningMode,
+    setDisableWebGPUMiningOnMobile,
     startMining,
     stopMining,
   } = useMining();
@@ -161,6 +163,24 @@ export function MiningControls() {
       <div>
         <MiningModeSelector />
       </div>
+
+      {import.meta.env.DEV && (
+        <div className="space-y-2 rounded-md border border-dashed p-3">
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="disable-webgpu-on-mobile" className="text-sm">
+              Disable WebGPU on mobile devices
+            </Label>
+            <Switch
+              id="disable-webgpu-on-mobile"
+              checked={disableWebGPUMiningOnMobile}
+              onCheckedChange={setDisableWebGPUMiningOnMobile}
+            />
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Dev-only override for local testing. Production always follows the deployment config.
+          </div>
+        </div>
+      )}
 
       {/* Thread Count Control (CPU Only) */}
       {miningMode === "cpu" && (
