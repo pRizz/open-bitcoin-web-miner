@@ -1,6 +1,11 @@
 # Welcome to your Lovable project
 
-[![GitHub Stars](https://img.shields.io/github/stars/pRizz/leading-zero-lab)](https://github.com/pRizz/leading-zero-lab)
+<!-- coding-and-architecture-requirements-readme-badges:begin -->
+[![GitHub Stars](https://img.shields.io/github/stars/pRizz/open-bitcoin-web-miner)](https://github.com/pRizz/open-bitcoin-web-miner)
+[![TypeScript 5.8.2](https://img.shields.io/badge/TypeScript-5.8.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React 18.3.1](https://img.shields.io/badge/React-18.3.1-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![Vite 5.4.1](https://img.shields.io/badge/Vite-5.4.1-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+<!-- coding-and-architecture-requirements-readme-badges:end -->
 
 ## Common Commands
 
