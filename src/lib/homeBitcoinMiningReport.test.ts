@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   FIXED_NETWORK_HASHRATE,
+  HOME_MINING_DEVICE_BASELINES_BY_KEY,
   HOME_MINING_SCENARIOS_BY_KEY,
   calculateCombinedHashRate,
   calculatePercentOfNetwork,
@@ -29,6 +30,24 @@ describe("homeBitcoinMiningReport", () => {
     const usersNeeded = calculateUsersNeededToEqualNetwork(HOME_MINING_SCENARIOS_BY_KEY.asic.perUserHashRate, FIXED_NETWORK_HASHRATE);
 
     expect(usersNeeded).toBeCloseTo(4_790_000, -4);
+  });
+
+  it("computes users needed to equal the fixed network baseline for modern iPhone CPUs", () => {
+    const usersNeeded = calculateUsersNeededToEqualNetwork(
+      HOME_MINING_DEVICE_BASELINES_BY_KEY.iphoneCpu.perUserHashRate,
+      FIXED_NETWORK_HASHRATE,
+    );
+
+    expect(usersNeeded).toBeCloseTo(19_160_000_000_000_000, -12);
+  });
+
+  it("computes users needed to equal the fixed network baseline for MacBook WebGPU mining", () => {
+    const usersNeeded = calculateUsersNeededToEqualNetwork(
+      HOME_MINING_DEVICE_BASELINES_BY_KEY.macbookWebGpu.perUserHashRate,
+      FIXED_NETWORK_HASHRATE,
+    );
+
+    expect(usersNeeded).toBeCloseTo(47_900_000_000_000, -9);
   });
 
   it("estimates the live network hash rate from difficulty", () => {

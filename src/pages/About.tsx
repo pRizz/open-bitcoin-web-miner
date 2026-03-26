@@ -159,7 +159,7 @@ export default function About() {
       <ViabilityCallout
         variant="card"
         title="Is home mining viable at all?"
-        description="If the About page explains how Bitcoin mining works, the viability breakdown shows the quantitative side of the same story by comparing consumer GPUs, 1 TH/s home miners, and modern ASICs against the scale of today’s network."
+        description="If the About page explains how Bitcoin mining works, the viability breakdown shows the quantitative side of the same story by comparing iPhone CPUs, MacBook WebGPU mining, consumer GPUs, 1 TH/s home miners, and modern ASICs against the scale of today’s network."
         ctaLabel="Read the viability breakdown"
       />
 

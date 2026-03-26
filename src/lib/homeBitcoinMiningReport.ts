@@ -11,6 +11,7 @@ export const HOME_MINING_PARTICIPANT_COUNTS = [
 ] as const;
 
 export const HASH_RATE_UNIT_ROWS = [
+  { unit: "KH/s", hashesPerSecond: "10^3" },
   { unit: "MH/s", hashesPerSecond: "10^6" },
   { unit: "GH/s", hashesPerSecond: "10^9" },
   { unit: "TH/s", hashesPerSecond: "10^12" },
@@ -21,14 +22,25 @@ export const HASH_RATE_UNIT_ROWS = [
 ] as const;
 
 export type HomeMiningScenarioKey = "gpu" | "homeMiner" | "asic";
+export type HomeMiningDeviceBaselineKey =
+  | "iphoneCpu"
+  | "macbookWebGpu"
+  | HomeMiningScenarioKey;
 
-export interface HomeMiningScenarioDefinition {
-  key: HomeMiningScenarioKey;
+interface HomeMiningHardwareDefinition {
   title: string;
   shortTitle: string;
   perUserHashRate: number;
   perUserHashRateLabel: string;
+}
+
+export interface HomeMiningScenarioDefinition extends HomeMiningHardwareDefinition {
+  key: HomeMiningScenarioKey;
   narrative: string;
+}
+
+export interface HomeMiningDeviceBaselineDefinition extends HomeMiningHardwareDefinition {
+  key: HomeMiningDeviceBaselineKey;
 }
 
 export interface HomeMiningScenarioRow {
@@ -49,6 +61,22 @@ export interface HomeMiningScenarioReport extends HomeMiningScenarioDefinition {
   usersNeededToEqualNetworkLabel: string;
 }
 
+export interface HomeMiningDeviceBaselineReport extends HomeMiningDeviceBaselineDefinition {
+  usersNeededToEqualNetwork: number;
+  usersNeededToEqualNetworkLabel: string;
+}
+
+export interface HomeMiningDeviceBaselineChartPoint {
+  baselineKey: HomeMiningDeviceBaselineKey;
+  chartLabel: string;
+  title: string;
+  shortTitle: string;
+  hashRate: number;
+  hashRateLabel: string;
+  usersNeeded: number;
+  usersNeededLabel: string;
+}
+
 type ChartSeriesPoint = {
   participantCount: number;
   participantCountLabel: string;
@@ -67,38 +95,58 @@ const HASH_RATE_UNITS = [
 ] as const;
 
 const PEOPLE_COUNT_UNITS = [
+  { threshold: 1e15, shortLabel: "Q", longLabel: "quadrillion" },
   { threshold: 1e12, shortLabel: "T", longLabel: "trillion" },
   { threshold: 1e9, shortLabel: "B", longLabel: "billion" },
   { threshold: 1e6, shortLabel: "M", longLabel: "million" },
   { threshold: 1e3, shortLabel: "K", longLabel: "thousand" },
 ] as const;
 
-const HOME_MINING_SCENARIO_DEFINITIONS: readonly HomeMiningScenarioDefinition[] = [
+const HOME_MINING_DEVICE_BASELINE_DEFINITIONS: readonly HomeMiningDeviceBaselineDefinition[] = [
+  {
+    key: "iphoneCpu",
+    title: "Modern iPhone CPUs",
+    shortTitle: "iPhone CPU",
+    perUserHashRate: 50e3,
+    perUserHashRateLabel: "50 KH/s",
+  },
+  {
+    key: "macbookWebGpu",
+    title: "Modern MacBook Pro WebGPU",
+    shortTitle: "MacBook WebGPU",
+    perUserHashRate: 20e6,
+    perUserHashRateLabel: "20 MH/s",
+  },
   {
     key: "gpu",
     title: "Consumer GPUs (50 MH/s)",
-    shortTitle: "GPU",
+    shortTitle: "50 MH/s GPU",
     perUserHashRate: 50e6,
     perUserHashRateLabel: "50 MH/s",
-    narrative: "Even global-scale GPU participation barely registers against Bitcoin’s industrial hash rate.",
   },
   {
     key: "homeMiner",
     title: "Small Home Miners (1 TH/s BitAxe class)",
-    shortTitle: "BitAxe class",
+    shortTitle: "1 TH/s home miner",
     perUserHashRate: 1e12,
     perUserHashRateLabel: "1 TH/s",
-    narrative: "Small dedicated miners begin to matter only when adoption climbs into the tens or hundreds of millions of homes.",
   },
   {
     key: "asic",
     title: "Modern ASIC Miners (200 TH/s)",
-    shortTitle: "Modern ASIC",
+    shortTitle: "200 TH/s ASIC",
     perUserHashRate: 200e12,
     perUserHashRateLabel: "200 TH/s",
-    narrative: "High-end ASICs compress the gap dramatically, which is why industrial mining converged on specialized hardware.",
   },
 ] as const;
+
+const HOME_MINING_SCENARIO_NARRATIVES: Record<HomeMiningScenarioKey, string> = {
+  gpu: "Even global-scale GPU participation barely registers against Bitcoin’s industrial hash rate.",
+  homeMiner:
+    "Small dedicated miners begin to matter only when adoption climbs into the tens or hundreds of millions of homes.",
+  asic:
+    "High-end ASICs compress the gap dramatically, which is why industrial mining converged on specialized hardware.",
+};
 
 function trimTrailingZeros(value: string): string {
   return value.replace(/\.0+$|(\.\d*?[1-9])0+$/, "$1");
@@ -188,6 +236,22 @@ export function formatUsersNeededToEqualNetwork(usersNeeded: number): string {
   return `~${Math.round(usersNeeded).toLocaleString()}`;
 }
 
+export function formatHashRateMultiplier(multiplier: number): string {
+  for (const { threshold, longLabel } of PEOPLE_COUNT_UNITS) {
+    if (multiplier >= threshold) {
+      const scaledMultiplier = multiplier / threshold;
+      const maximumFractionDigits = scaledMultiplier >= 10 ? 0 : 1;
+      return `~${formatScaledValue(scaledMultiplier, maximumFractionDigits)} ${longLabel}x`;
+    }
+  }
+
+  if (multiplier >= 1) {
+    return `${formatScaledValue(multiplier, multiplier >= 10 ? 0 : 1)}x`;
+  }
+
+  return `${formatScaledValue(multiplier, 6)}x`;
+}
+
 export function calculateCombinedHashRate(participantCount: number, perUserHashRate: number): number {
   return participantCount * perUserHashRate;
 }
@@ -233,6 +297,52 @@ function buildScenarioRows(scenario: HomeMiningScenarioDefinition): HomeMiningSc
   });
 }
 
+export const HOME_MINING_DEVICE_BASELINES: readonly HomeMiningDeviceBaselineReport[] =
+  HOME_MINING_DEVICE_BASELINE_DEFINITIONS.map((baseline) => {
+    const usersNeededToEqualNetwork = calculateUsersNeededToEqualNetwork(baseline.perUserHashRate);
+
+    return {
+      ...baseline,
+      usersNeededToEqualNetwork,
+      usersNeededToEqualNetworkLabel: formatUsersNeededToEqualNetwork(usersNeededToEqualNetwork),
+    };
+  });
+
+export const HOME_MINING_DEVICE_BASELINES_BY_KEY = HOME_MINING_DEVICE_BASELINES.reduce(
+  (baselineMap, baseline) => {
+    baselineMap[baseline.key] = baseline;
+    return baselineMap;
+  },
+  {} as Record<HomeMiningDeviceBaselineKey, HomeMiningDeviceBaselineReport>,
+);
+
+const HOME_MINING_SCENARIO_DEFINITIONS: readonly HomeMiningScenarioDefinition[] = [
+  {
+    key: "gpu",
+    title: "Consumer GPUs (50 MH/s)",
+    shortTitle: "GPU",
+    perUserHashRate: HOME_MINING_DEVICE_BASELINES_BY_KEY.gpu.perUserHashRate,
+    perUserHashRateLabel: HOME_MINING_DEVICE_BASELINES_BY_KEY.gpu.perUserHashRateLabel,
+    narrative: HOME_MINING_SCENARIO_NARRATIVES.gpu,
+  },
+  {
+    key: "homeMiner",
+    title: "Small Home Miners (1 TH/s BitAxe class)",
+    shortTitle: "BitAxe class",
+    perUserHashRate: HOME_MINING_DEVICE_BASELINES_BY_KEY.homeMiner.perUserHashRate,
+    perUserHashRateLabel: HOME_MINING_DEVICE_BASELINES_BY_KEY.homeMiner.perUserHashRateLabel,
+    narrative: HOME_MINING_SCENARIO_NARRATIVES.homeMiner,
+  },
+  {
+    key: "asic",
+    title: "Modern ASIC Miners (200 TH/s)",
+    shortTitle: "Modern ASIC",
+    perUserHashRate: HOME_MINING_DEVICE_BASELINES_BY_KEY.asic.perUserHashRate,
+    perUserHashRateLabel: HOME_MINING_DEVICE_BASELINES_BY_KEY.asic.perUserHashRateLabel,
+    narrative: HOME_MINING_SCENARIO_NARRATIVES.asic,
+  },
+] as const;
+
 export const HOME_MINING_SCENARIOS: readonly HomeMiningScenarioReport[] = HOME_MINING_SCENARIO_DEFINITIONS.map((scenario) => {
   const usersNeededToEqualNetwork = calculateUsersNeededToEqualNetwork(scenario.perUserHashRate);
 
@@ -273,3 +383,15 @@ export const HOME_MINING_USERS_TO_EQUAL_NETWORK_CHART_DATA = HOME_MINING_SCENARI
   usersNeeded: scenario.usersNeededToEqualNetwork,
   usersNeededLabel: scenario.usersNeededToEqualNetworkLabel,
 }));
+
+export const HOME_MINING_DEVICE_BASELINE_CHART_DATA: readonly HomeMiningDeviceBaselineChartPoint[] =
+  HOME_MINING_DEVICE_BASELINES.map((baseline) => ({
+    baselineKey: baseline.key,
+    chartLabel: baseline.shortTitle,
+    title: baseline.title,
+    shortTitle: baseline.shortTitle,
+    hashRate: baseline.perUserHashRate,
+    hashRateLabel: baseline.perUserHashRateLabel,
+    usersNeeded: baseline.usersNeededToEqualNetwork,
+    usersNeededLabel: baseline.usersNeededToEqualNetworkLabel,
+  }));

@@ -6,6 +6,7 @@ import {
   calculateUsersNeededToEqualNetwork,
   FIXED_NETWORK_HASHRATE,
   HASHES_PER_ZETTAHASH,
+  HOME_MINING_DEVICE_BASELINES_BY_KEY,
   HOME_MINING_SCENARIOS_BY_KEY,
   estimateBitcoinNetworkHashRateFromDifficulty,
   formatUsersNeededToEqualNetwork,
@@ -16,6 +17,18 @@ export default function HomeBitcoinMiningPage() {
   const { maybeNetworkDifficulty, maybeFormattedNetworkDifficulty } = useNetworkInfo();
 
   const zettahashPerspective = useMemo(() => ({
+    iphoneCpu: formatUsersNeededToEqualNetwork(
+      calculateUsersNeededToEqualNetwork(
+        HOME_MINING_DEVICE_BASELINES_BY_KEY.iphoneCpu.perUserHashRate,
+        HASHES_PER_ZETTAHASH,
+      ),
+    ),
+    macbookWebGpu: formatUsersNeededToEqualNetwork(
+      calculateUsersNeededToEqualNetwork(
+        HOME_MINING_DEVICE_BASELINES_BY_KEY.macbookWebGpu.perUserHashRate,
+        HASHES_PER_ZETTAHASH,
+      ),
+    ),
     gpu: formatUsersNeededToEqualNetwork(
       calculateUsersNeededToEqualNetwork(HOME_MINING_SCENARIOS_BY_KEY.gpu.perUserHashRate, HASHES_PER_ZETTAHASH),
     ),
