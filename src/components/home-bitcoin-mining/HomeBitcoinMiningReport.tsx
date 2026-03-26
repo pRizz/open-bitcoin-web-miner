@@ -24,16 +24,21 @@ import {
   FIXED_NETWORK_HASHRATE_LABEL,
   HASH_RATE_UNIT_ROWS,
   HASHES_PER_ZETTAHASH,
+  HOME_MINING_DEVICE_BASELINES,
+  HOME_MINING_DEVICE_BASELINES_BY_KEY,
+  HOME_MINING_DEVICE_BASELINE_CHART_DATA,
   HOME_MINING_HASH_RATE_CHART_DATA,
   HOME_MINING_PERCENT_CHART_DATA,
   HOME_MINING_SCENARIOS,
   HOME_MINING_SCENARIOS_BY_KEY,
   HOME_MINING_USERS_TO_EQUAL_NETWORK_CHART_DATA,
   formatHashRate,
+  formatHashRateMultiplier,
   formatLongParticipantCount,
   formatPercentOfNetwork,
   formatShortParticipantCount,
   formatUsersNeededToEqualNetwork,
+  type HomeMiningDeviceBaselineChartPoint,
   type HomeMiningScenarioReport,
 } from "@/lib/homeBitcoinMiningReport";
 import {
@@ -44,6 +49,7 @@ import {
   Cpu,
   Home,
   Info,
+  Smartphone,
   Target,
   Zap,
 } from "lucide-react";
@@ -61,6 +67,8 @@ import {
 } from "recharts";
 
 const CHART_CONFIG = {
+  iphoneCpu: { label: "Modern iPhone CPUs", color: "#22d3ee" },
+  macbookWebGpu: { label: "Modern MacBook Pro WebGPU", color: "#818cf8" },
   gpu: { label: "Consumer GPUs", color: "#60a5fa" },
   homeMiner: { label: "1 TH/s home miners", color: "#34d399" },
   asic: { label: "200 TH/s ASICs", color: "#f97316" },
@@ -71,11 +79,13 @@ const CHART_CONFIG = {
 const HASH_RATE_AXIS_TICKS = [1e13, 1e15, 1e18, 1e21, 1e24];
 const PERCENT_AXIS_TICKS = [1e-6, 1e-4, 1e-2, 1, 100, 10_000, 1_000_000];
 const USERS_AXIS_TICKS = [1e6, 1e7, 1e9, 1e12, 1e13];
+const DEVICE_BASELINE_HASH_RATE_AXIS_TICKS = [1e4, 1e6, 1e9, 1e12, 1e15, 1e18, 1e21];
 
 const MOBILE_PARTICIPANT_AXIS_TICKS = [1_000_000, 100_000_000, 8_000_000_000];
 const MOBILE_HASH_RATE_AXIS_TICKS = [1e13, 1e18, 1e21, 1e24];
 const MOBILE_PERCENT_AXIS_TICKS = [1e-6, 1e-2, 1, 10_000, 1_000_000];
 const MOBILE_USERS_AXIS_TICKS = [1e6, 1e9, 1e13];
+const MOBILE_DEVICE_BASELINE_HASH_RATE_AXIS_TICKS = [1e4, 1e8, 1e12, 1e18, 1e21];
 
 const GPU_INSIGHTS = [
   `At ${HOME_MINING_SCENARIOS_BY_KEY.gpu.rows.at(-1)?.participantCountLabel}, GPUs still contribute less than 0.05% of the network.`,
@@ -93,6 +103,8 @@ const ASIC_INSIGHTS = [
 ];
 
 type ZettahashPerspective = {
+  iphoneCpu: string;
+  macbookWebGpu: string;
   gpu: string;
   homeMiner: string;
   asic: string;
@@ -254,40 +266,127 @@ function ComparisonSummary() {
   return (
     <>
       <div className="space-y-3 md:hidden">
-        {HOME_MINING_SCENARIOS.map((scenario) => (
-          <div key={scenario.key} className="rounded-lg border bg-muted/20 p-4">
-            <div className="text-base font-semibold text-foreground">{scenario.shortTitle}</div>
+        {HOME_MINING_DEVICE_BASELINES.map((baseline) => (
+          <div key={baseline.key} className="rounded-lg border bg-muted/20 p-4">
+            <div className="text-base font-semibold text-foreground">{baseline.shortTitle}</div>
             <div className="mt-4 grid gap-3">
-              <MetricDetail label="Hash rate per user" value={scenario.perUserHashRateLabel} mono />
+              <MetricDetail label="Hash rate per device" value={baseline.perUserHashRateLabel} mono />
               <MetricDetail
-                label="Users needed to equal network"
-                value={scenario.usersNeededToEqualNetworkLabel}
+                label="Devices needed to equal network"
+                value={baseline.usersNeededToEqualNetworkLabel}
               />
             </div>
           </div>
         ))}
       </div>
       <div className="hidden md:block">
-        <Table className="min-w-[520px]">
+        <Table className="min-w-[720px]">
           <TableHeader>
             <TableRow>
               <TableHead>Hardware</TableHead>
-              <TableHead>Hash rate per user</TableHead>
-              <TableHead>Users needed to equal network</TableHead>
+              <TableHead>Hash rate per device</TableHead>
+              <TableHead>Devices needed to equal network</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {HOME_MINING_SCENARIOS.map((scenario) => (
-              <TableRow key={scenario.key}>
-                <TableCell>{scenario.shortTitle}</TableCell>
-                <TableCell className="font-mono">{scenario.perUserHashRateLabel}</TableCell>
-                <TableCell>{scenario.usersNeededToEqualNetworkLabel}</TableCell>
+            {HOME_MINING_DEVICE_BASELINES.map((baseline) => (
+              <TableRow key={baseline.key}>
+                <TableCell>{baseline.shortTitle}</TableCell>
+                <TableCell className="font-mono">{baseline.perUserHashRateLabel}</TableCell>
+                <TableCell>{baseline.usersNeededToEqualNetworkLabel}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
     </>
+  );
+}
+
+function BaselineSummaryCards() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {HOME_MINING_DEVICE_BASELINES.map((baseline) => (
+        <div key={baseline.key} className="rounded-lg border bg-background/30 p-4">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            {baseline.shortTitle}
+          </div>
+          <div className="mt-2 text-lg font-semibold text-foreground">{baseline.perUserHashRateLabel}</div>
+          <div className="mt-1 text-sm text-muted-foreground">
+            {baseline.usersNeededToEqualNetworkLabel} devices to reach {FIXED_NETWORK_HASHRATE_LABEL}.
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BaselineChartTooltipCard({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: ReadonlyArray<{
+    payload?: HomeMiningDeviceBaselineChartPoint;
+  }>;
+}) {
+  const maybePoint = payload?.[0]?.payload;
+
+  if (!active || !maybePoint) {
+    return null;
+  }
+
+  const maybeGpuHashRate = HOME_MINING_DEVICE_BASELINES_BY_KEY.gpu.perUserHashRate;
+  const maybeMultiplier =
+    maybeGpuHashRate && maybePoint.hashRate > 0 ? maybePoint.hashRate / maybeGpuHashRate : undefined;
+
+  return (
+    <div className="max-w-[calc(100vw-2rem)] rounded-lg border border-border/70 bg-background/95 px-3 py-2 text-[11px] shadow-xl sm:text-xs">
+      <div className="font-medium text-foreground">{maybePoint.title}</div>
+      <div className="mt-2 space-y-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-muted-foreground">Per-device hash rate</span>
+          <span className="font-mono text-foreground">{maybePoint.hashRateLabel}</span>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-muted-foreground">Devices to equal network</span>
+          <span className="text-foreground">{maybePoint.usersNeededLabel}</span>
+        </div>
+        {typeof maybeMultiplier === "number" && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Relative to 50 MH/s GPU</span>
+            <span className="text-foreground">{formatHashRateMultiplier(maybeMultiplier)}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BaselineChartDot({
+  cx,
+  cy,
+  maybeBaselineKey,
+  radius,
+}: {
+  cx?: number;
+  cy?: number;
+  maybeBaselineKey?: keyof typeof CHART_CONFIG;
+  radius: number;
+}) {
+  if (typeof cx !== "number" || typeof cy !== "number" || !maybeBaselineKey) {
+    return null;
+  }
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={radius}
+      fill={CHART_CONFIG[maybeBaselineKey].color}
+      stroke="#0f172a"
+      strokeWidth={2}
+    />
   );
 }
 
@@ -318,12 +417,18 @@ export function HomeBitcoinMiningReport({
   const hashRateAxisTicks = isMobile ? MOBILE_HASH_RATE_AXIS_TICKS : HASH_RATE_AXIS_TICKS;
   const percentAxisTicks = isMobile ? MOBILE_PERCENT_AXIS_TICKS : PERCENT_AXIS_TICKS;
   const usersAxisTicks = isMobile ? MOBILE_USERS_AXIS_TICKS : USERS_AXIS_TICKS;
+  const baselineHashRateAxisTicks = isMobile
+    ? MOBILE_DEVICE_BASELINE_HASH_RATE_AXIS_TICKS
+    : DEVICE_BASELINE_HASH_RATE_AXIS_TICKS;
   const lineChartMargin = isMobile
     ? { top: 16, right: 8, left: 0, bottom: 0 }
     : { top: 20, right: 12, left: 12, bottom: 8 };
   const barChartMargin = isMobile
     ? { top: 16, right: 8, left: 0, bottom: 0 }
     : { top: 20, right: 24, left: 24, bottom: 8 };
+  const baselineLineChartMargin = isMobile
+    ? { top: 16, right: 8, left: 0, bottom: 24 }
+    : { top: 20, right: 12, left: 12, bottom: 8 };
   const lineDot = { r: isMobile ? 3 : 4 };
   const legendContent = (
     <ChartLegendContent className="flex-wrap justify-start gap-x-3 gap-y-2 text-[11px] sm:justify-center sm:text-xs" />
@@ -348,13 +453,30 @@ export function HomeBitcoinMiningReport({
                 Home mining is a scale problem before it is a software problem.
               </CardTitle>
               <CardDescription className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
-                This page compares three consumer mining scenarios against the Bitcoin network:
-                browser-era GPU speeds, 1 TH/s home miners, and modern 200 TH/s ASICs. The goal
-                is not to ask whether one device can “mine Bitcoin,” but whether home participation
-                can matter at all once it is measured against nearly a zettahash-scale network.
+                This page now compares a fuller ladder of mining hardware against the Bitcoin
+                network: modern iPhone CPUs, modern MacBook Pro WebGPU mining, browser-era GPUs,
+                1 TH/s home miners, and modern 200 TH/s ASICs. The goal is not to ask whether one
+                device can &ldquo;mine Bitcoin,&rdquo; but to show how quickly the network turns
+                hardware differences into orders-of-magnitude consequences.
               </CardDescription>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                  iPhone CPUs needed
+                </div>
+                <div className="mt-2 break-words text-xl font-semibold sm:text-2xl">
+                  {HOME_MINING_DEVICE_BASELINES_BY_KEY.iphoneCpu.usersNeededToEqualNetworkLabel}
+                </div>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                  MacBook WebGPU devices needed
+                </div>
+                <div className="mt-2 break-words text-xl font-semibold sm:text-2xl">
+                  {HOME_MINING_DEVICE_BASELINES_BY_KEY.macbookWebGpu.usersNeededToEqualNetworkLabel}
+                </div>
+              </div>
               <div className="rounded-lg border border-white/10 bg-black/20 p-4">
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">
                   GPUs needed
@@ -439,17 +561,20 @@ export function HomeBitcoinMiningReport({
                   Reference conversions
                 </div>
                 <div className="rounded-lg border bg-muted/30 p-4 font-mono text-sm leading-7 text-muted-foreground">
+                  <div>50 KH/s = 0.00000000000005 EH/s</div>
+                  <div>20 MH/s = 0.00000000002 EH/s</div>
                   <div>50 MH/s = 0.00000000005 EH/s</div>
                   <div>1 TH/s = 0.000001 EH/s</div>
                   <div>200 TH/s = 0.0002 EH/s</div>
                 </div>
                 <p className="text-sm leading-7 text-muted-foreground">
-                  The combined-rate tables below are generated directly from these per-user
-                  assumptions, so the copy, tables, and charts all point back to the same
-                  calculations.
+                  The single-device comparison and the multi-participant scenario tables below are
+                  generated directly from these assumptions, so the copy, tables, and charts all
+                  point back to the same calculations.
                 </p>
               </div>
             </div>
+            <BaselineSummaryCards />
           </CardContent>
         </Card>
 
@@ -507,18 +632,100 @@ export function HomeBitcoinMiningReport({
             <CardTitle>How Consumer Mining Scales Against the Network</CardTitle>
           </div>
           <CardDescription>
-            Log-scale charts make the gap visible without hiding the smaller hardware classes.
+            Log-scale comparisons make the gap visible without flattening the slower hardware into
+            zero.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8 p-4 pt-0 sm:p-6 sm:pt-0">
           <div className="space-y-4">
             <div>
-              <div className="text-base font-semibold sm:text-lg">
-                Combined hash rate vs participant count
+              <div className="flex items-center gap-2 text-base font-semibold sm:text-lg">
+                <Smartphone className="h-4 w-4 text-cyan-400" />
+                <span>Single-device baseline comparison</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Solid yellow marks the report baseline. Dashed violet marks the live estimate when
-                current difficulty is available.
+                One logarithmic chart puts phone CPUs, laptop WebGPU, GPUs, BitAxe-class home
+                miners, and ASICs on the same scale. Solid yellow marks the editorial network
+                baseline, and dashed violet marks the live estimate when current difficulty is
+                available.
+              </p>
+            </div>
+            <ChartContainer
+              config={CHART_CONFIG}
+              className="h-[340px] w-full aspect-auto rounded-lg border bg-muted/20 p-2 sm:h-[380px] sm:p-3 lg:h-[420px]"
+            >
+              <LineChart
+                data={[...HOME_MINING_DEVICE_BASELINE_CHART_DATA]}
+                margin={baselineLineChartMargin}
+              >
+                <CartesianGrid vertical={false} />
+                <YAxis
+                  type="number"
+                  scale="log"
+                  domain={[1e4, 1e21]}
+                  ticks={baselineHashRateAxisTicks}
+                  tickFormatter={formatHashRate}
+                  width={isMobile ? 72 : 94}
+                  stroke="#94a3b8"
+                  tick={chartTick}
+                />
+                <XAxis
+                  type="category"
+                  dataKey="chartLabel"
+                  stroke="#94a3b8"
+                  tick={chartTick}
+                  interval={0}
+                  angle={isMobile ? -22 : 0}
+                  textAnchor={isMobile ? "end" : "middle"}
+                  height={isMobile ? 72 : 36}
+                  tickMargin={isMobile ? 10 : 8}
+                />
+                <Tooltip
+                  content={({ active, payload }) => (
+                    <BaselineChartTooltipCard active={active} payload={payload} />
+                  )}
+                />
+                <ReferenceLine
+                  y={FIXED_NETWORK_HASHRATE}
+                  stroke={CHART_CONFIG.editorialBaseline.color}
+                  strokeWidth={isMobile ? 1.5 : 2}
+                  strokeDasharray="6 4"
+                />
+                {maybeLiveNetworkHashRate && (
+                  <ReferenceLine
+                    y={maybeLiveNetworkHashRate}
+                    stroke={CHART_CONFIG.liveBaseline.color}
+                    strokeWidth={isMobile ? 1.5 : 2}
+                    strokeDasharray="2 6"
+                  />
+                )}
+                <Line
+                  type="monotone"
+                  dataKey="hashRate"
+                  stroke="#e2e8f0"
+                  strokeWidth={isMobile ? 2 : 2.5}
+                  activeDot={false}
+                  dot={({ cx, cy, payload }) => (
+                    <BaselineChartDot
+                      cx={cx}
+                      cy={cy}
+                      maybeBaselineKey={(payload as HomeMiningDeviceBaselineChartPoint | undefined)?.baselineKey}
+                      radius={isMobile ? 4 : 5}
+                    />
+                  )}
+                />
+              </LineChart>
+            </ChartContainer>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <div className="text-base font-semibold sm:text-lg">Combined hash rate vs participant count</div>
+              <p className="text-sm text-muted-foreground">
+                These three adoption scenarios use GPUs, 1 TH/s home miners, and 200 TH/s ASICs to
+                show what changes once millions or billions of devices participate. Solid yellow
+                marks the report baseline. Dashed violet marks the live estimate when current
+                difficulty is available.
               </p>
             </div>
             <ChartContainer
@@ -605,7 +812,8 @@ export function HomeBitcoinMiningReport({
               <div className="text-base font-semibold sm:text-lg">Percent of the global network</div>
               <p className="text-sm text-muted-foreground">
                 Percentages stay anchored to the fixed {FIXED_NETWORK_HASHRATE_LABEL} editorial
-                baseline for consistency.
+                baseline so the scenario curves and the single-device baselines tell one consistent
+                story.
               </p>
             </div>
             <ChartContainer
@@ -679,7 +887,8 @@ export function HomeBitcoinMiningReport({
                 Users needed to equal the network baseline
               </div>
               <p className="text-sm text-muted-foreground">
-                This is the cleanest summary of why hardware efficiency dominates Bitcoin mining.
+                This three-bar summary isolates the adoption scenarios; the single-device chart
+                above shows the wider hardware ladder.
               </p>
             </div>
             <ChartContainer
@@ -787,8 +996,8 @@ export function HomeBitcoinMiningReport({
               <CardTitle>Comparison Summary</CardTitle>
             </div>
             <CardDescription>
-              Roughly zettahash-scale Bitcoin mining turns device-level differences into
-              network-level consequences.
+              Roughly zettahash-scale Bitcoin mining turns small device-level speed differences into
+              massive network-level consequences.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
@@ -807,8 +1016,8 @@ export function HomeBitcoinMiningReport({
             <div className="rounded-lg border bg-muted/20 p-4">
               <div className="font-medium text-foreground">1. Bitcoin mining is industrialized</div>
               <p className="mt-2">
-                At nearly one zettahash per second, the network is far beyond the range where
-                incidental consumer GPUs can matter.
+                At nearly one zettahash per second, the network is far beyond the range where phone
+                CPUs, laptop WebGPU, or incidental consumer GPUs can matter on their own.
               </p>
             </div>
             <div className="rounded-lg border bg-muted/20 p-4">
@@ -816,21 +1025,24 @@ export function HomeBitcoinMiningReport({
                 2. Small home miners only matter at huge adoption
               </div>
               <p className="mt-2">
-                Tens or hundreds of millions of 1 TH/s homes can become meaningful. Anything much
-                smaller still sits at the margins.
+                Tens or hundreds of millions of 1 TH/s homes can become meaningful. The faster phone
+                and laptop baselines still sit several more orders of magnitude below that.
               </p>
             </div>
             <div className="rounded-lg border bg-muted/20 p-4">
               <div className="font-medium text-foreground">3. ASIC efficiency dominates the outcome</div>
               <p className="mt-2">
-                A 200 TH/s ASIC is about four million times faster than a 50 MH/s GPU. That gap
-                explains the industry’s hardware transition.
+                A 200 TH/s ASIC is about four million times faster than a 50 MH/s GPU, ten million
+                times faster than a 20 MH/s MacBook WebGPU miner, and four billion times faster
+                than a 50 KH/s iPhone CPU. That gap explains the industry’s hardware transition.
               </p>
             </div>
             <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4">
               <div className="font-medium text-foreground">Near-zettahash perspective</div>
               <p className="mt-2">
                 Reaching {formatHashRate(HASHES_PER_ZETTAHASH)} takes roughly{" "}
+                {zettahashPerspective.iphoneCpu} iPhone CPUs,{" "}
+                {zettahashPerspective.macbookWebGpu} MacBook Pro WebGPU miners,{" "}
                 {zettahashPerspective.gpu} GPUs, {zettahashPerspective.homeMiner} 1 TH/s home
                 miners, or {zettahashPerspective.asic} modern ASICs.
               </p>
@@ -855,8 +1067,8 @@ export function HomeBitcoinMiningReport({
           <p>
             Browser-based mining is best understood as educational participation and lottery-style
             experimentation. It lets you feel the asymmetry directly: how many hashes your device
-            can produce, how tiny that looks next to the network, and why specialized home hardware
-            changes the equation.
+            can produce, how tiny that looks next to the network, how much faster laptop or desktop
+            hardware can be, and why specialized home hardware changes the equation entirely.
           </p>
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-3 p-4 pt-0 sm:items-start sm:p-6 sm:pt-0">

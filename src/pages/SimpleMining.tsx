@@ -156,7 +156,7 @@ const SimpleMining = () => {
             <ViabilityCallout
               variant="compact"
               title="Want the bigger picture?"
-              description="Compare GPU, 1 TH/s home miners, and ASICs against the Bitcoin network."
+              description="Compare iPhone CPUs, MacBook WebGPU, GPUs, home miners, and ASICs against the Bitcoin network."
               ctaLabel="Read the viability breakdown"
             />
           </div>

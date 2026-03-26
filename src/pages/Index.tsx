@@ -122,7 +122,7 @@ const Index = () => {
           <ViabilityCallout
             variant="card"
             title="Is home mining viable?"
-            description="Browser mining is best treated as educational and lottery-style participation; this breakdown compares GPUs, 1 TH/s home miners, and ASICs against the Bitcoin network so you can see where home hardware actually fits."
+            description="Browser mining is best treated as educational and lottery-style participation; this breakdown compares iPhone CPUs, MacBook WebGPU mining, GPUs, 1 TH/s home miners, and ASICs against the Bitcoin network so you can see where home hardware actually fits."
             ctaLabel="Read the viability breakdown"
           />
 
