@@ -1,28 +1,30 @@
 export type NotificationType = 'success' | 'error' | 'warning' | 'info';
 export type NotificationMetadata = Record<string, unknown>;
 
-export interface Notification {
+export interface NotificationAction {
+  label: string;
+  onClick: () => void;
+}
+
+export interface StoredNotification {
   id: string;
   title: string;
   maybeDescription?: string;
   type: NotificationType;
   timestamp: number;
   read: boolean;
-  maybeAction?: {
-    label: string;
-    onClick: () => void;
-  };
   maybeMetadata?: NotificationMetadata;
+}
+
+export interface Notification extends StoredNotification {
+  maybeAction?: NotificationAction;
 }
 
 export interface NotificationOptions {
   title: string;
   maybeDescription?: string;
   maybeType?: NotificationType;
-  maybeAction?: {
-    label: string;
-    onClick: () => void;
-  };
+  maybeAction?: NotificationAction;
   maybeMetadata?: NotificationMetadata;
   maybePersist?: boolean;
   maybeDuration?: number;

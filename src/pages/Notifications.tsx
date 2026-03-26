@@ -214,80 +214,85 @@ const Notifications = () => {
               </p>
             </Card>
           ) : (
-            filteredNotifications.map((notification) => (
-              <Card
-                key={notification.id}
-                className={`p-4 transition-all duration-200 hover:shadow-md ${
-                  notification.read ? 'opacity-75' : ''
-                } ${getNotificationColor(notification.type)}`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 mt-1">
-                    {getNotificationIcon(notification.type)}
-                  </div>
+            filteredNotifications.map((notification) => {
+              const maybeAction = notification.maybeAction;
+              const hasAction = typeof maybeAction?.onClick === 'function';
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-sm">
-                            {notification.title}
-                          </h4>
-                          {!notification.read && (
-                            <Badge variant="secondary" className="text-xs">
-                              New
+              return (
+                <Card
+                  key={notification.id}
+                  className={`p-4 transition-all duration-200 hover:shadow-md ${
+                    notification.read ? 'opacity-75' : ''
+                  } ${getNotificationColor(notification.type)}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-sm">
+                              {notification.title}
+                            </h4>
+                            {!notification.read && (
+                              <Badge variant="secondary" className="text-xs">
+                                New
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className={`text-xs capitalize ${getNotificationColor(notification.type)}`}>
+                              {notification.type}
                             </Badge>
+                          </div>
+
+                          {notification.maybeDescription && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {notification.maybeDescription}
+                            </p>
                           )}
-                          <Badge variant="outline" className={`text-xs capitalize ${getNotificationColor(notification.type)}`}>
-                            {notification.type}
-                          </Badge>
-                        </div>
 
-                        {notification.maybeDescription && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {notification.maybeDescription}
-                          </p>
-                        )}
-
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>
-                            {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
-                          </span>
-                          {notification.maybeMetadata && Object.keys(notification.maybeMetadata).length > 0 && (
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             <span>
-                              {Object.keys(notification.maybeMetadata).length} metadata field{Object.keys(notification.maybeMetadata).length !== 1 ? 's' : ''}
+                              {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
                             </span>
-                          )}
+                            {notification.maybeMetadata && Object.keys(notification.maybeMetadata).length > 0 && (
+                              <span>
+                                {Object.keys(notification.maybeMetadata).length} metadata field{Object.keys(notification.maybeMetadata).length !== 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-1">
-                        {notification.maybeAction && (
+                        <div className="flex items-center gap-1">
+                          {hasAction && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={maybeAction.onClick}
+                              className="text-xs"
+                            >
+                              {maybeAction.label}
+                            </Button>
+                          )}
+
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={notification.maybeAction.onClick}
-                            className="text-xs"
+                            onClick={() => handleDelete(notification.id)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                            title="Delete notification"
                           >
-                            {notification.maybeAction.label}
+                            <X className="h-4 w-4" />
                           </Button>
-                        )}
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(notification.id)}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                          title="Delete notification"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           )}
         </div>
 

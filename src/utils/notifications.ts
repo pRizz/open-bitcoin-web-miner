@@ -1,9 +1,83 @@
 import { toast } from '@/hooks/use-toast';
-import type { Notification, NotificationOptions, NotificationType, NotificationFilters } from '@/types/notifications';
+import type {
+  Notification,
+  NotificationFilters,
+  NotificationMetadata,
+  NotificationOptions,
+  NotificationType,
+  StoredNotification,
+} from '@/types/notifications';
 
 const STORAGE_KEY = 'notifications';
 const MAX_NOTIFICATIONS = 1000;
 const DEFAULT_DURATION = 7000;
+
+function isNotificationType(value: unknown): value is NotificationType {
+  return value === 'success' || value === 'error' || value === 'warning' || value === 'info';
+}
+
+function isNotificationMetadata(value: unknown): value is NotificationMetadata {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseStoredNotification(value: unknown): StoredNotification | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return null;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const { id, title, type, timestamp, read, maybeDescription, maybeMetadata } = candidate;
+
+  if (typeof id !== 'string' || typeof title !== 'string' || !isNotificationType(type)) {
+    return null;
+  }
+
+  if (typeof timestamp !== 'number' || !Number.isFinite(timestamp) || typeof read !== 'boolean') {
+    return null;
+  }
+
+  const notification: StoredNotification = {
+    id,
+    title,
+    type,
+    timestamp,
+    read,
+  };
+
+  if (typeof maybeDescription === 'string') {
+    notification.maybeDescription = maybeDescription;
+  }
+
+  if (isNotificationMetadata(maybeMetadata)) {
+    notification.maybeMetadata = maybeMetadata;
+  }
+
+  return notification;
+}
+
+export function parseStoredNotifications(raw: string | null): StoredNotification[] {
+  if (!raw) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .map(parseStoredNotification)
+      .filter((notification): notification is StoredNotification => notification !== null);
+  } catch {
+    return [];
+  }
+}
+
+export function toStoredNotifications(notifications: Notification[]): StoredNotification[] {
+  return notifications.map(({ maybeAction: _maybeAction, ...notification }) => notification);
+}
 
 class NotificationManager {
   private notifications: Notification[] = [];
@@ -18,19 +92,25 @@ class NotificationManager {
   }
 
   private saveToStorage(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.notifications));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toStoredNotifications(this.notifications)));
     } catch (error) {
       console.warn('Failed to save notifications to localStorage:', error);
     }
   }
 
   private loadFromStorage(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        this.notifications = JSON.parse(stored);
-      }
+      this.notifications = parseStoredNotifications(stored);
     } catch (error) {
       console.warn('Failed to load notifications from localStorage:', error);
       this.notifications = [];
