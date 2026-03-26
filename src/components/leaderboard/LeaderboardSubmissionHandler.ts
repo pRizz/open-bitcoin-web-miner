@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { HashSolution } from "@/types/mining";
 import { toast as toastFunction } from "@/hooks/use-toast";
 
 interface ValidationResult {

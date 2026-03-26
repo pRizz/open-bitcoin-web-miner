@@ -8,19 +8,10 @@ export interface SessionMiningStats {
   maybeRequiredBinaryZeroes?: number;
 }
 
-export interface PersistentMiningStats {
-  maybeBestSolutions?: HashSolution[];
-  maybeSubmittedSolutions?: HashSolution[];
-  maybeTotalSolutions?: number;
-  cumulativeHashes: number;
-  acceptedSolutions: number;
-  rejectedSolutions: number;
-}
-
-export interface MiningStats extends SessionMiningStats, PersistentMiningStats {}
+export type SubmissionStatus = 'accepted' | 'rejected' | 'outdated' | 'pending';
 
 // TODO: take a nonceless block header instead of each individual field
-export interface HashSolution {
+export interface FoundHashSolution {
   id: string;
   hash: string;
   nonceNumber: number;
@@ -33,8 +24,22 @@ export interface HashSolution {
   binaryZeroes: number;
   hexZeroes: number;
   timeToFindMs: number;
-  status?: 'accepted' | 'rejected' | 'outdated' | 'pending';
 }
+
+export interface SubmittedHashSolution extends FoundHashSolution {
+  status: SubmissionStatus;
+}
+
+export interface PersistentMiningStats {
+  maybeBestSolutions?: FoundHashSolution[];
+  maybeSubmittedSolutions?: SubmittedHashSolution[];
+  maybeTotalSolutions?: number;
+  cumulativeHashes: number;
+  acceptedSolutions: number;
+  rejectedSolutions: number;
+}
+
+export interface MiningStats extends SessionMiningStats, PersistentMiningStats {}
 
 export interface MiningSolution {
   hash: string;

@@ -1,4 +1,4 @@
-import { HashSolution } from "@/types/mining";
+import { SubmissionStatus, SubmittedHashSolution } from "@/types/mining";
 import { CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
 import React from "react";
 
@@ -8,17 +8,17 @@ export const formatTimestamp = (timestamp: number) => {
   return new Date(timestamp).toLocaleTimeString();
 };
 
-export const getEffectiveStatus = (hashSolution: HashSolution) => {
+export function getEffectiveStatus(hashSolution: SubmittedHashSolution, nowMs: number = Date.now()): SubmissionStatus {
   if (hashSolution.status === 'pending') {
-    const pendingDurationMs = Date.now() - hashSolution.timestamp;
+    const pendingDurationMs = nowMs - hashSolution.timestamp;
     if (pendingDurationMs > PENDING_TIMEOUT_MS) {
       return 'rejected';
     }
   }
   return hashSolution.status;
-};
+}
 
-export const getStatusIcon = (effectiveStatus: string): JSX.Element | null => {
+export function getStatusIcon(effectiveStatus: SubmissionStatus): JSX.Element | null {
   switch (effectiveStatus) {
   case 'accepted':
     return <CheckCircle2 className="w-4 h-4 text-green-500" />;
@@ -31,9 +31,9 @@ export const getStatusIcon = (effectiveStatus: string): JSX.Element | null => {
   default:
     return null;
   }
-};
+}
 
-export const getStatusText = (effectiveStatus: string, originalStatus: string) => {
+export function getStatusText(effectiveStatus: SubmissionStatus, originalStatus: SubmissionStatus): string {
   switch (effectiveStatus) {
   case 'accepted':
     return 'Accepted';
@@ -46,4 +46,4 @@ export const getStatusText = (effectiveStatus: string, originalStatus: string) =
   default:
     return 'Unknown';
   }
-};
+}

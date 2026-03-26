@@ -1,10 +1,10 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { HashSolution } from "@/types/mining";
+import { SubmittedHashSolution } from "@/types/mining";
 import { HashDetailsContent } from "@/components/HashDetailsContent";
 import { useMining } from "@/contexts/MiningContext";
 
-function findHashSolution(hash: string, submittedHashes: HashSolution[]): HashSolution | undefined {
+function findHashSolution(hash: string, submittedHashes: SubmittedHashSolution[]): SubmittedHashSolution | undefined {
   return submittedHashes.find((h) => h.hash === hash);
 }
 

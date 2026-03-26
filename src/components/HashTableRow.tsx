@@ -1,6 +1,6 @@
 import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { HashSolution } from "@/types/mining";
+import { SubmittedHashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
 import { HashDetailsDialog } from "./HashDetailsDialog";
 
@@ -8,7 +8,7 @@ import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { formatTimestamp, getEffectiveStatus, getStatusIcon, getStatusText } from "@/utils/submittedSolutionsUtils";
 
 interface HashTableRowProps {
-  hashSolution: HashSolution;
+  hashSolution: SubmittedHashSolution;
 }
 
 export function HashTableRow({ hashSolution }: HashTableRowProps) {
@@ -32,13 +32,11 @@ export function HashTableRow({ hashSolution }: HashTableRowProps) {
         {formatDuration(hashSolution.timeToFindMs)}
       </TableCell>
       <TableCell className="text-center">
-        {hashSolution.status && (
-          <MobileFriendlyTooltip
-            content={<p>{getStatusText(effectiveStatus, hashSolution.status)}</p>}
-          >
-            {getStatusIcon(effectiveStatus)}
-          </MobileFriendlyTooltip>
-        )}
+        <MobileFriendlyTooltip
+          content={<p>{getStatusText(effectiveStatus, hashSolution.status)}</p>}
+        >
+          {getStatusIcon(effectiveStatus)}
+        </MobileFriendlyTooltip>
       </TableCell>
       <TableCell className="text-center">
         <span className="font-mono text-xs text-muted-foreground">

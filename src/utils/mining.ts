@@ -1,4 +1,4 @@
-import { HashSolution } from "@/types/mining";
+import { FoundHashSolution } from "@/types/mining";
 import API_CONFIG from "@/config/api";
 
 /**
@@ -152,7 +152,7 @@ export function validateBitcoinAddress(address: string): boolean {
   return /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{11,71})$/.test(address);
 }
 
-export function generateMockBlockHeader(): Partial<HashSolution> {
+export function generateMockBlockHeader(): Partial<FoundHashSolution> {
   return {
     versionNumber: 0x20000000,
     previousBlockHex: "00000000000000000007c31205989f6743ccfe4266b0dbe340a0b825c7795296",

@@ -9,15 +9,17 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HashSolution } from "@/types/mining";
+import { SubmittedHashSolution } from "@/types/mining";
 import { HashTableRow } from "./HashTableRow";
 import { MobileHashCard } from "./MobileHashCard";
 import { useMining } from "@/contexts/MiningContext";
 import { compareHashes } from "@/utils/mining";
 
+type SubmittedSolutionsSortField = "timestamp" | "binaryZeroes" | "hexZeroes" | "timeToFindMs";
+
 export function SubmittedSolutionsList() {
   const { isMining, startMining, stopMining, miningStats } = useMining();
-  const [sortField, setSortField] = useState<keyof HashSolution>("timestamp");
+  const [sortField, setSortField] = useState<SubmittedSolutionsSortField>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const submittedHashes = miningStats.maybeSubmittedSolutions || [];
@@ -39,7 +41,7 @@ export function SubmittedSolutionsList() {
       : (bValue as number) - (aValue as number);
   });
 
-  const toggleSort = (field: keyof HashSolution) => {
+  const toggleSort = (field: SubmittedSolutionsSortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {

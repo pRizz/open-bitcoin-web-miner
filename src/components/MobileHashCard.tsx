@@ -2,16 +2,15 @@ import React from "react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HashSolution } from "@/types/mining";
+import { SubmittedHashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
-import { HashDetailsDialog } from "./HashDetailsDialog";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 
 import MobileFriendlyTooltip from "@/components/ui/mobile-friendly-tooltip";
 import { formatTimestamp, getEffectiveStatus, getStatusIcon, getStatusText } from "@/utils/submittedSolutionsUtils";
 
 interface MobileHashCardProps {
-  hashSolution: HashSolution;
+  hashSolution: SubmittedHashSolution;
 }
 
 export function MobileHashCard({ hashSolution }: MobileHashCardProps) {

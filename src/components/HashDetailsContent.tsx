@@ -1,13 +1,13 @@
 import React from "react";
 
-import { HashSolution } from "@/types/mining";
+import { FoundHashSolution } from "@/types/mining";
 import { formatDuration } from "@/utils/formatters";
 import { Copy } from "lucide-react";
 import { showSuccess, showError } from "@/utils/notifications";
 import { Button } from "@/components/ui/button";
 
 interface HashDetailsContentProps {
-  hash: HashSolution;
+  hash: FoundHashSolution;
 }
 
 export function HashDetailsContent({ hash }: HashDetailsContentProps) {

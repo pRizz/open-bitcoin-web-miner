@@ -1,4 +1,4 @@
-import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
+import { MiningChallenge, MiningSolution } from "@/types/mining";
 import { serializeNonceLE } from "@/types/websocket";
 import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";

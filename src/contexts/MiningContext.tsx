@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { HashSolution, MiningChallenge, MiningMode, MiningSolution } from "@/types/mining";
+import { FoundHashSolution, MiningChallenge, MiningMode, MiningSolution } from "@/types/mining";
 import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { useMiningState } from "@/hooks/useMiningState";
 import { MiningContextMiningState, MiningContextType, MiningHistoryItem } from "./mining/types";
@@ -145,7 +145,7 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
 
       submitSolutionToWebSocket(miningSubmission);
 
-      const hashSolution: HashSolution = {
+      const hashSolution: FoundHashSolution = {
         id: crypto.randomUUID(),
         hash: miningSolution.hash,
         nonceNumber: deserializeNonceLE(miningSolution.nonceVecU8),
@@ -157,7 +157,6 @@ export function MiningProvider({ children }: { children: React.ReactNode }) {
         binaryZeroes: leadingBinaryZeroes,
         hexZeroes: leadingHexZeroes,
         timeToFindMs: miningState.miningStats.maybeStartTime ? Date.now() - miningState.miningStats.maybeStartTime : 0,
-        status: 'pending',
       };
       miningState.updateMiningStats(hashSolution, miningSolution.cumulativeHashes);
       miningState.addSubmittedHash(hashSolution);

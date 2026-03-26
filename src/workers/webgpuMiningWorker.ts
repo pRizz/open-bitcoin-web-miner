@@ -1,5 +1,5 @@
 /// <reference types="@webgpu/types" />
-import { HashSolution, MiningChallenge, MiningSolution } from "@/types/mining";
+import { MiningChallenge, MiningSolution } from "@/types/mining";
 import { serializeNonceLE, serializeNoncelessBlockHeader } from "@/types/websocket";
 import { calculateLeadingZeroesFromHexString } from "@/utils/mining";
 import { nonceToU8ArrayBE } from "@/utils/nonceUtils";
