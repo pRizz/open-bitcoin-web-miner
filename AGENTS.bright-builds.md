@@ -12,9 +12,32 @@ Record recurring repo-specific workflow facts in `AGENTS.md` under `## Repo-Loca
 
 - Standards repository: `https://github.com/bright-builds-llc/coding-and-architecture-requirements`
 - Version pin: `main`
-- Exact commit: `1615f58f3934dbb7cebf1e6058ee989569b33ad9`
+- Exact commit: `afd489893355617a0c8512a4a86928a4b1227f00`
 - Canonical entrypoint: `https://github.com/bright-builds-llc/coding-and-architecture-requirements/blob/main/standards/index.md`
 - Audit manifest path: `coding-and-architecture-requirements.audit.md`
+
+## Required workflow
+
+`AGENTS.md` is the entrypoint for repo-local instructions, not a complete Bright Builds spec.
+
+1. Read `AGENTS.md`, especially any `## Repo-Local Guidance` section and any repo-specific instructions outside the managed Bright Builds block.
+2. Read `AGENTS.bright-builds.md`.
+3. Read `standards-overrides.md` when it exists.
+4. Read the pinned canonical standards entrypoint and any canonical pages relevant to the task before plan, review, implementation, or audit work.
+5. If that reading has not happened yet, stop and load those sources before continuing.
+6. In plan, review, and audit outputs, briefly acknowledge which local guidance, sidecar, overrides, or canonical standards pages materially informed the answer.
+
+## Routing hints
+
+- Use the local `AGENTS.md`, especially `## Repo-Local Guidance`, for repo-specific commands, prerequisites, generated-file ownership, CI-only suites, and recurring workflow facts.
+- Use this file, `AGENTS.bright-builds.md`, for the Bright Builds default workflow and high-signal cross-cutting rules that apply in most tasks.
+- Use `standards-overrides.md` for deliberate repo-specific exceptions to the Bright Builds defaults.
+- Start with the pinned canonical entrypoint `standards/index.md` when you need to choose the right Bright Builds standards page.
+- Use the canonical page `standards/core/architecture.md` for business-logic structure, domain modeling, and functional-core versus imperative-shell decisions.
+- Use the canonical page `standards/core/code-shape.md` for control flow, naming, function/file size, and readability rules.
+- Use the canonical page `standards/core/verification.md` for sync, bootstrap, and pre-commit verification rules.
+- Use the canonical page `standards/core/testing.md` for unit-test expectations.
+- Use the matching canonical page under `standards/languages/` for Rust or TypeScript/JavaScript-specific rules.
 
 ## Highest-signal rules
 
@@ -22,9 +45,10 @@ Record recurring repo-specific workflow facts in `AGENTS.md` under `## Repo-Loca
 - Prefer early returns over nesting.
 - Prefix internal nullable or optional names with `maybe`, including functions, bindings, and internal fields, and use `MaybeX` aliases only when they materially clarify a repeated nullable surface.
 - In user-facing, app-like websites and apps, expose version, commit, and build provenance in a normal visible product surface, show `Unavailable` for missing fields, and provide a copyable summary with the exact commit when available.
-- Treat functions over roughly 200 lines as refactor triggers.
+- Treat functions over roughly 161 lines as refactor triggers; use `floor(100 * phi)` as the mnemonic, not a hard cap.
 - Do not hide substantial foreign-language logic inside strings; keep orchestration thin, move scripts, queries, and similar artifacts into repo-owned or language-aware files, and make checked-in scripts rerunnable when sensible with breadcrumb-heavy logs and summaries in a repo-defined gitignored location.
-- Treat files over roughly 628 lines as refactor triggers.
+- Treat files over roughly 628 lines as refactor triggers; use `floor(100 * tau)` as the mnemonic, not a hard cap.
+- Before substantive implementation work, fetch remote state first; if the current branch tracks an upstream and the worktree is clean, prefer rebasing onto the latest upstream or the repo's equivalent sync path; if a worktree starts detached, assume the repo default branch, often `main`; resolve any sync conflicts before proceeding, then run the repo's normal bootstrap or dependency-sync step when dependencies or tools may be stale.
 - Before committing, run the relevant repo-native verification steps for the changed paths, including Markdown or shell formatter checks when supported tools are already available and local guidance does not define a clearer workflow, and do not commit if they fail.
 - Prefer the repo's own verify/check/validate entrypoint when it exists, and use affected-path or affected-package modes when the repo supports them.
 - Heavy integration, end-to-end, or external-service suites may stay CI-only when local guidance says so.
@@ -39,6 +63,7 @@ Record recurring repo-specific workflow facts in `AGENTS.md` under `## Repo-Loca
 
 - Because the downstream GitHub repo owner resolves to `pRizz`, use the `openlinks-identity-presence` skill whenever the task touches README/docs, website or app chrome, profile/about/footer/settings surfaces, or metadata and discovery fields.
 - Follow the skill's low-intrusion placement bias: prefer footer, about, profile, or README "Find me" placement, keep the visible link primary, and add metadata hints only when the surface already supports them cleanly.
+- If the installer already manages an OpenLinks README badge for this repo, do not add a second near-duplicate README placement unless the user explicitly asks for more prominence.
 - Keep the host project's main brand and CTA primary. Do not add repetitive or aggressive OpenLinks promotion unless the user explicitly asks for it.
 
 ## Local overrides and exceptions
@@ -55,10 +80,4 @@ Recommended fields for each override:
 - owner
 - review date
 
-## Agent workflow
-
-1. Study `AGENTS.md`, especially any `## Repo-Local Guidance` section and any repo-specific instructions outside the managed Bright Builds block.
-2. Study the pinned canonical standards entrypoint.
-3. Load any canonical standards pages relevant to the task, including language-specific guidance when needed.
-4. Apply local guidance and local overrides before proposing or reviewing changes.
-5. If this repository intentionally diverges from the canonical standards, record that divergence instead of silently ignoring it.
+If this repository intentionally diverges from the canonical standards, record that divergence instead of silently ignoring it.

@@ -5,6 +5,7 @@
 [![TypeScript 5.8.2](https://img.shields.io/badge/TypeScript-5.8.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React 18.3.1](https://img.shields.io/badge/React-18.3.1-149ECA?logo=react&logoColor=white)](https://react.dev/)
 [![Vite 5.4.1](https://img.shields.io/badge/Vite-5.4.1-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![OpenLinks profile](https://img.shields.io/badge/OpenLinks-profile-0F172A)](https://openlinks.us/)
 <!-- coding-and-architecture-requirements-readme-badges:end -->
 
 ## Common Commands
