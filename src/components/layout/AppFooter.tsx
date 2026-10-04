@@ -1,3 +1,4 @@
+import { productionSite } from '@/config/production';
 import React from "react";
 import { TypedLink } from "@/components/TypedLink";
 import { buildInfo, formatBuildTimestamp } from "@/lib/buildInfo";
@@ -37,7 +38,7 @@ export function AppFooter() {
       <div className="flex flex-col gap-4 px-6 py-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground/70">
-            Win3Bitco.in
+            {productionSite.brand}
           </span>
           {footerLinks.map((link) => (
             <TypedLink

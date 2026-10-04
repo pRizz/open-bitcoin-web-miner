@@ -45,7 +45,7 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Index />,
-        loader: () => {
+        loader: ({ request }) => {
           // Check if user came from a refresh or another page
           const maybeReferrer = document.referrer;
           const isFromSameOriginValue = isFromSameOrigin(maybeReferrer);
@@ -57,7 +57,7 @@ const router = createBrowserRouter([
 
           if (!hasVisitedWebsiteThisSession && isMobileSync() && !isFromSameOriginValue && !isFromRefreshValue) {
             console.log("Redirecting to simple mining");
-            return redirect(routes.simpleMining.path);
+            return redirect(`${routes.simpleMining.path}${new URL(request.url).search}${window.location.hash}`);
           } else {
             console.log("Not redirecting to simple mining");
           }

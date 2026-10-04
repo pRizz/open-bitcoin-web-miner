@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-deploy_host="${DEPLOY_HOST:-win3bitco.in}"
+config_values="$(bun scripts/production-config.ts)"
+read -r aws_region bucket distribution deploy_host <<<"$config_values"
 deploy_branch="${DEPLOY_BRANCH:-${GITHUB_REF_NAME:-unknown}}"
 deploy_sha="${DEPLOY_SHA:-}"
 deploy_short_sha="${DEPLOY_SHORT_SHA:-}"
@@ -25,8 +26,10 @@ summary_file="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
   echo ""
   echo "- Status: ${deploy_status}"
   echo "- Host: https://${deploy_host}"
+  echo "- S3 bucket: ${bucket} (${aws_region})"
+  echo "- App distribution: ${distribution}"
   echo "- Branch: ${deploy_branch}"
   echo "${commit_line}"
   echo "- Commit date: ${deploy_commit_date}"
   echo "- CloudFront invalidation: ${invalidation_display}"
-} >> "$summary_file"
+} >>"$summary_file"

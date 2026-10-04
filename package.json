@@ -21,8 +21,8 @@
     "build:deploy": "ENABLE_SENTRY_UPLOAD=1 vite build",
     "build:dev": "vite build --mode development",
     "build:analyze": "vite build --mode production",
-    "deploy": "AWS_REGION=us-east-2 S3_BUCKET=www.winabitco.in CLOUDFRONT_DISTRIBUTION_ID=EVH2SH6YOOO76 ./scripts/deploy-production.sh",
-    "deploy:dryrun": "AWS_REGION=us-east-2 S3_BUCKET=www.winabitco.in CLOUDFRONT_DISTRIBUTION_ID=EVH2SH6YOOO76 ./scripts/deploy-production.sh --dryrun",
+    "deploy": "./scripts/deploy-production.sh",
+    "deploy:dryrun": "./scripts/deploy-production.sh --dryrun",
     "build-and-deploy": "rm -rf dist && bun run build:deploy && bun run deploy",
     "analyze": "bun run build:analyze",
     "preview": "vite preview",
@@ -39,7 +39,9 @@
     "protoc-tsproto-nicegrpc-comment": "Notes: ./external is already a Bun workspace package. If you need its local deps refreshed, run bun install --cwd ./external; for the Deno variant use bunx denoify, then run ./supabase/functions/grpc-relay/index.ts and copy the generated file as needed.",
     "build:bin": "tsc -p bin/tsconfig.json",
     "bin": "node bin/dist/index.js",
-    "bin:dev": "tsx bin/src/index.ts"
+    "bin:dev": "tsx bin/src/index.ts",
+    "domains:check": "bun scripts/configure-domains.ts",
+    "deploy:check": "bun scripts/check-production.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

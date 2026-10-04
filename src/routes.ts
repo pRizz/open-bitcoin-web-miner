@@ -1,3 +1,5 @@
+import { productionSite } from './config/production';
+import { publicRoutePaths } from './config/publicRoutes';
 import { LucideIcon, Home, Trophy, Info, BarChart, Zap, Bell, Cpu } from "lucide-react";
 
 type BaseRoute = {
@@ -24,26 +26,26 @@ type DynamicRoute = BaseRoute & {
 export const routes = {
   home: {
     type: 'static' as const,
-    path: '/',
-    routerPath: '/',
-    sidebarTitle: 'Win3Bitco.in',
-    topBarTitle: 'Win3Bitco.in',
+    path: publicRoutePaths.home,
+    routerPath: publicRoutePaths.home,
+    sidebarTitle: productionSite.brand,
+    topBarTitle: productionSite.brand,
     icon: Home,
     keyName: 'home',
   },
   simpleMining: {
     type: 'static' as const,
-    path: '/simple-mining',
-    routerPath: '/simple-mining',
+    path: publicRoutePaths.simpleMining,
+    routerPath: publicRoutePaths.simpleMining,
     sidebarTitle: 'Simple Mode',
-    topBarTitle: 'Win3Bitco.in',
+    topBarTitle: productionSite.brand,
     icon: Zap,
     keyName: 'simpleMining',
   },
   leaderboard: {
     type: 'static' as const,
-    path: '/leaderboard',
-    routerPath: '/leaderboard',
+    path: publicRoutePaths.leaderboard,
+    routerPath: publicRoutePaths.leaderboard,
     sidebarTitle: 'Global Leaderboard',
     topBarTitle: 'Global Leaderboard',
     icon: Trophy,
@@ -80,8 +82,8 @@ export const routes = {
   },
   about: {
     type: 'static' as const,
-    path: '/about',
-    routerPath: '/about',
+    path: publicRoutePaths.about,
+    routerPath: publicRoutePaths.about,
     sidebarTitle: 'About',
     topBarTitle: 'About',
     icon: Info,
@@ -89,8 +91,8 @@ export const routes = {
   },
   proofOfReward: {
     type: 'static' as const,
-    path: '/proof-of-reward',
-    routerPath: '/proof-of-reward',
+    path: publicRoutePaths.proofOfReward,
+    routerPath: publicRoutePaths.proofOfReward,
     sidebarTitle: 'Proof of Reward',
     topBarTitle: 'Proof of Reward',
     icon: Info,
@@ -98,8 +100,8 @@ export const routes = {
   },
   miningStatistics: {
     type: 'static' as const,
-    path: '/mining-statistics',
-    routerPath: '/mining-statistics',
+    path: publicRoutePaths.miningStatistics,
+    routerPath: publicRoutePaths.miningStatistics,
     sidebarTitle: 'Mining Statistics',
     topBarTitle: 'Mining Statistics',
     icon: BarChart,
@@ -107,8 +109,8 @@ export const routes = {
   },
   homeBitcoinMining: {
     type: 'static' as const,
-    path: '/home-bitcoin-mining',
-    routerPath: '/home-bitcoin-mining',
+    path: publicRoutePaths.homeBitcoinMining,
+    routerPath: publicRoutePaths.homeBitcoinMining,
     sidebarTitle: 'Mining Viability',
     topBarTitle: 'Mining Viability',
     icon: Cpu,
@@ -134,8 +136,12 @@ export function isStaticRoute(route: RouteConfig): route is Extract<RouteConfig,
 }
 
 export function getPageTitle(pathname: string): string {
-  const route = Object.values(routes).find((route) => route.path === pathname);
-  return route?.topBarTitle ?? "Win3Bitco.in";
+  const maybeRoute = Object.values(routes).find((route) => {
+    if (route.type === 'static') return route.path === pathname;
+    const prefix = route.routerPath.split('/:')[0];
+    return pathname.startsWith(`${prefix}/`) && pathname.slice(prefix.length + 1).length > 0;
+  });
+  return maybeRoute?.topBarTitle ?? productionSite.brand;
 }
 
 // Define which routes should appear in the sidebar

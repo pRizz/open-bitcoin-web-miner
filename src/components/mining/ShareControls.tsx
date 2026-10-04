@@ -1,7 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Share } from "lucide-react";
-import { URL_PARAMS } from "@/constants/mining";
+import { productionSite } from "@/config/production";
+import { miningShareUrl } from "@/lib/siteUrls";
 import { showSuccess, showError } from "@/utils/notifications";
 import { useMinerInfo } from "@/contexts/mining/MinerInfoContext";
 import { useCallback } from "react";
@@ -18,8 +19,8 @@ async function shareUrl(url: string): Promise<void> {
     try {
       await navigator.share({
         url,
-        title: 'Win3Bitco.in',
-        text: 'Mine Bitcoin in your browser with Win3Bitco.in',
+        title: productionSite.brand,
+        text: `Mine Bitcoin in your browser with ${productionSite.brand}`,
       });
       return;
     } catch (err) {
@@ -54,21 +55,19 @@ export function ShareControls({ maybeButtonText }: ShareControlsProps) {
   const buttonText = isMobile ? "" : (maybeButtonText ?? "Share");
 
   const handleShare = useCallback(async () => {
-    const url = new URL(window.location.href);
-    if (includeAutoStart) {
-      url.searchParams.set(URL_PARAMS.AUTO_START, "true");
-    }
-    if (includeAddress && maybeMinerAddress) {
-      url.searchParams.set(URL_PARAMS.BITCOIN_ADDRESS, maybeMinerAddress);
-    }
-
-    await shareUrl(url.toString());
+    const url = miningShareUrl(window.location.href, {
+      includeAutoStart,
+      includeAddress,
+      maybeMinerAddress,
+    });
+    await shareUrl(url);
   }, [includeAutoStart, includeAddress, maybeMinerAddress]);
 
   return (
     <Button
       variant="outline"
-      size="default"
+      size={isMobile ? "icon" : "default"}
+      aria-label="Share mining link"
       onClick={handleShare}
     >
       <Share className="h-4 w-4" /> {buttonText}

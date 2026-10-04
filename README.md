@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Win3Bitcoin.com
 
 <!-- bright-builds-rules-readme-badges:begin -->
 
@@ -92,17 +92,17 @@ If you previously used the old custom `.githooks` path and Husky does not trigge
 
 Production deploys run automatically on pushes to `main` via [deploy-production.yml](.github/workflows/deploy-production.yml).
 
-The canonical production URL is [https://win3bitco.in](https://win3bitco.in). The deploy bucket name `www.winabitco.in` is an infrastructure detail, not the canonical URL for verifying what is live.
+The canonical production URL is [https://win3bitcoin.com](https://win3bitcoin.com). The deploy bucket name `www.winabitco.in` is an infrastructure detail, not the canonical URL for verifying what is live.
 
 Production only reflects commits that exist on GitHub `main`. Local-only commits, detached worktrees, and unpublished SHAs are not eligible for production deploys.
 
-To verify what is live in production, check the footer on `https://win3bitco.in` or inspect [https://win3bitco.in/build-info.json](https://win3bitco.in/build-info.json).
+To verify what is live in production, check the footer on `https://win3bitcoin.com` or inspect [https://win3bitcoin.com/build-info.json](https://win3bitcoin.com/build-info.json).
 
 The workflow uses the GitHub `production` environment and expects:
 
 - Variable `AWS_REGION=us-east-2`
 - Variable `S3_BUCKET=www.winabitco.in`
-- Variable `CLOUDFRONT_DISTRIBUTION_ID=EVH2SH6YOOO76`
+- Variable `CLOUDFRONT_DISTRIBUTION_ID=E3GD8ZGWCJI0MH`
 - Variable `AWS_DEPLOY_ROLE_ARN=<oidc-assumable-role-arn>`
 - Secret `SENTRY_AUTH_TOKEN=<production sentry token>`
 
@@ -118,13 +118,29 @@ Or, if the build already exists and you only want the deploy step:
 bun run deploy
 ```
 
-The `win3bitcoin.com` redirect infrastructure is separate from the main app deploy and remains unchanged.
+The shared production configuration in `src/config/production.ts` supplies canonical identity and deployment defaults. Explicit environment values must match it. A deploy rejects dirty or untracked source, unpublished commits, a stale bundle, or a bundle built for a different hostname before changing S3; after upload it waits for CloudFront invalidation and verifies HTTPS, the homepage, and the exact deployed commit. For a read-only live check:
 
-To have **win3bitcoin.com** redirect to the app, see [S3 redirect setup](docs/s3-redirect-setup.md) (one-time bucket + DNS; use `./scripts/setup-redirect.sh` as the orchestrator or call the step scripts directly under `./scripts/redirect/`).
+```sh
+bun run deploy:check <published-main-sha>
+```
+
+The existing private app bucket remains `www.winabitco.in` in `us-east-2`. Distribution `E3GD8ZGWCJI0MH` serves the app at `.com`; `www.win3bitcoin.com` redirects to the apex. Distribution `EVH2SH6YOOO76` redirects `win3bitco.in`, `www.win3bitco.in`, `winabitco.in`, and `www.winabitco.in` to `.com`, retaining paths and query parameters. Backend endpoints such as `backend.win3bitco.in` are unchanged.
+
+Read-only domain checks and explicit maintenance phases use the separate maintenance identity:
+
+```sh
+bun run domains:check
+bun scripts/configure-domains.ts --phase prepare        # preview changes
+bun scripts/configure-domains.ts --phase prepare --apply
+bun scripts/configure-domains.ts --phase cutover        # preview redirects
+bun scripts/configure-domains.ts --phase cutover --apply
+```
+
+See [canonical hosting and redirect operations](docs/s3-redirect-setup.md) for staged rollout, external service updates, and rollback. The old S3 redirect commands fail before writes to prevent accidentally restoring the old direction. Domain maintenance snapshots and logs remain ignored under `.codex/`.
 
 ### Production TLS certificates
 
-CloudFront certificates live in ACM **us-east-1**, independently of the S3 deploy region. The app (`EVH2SH6YOOO76`) and `.com` redirect (`E3GD8ZGWCJI0MH`) use separate DNS-validated certificates. Keep every ACM validation CNAME permanently in its public Route 53 zone: removing even one record can prevent renewal of the entire certificate, including its other domains.
+CloudFront certificates live in ACM **us-east-1**, independently of the S3 deploy region. The `.com` app (`E3GD8ZGWCJI0MH`) and legacy-domain redirects (`EVH2SH6YOOO76`) use separate DNS-validated certificates. Keep every ACM validation CNAME permanently in its public Route 53 zone: removing even one record can prevent renewal of the entire certificate, including its other domains.
 
 AWS [automatically renews DNS-validated certificates](https://docs.aws.amazon.com/acm/latest/userguide/dns-renewal-validation.html) while they are attached to CloudFront and all validation records remain publicly accessible. CloudFront uses the renewed certificate automatically; no application deployment, scheduled certificate requests, or cache invalidation is needed.
 
@@ -151,7 +167,3 @@ Regression checks for the maintenance tool:
 ```sh
 python3 -m unittest discover -s scripts -p 'test_certificates.py' -v
 ```
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)

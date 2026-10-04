@@ -2,7 +2,10 @@
 set -euo pipefail
 
 expected_production_branch="${EXPECTED_PRODUCTION_BRANCH:-main}"
-deploy_host="${DEPLOY_HOST:-win3bitco.in}"
+config_values="$(bun scripts/production-config.ts)"
+read -r AWS_REGION S3_BUCKET CLOUDFRONT_DISTRIBUTION_ID DEPLOY_HOST <<<"$config_values"
+export AWS_REGION S3_BUCKET CLOUDFRONT_DISTRIBUTION_ID DEPLOY_HOST
+deploy_host="$DEPLOY_HOST"
 ref_name="${GITHUB_REF_NAME:-}"
 event_name="${GITHUB_EVENT_NAME:-}"
 
@@ -33,5 +36,14 @@ if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "head_sha=${head_sha}"
     echo "head_short_sha=${head_short_sha}"
     echo "commit_date=${commit_date}"
-  } >> "$GITHUB_OUTPUT"
+  } >>"$GITHUB_OUTPUT"
+fi
+
+if [[ -n "${GITHUB_ENV:-}" ]]; then
+  {
+    echo "AWS_REGION=$AWS_REGION"
+    echo "S3_BUCKET=$S3_BUCKET"
+    echo "CLOUDFRONT_DISTRIBUTION_ID=$CLOUDFRONT_DISTRIBUTION_ID"
+    echo "DEPLOY_HOST=$DEPLOY_HOST"
+  } >>"$GITHUB_ENV"
 fi

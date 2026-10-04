@@ -1,3 +1,4 @@
+import { productionSite } from '@/config/production';
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { useMining } from "@/contexts/MiningContext";
@@ -266,7 +267,7 @@ export const MiningStatePanel = () => {
       <div className="mb-2 p-4 border rounded-lg relative z-10 bg-background">
         <h3 className="text-lg font-semibold mb-2 flex gap-2">
           <Database className="w-8 h-8 text-muted-foreground" />
-          Win3Bitco.in Backend
+          {productionSite.brand} Backend
         </h3>
         <div className="space-y-2 text-sm">
           <StatusIndicator isConnected={isConnected} />

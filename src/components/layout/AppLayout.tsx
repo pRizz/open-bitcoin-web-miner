@@ -1,3 +1,4 @@
+import { PageMetadata } from './PageMetadata';
 import React from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
@@ -26,18 +27,19 @@ export function AppLayout() {
 
   return (
     <SidebarProvider defaultOpen={false}>
+      <PageMetadata />
       <AppScrollManager />
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <main className="flex min-h-screen flex-1 flex-col">
-          <div className="sticky top-0 z-[150] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-6 relative">
+          <div className="sticky top-0 z-[150] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-4 sm:p-6 relative">
             {isMining && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-[repeating-linear-gradient(-45deg,theme(colors.green.500),theme(colors.green.500)_10px,theme(colors.green.900)_10px,theme(colors.green.900)_20px)] bg-[length:28.4px_100%] animate-stripes"></div>
             )}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-3 md:gap-4">
+            <div className="flex items-center justify-between gap-2 md:gap-4">
+              <div className="flex min-w-0 items-center gap-2 md:gap-4">
                 <SidebarTrigger className="h-8 w-8" />
-                <h1 className="min-w-0 truncate text-2xl font-bold md:text-4xl">
+                <h1 className="min-w-0 truncate text-lg font-bold sm:text-2xl md:text-4xl">
                   {getPageTitle(location.pathname)}
                 </h1>
               </div>

@@ -1,3 +1,4 @@
+import { productionSite } from '@/config/production';
 import React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, X } from "lucide-react";
@@ -42,7 +43,7 @@ export const WelcomeBanner = () => {
       <div className="overflow-hidden">
         <Alert className="mb-6 relative p-4">
           <Info className="h-4 w-4" />
-          <AlertTitle className="mb-2">Welcome to Win3Bitco.in!</AlertTitle>
+          <AlertTitle className="mb-2">Welcome to {productionSite.brand}!</AlertTitle>
           <AlertDescription>
             Experience the thrill of Bitcoin mining in your browser. Configure your mining settings,
             track your hash rate, and compete with others on the leaderboard. Start mining now to

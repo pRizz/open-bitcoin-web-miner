@@ -1,3 +1,5 @@
+import { productionSite } from './src/config/production';
+import { robotsTxt, sitemapXml } from './src/lib/siteUrls';
 import { defineConfig, Plugin, ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -8,6 +10,19 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 import type { IncomingMessage, ServerResponse } from 'http'
 import fs from 'node:fs';
 import { execSync } from "node:child_process";
+
+const siteIdentityPlugin: Plugin = {
+  name: 'production-site-identity',
+  transformIndexHtml(html) {
+    return html
+      .replaceAll('%SITE_BRAND%', productionSite.brand)
+      .replaceAll('%SITE_ORIGIN%', productionSite.origin);
+  },
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsTxt() });
+    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapXml() });
+  },
+};
 
 const logRequestsPlugin: Plugin = {
   name: 'log-requests',
@@ -32,7 +47,7 @@ const logRequestsPlugin: Plugin = {
 // https://chatgpt.com/c/68605d68-0dec-8002-806c-a3d988076c2b
 const certPath = path.resolve(__dirname, '192.168.0.31.pem');
 const keyPath = path.resolve(__dirname, '192.168.0.31-key.pem');
-const defaultDeployHost = 'win3bitco.in';
+const defaultDeployHost = productionSite.host;
 
 function maybeLoadLocalHttpsConfig() {
   if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
@@ -159,7 +174,11 @@ function resolveBranchName(): string | undefined {
 }
 
 function resolveDeployHost(): string {
-  return process.env.DEPLOY_HOST?.trim() || defaultDeployHost;
+  const maybeDeployHost = process.env.DEPLOY_HOST?.trim();
+  if (maybeDeployHost && maybeDeployHost !== defaultDeployHost) {
+    throw new Error(`DEPLOY_HOST must match the production host ${defaultDeployHost}; received ${maybeDeployHost}`);
+  }
+  return defaultDeployHost;
 }
 
 function resolveOriginRemote(): string | undefined {
@@ -214,6 +233,7 @@ export default defineConfig(({ command, mode }) => {
     },
     plugins: [
       react(),
+      siteIdentityPlugin,
       mode === 'development' &&
         componentTagger(),
       buildMetadataPlugin(buildMetadata),

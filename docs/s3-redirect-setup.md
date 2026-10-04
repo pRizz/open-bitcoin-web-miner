@@ -1,182 +1,76 @@
-# S3 redirect: win3bitcoin.com → https://win3bitco.in
+# Canonical hosting and redirects
 
-This document describes the one-time setup for the S3 bucket that redirects all requests from **win3bitcoin.com** to **https://win3bitco.in**. No app build artifacts are uploaded to this bucket; it uses S3 static website hosting with a redirect-only configuration.
+[Win3Bitcoin.com](https://win3bitcoin.com) is the canonical website. This page replaces the previous S3 redirect setup; its filename is retained for existing documentation links.
 
-## Overview
+## Resources and behavior
 
-- **Redirect bucket**: `win3bitcoin.com` (S3 bucket name must match the domain for website hosting)
-- **Redirect target**: `https://win3bitco.in`
-- **App deploy**: Unchanged; the main app is still built and synced only to `s3://www.winabitco.in/`. This bucket is configured once and never receives app assets.
+| Hostnames                          | Distribution     | Behavior           |
+| ---------------------------------- | ---------------- | ------------------ |
+| `win3bitcoin.com`                  | `E3GD8ZGWCJI0MH` | Serve the app      |
+| `www.win3bitcoin.com`              | `E3GD8ZGWCJI0MH` | 301 to `.com` apex |
+| `win3bitco.in`, `www.win3bitco.in` | `EVH2SH6YOOO76`  | 301 to `.com` apex |
+| `winabitco.in`, `www.winabitco.in` | `EVH2SH6YOOO76`  | 301 to `.com` apex |
 
-## One-time setup
+The app uses the existing private `www.winabitco.in` S3 bucket in `us-east-2` and its origin access control. Both CloudFront certificates are DNS validated in ACM `us-east-1`; keep all validation CNAMEs permanently. A and AAAA aliases point to the corresponding CloudFront distributions. Backend subdomains and parked domains are outside this migration.
 
-### 1. Create the bucket
+CloudFront viewer-request functions preserve escaped paths and repeated query values. The `.com` function redirects noncanonical hosts before rewriting extensionless SPA routes to `/index.html`. Redirects use a fixed canonical destination and `Cache-Control: no-store` during migration to reduce browser-cached reverse loops. Existing cached old redirects may still require clearing browser data when testing.
 
-Use the same region as your main app bucket (e.g. `www.winabitco.in`) for consistency:
+## Maintenance commands
 
-```bash
-aws s3api create-bucket --bucket win3bitcoin.com --region us-east-1
+Use Bun 1.3.x and an authenticated AWS CLI identity with maintenance access to CloudFront, ACM, and the three public Route 53 zones. Routine GitHub app deployment credentials should have only app-bucket upload and app-distribution invalidation/read permissions.
+
+```sh
+# Read-only status by default
+bun scripts/configure-domains.ts
+
+# Preview each phase; no infrastructure changes without --apply
+bun scripts/configure-domains.ts --phase prepare
+bun scripts/configure-domains.ts --phase prepare --apply
+bun scripts/configure-domains.ts --phase cutover
+bun scripts/configure-domains.ts --phase cutover --apply
 ```
 
-For regions other than `us-east-1`, add:
+Configuration lives in `src/config/production.ts`; snapshots and maintenance logs live under ignored `.codex/`. Rerun an interrupted phase: certificates and validation records are reused, and CloudFront updates use ETags to reject concurrent changes. Do not check local AWS snapshots into the public repository.
 
-```bash
-aws s3api put-bucket-location-constraint --bucket win3bitcoin.com --location-constraint us-east-1
+`./scripts/setup-redirect.sh` forwards new CLI arguments to the domain tool. Legacy `bucket`, `cloudfront`, `dns`, and `all` subcommands, and direct scripts under `scripts/redirect/`, fail before AWS writes. The unused S3 redirect bucket is retained for rollback but is not on the serving path.
+
+## Staged rollout
+
+1. Ensure no production deployment is running. Save CloudFront configurations, DNS records, attached certificates, deploy-role policies, and GitHub production environment variables.
+1. Run `prepare --apply`: issue/reuse the redirect certificate, preserve validation records, and prepare edge functions. Promote `.com` to the existing app origin while `.in` continues serving the app. Wait for CloudFront deployment and invalidate cached `.com` redirects.
+1. Temporarily permit the deploy role to create and read invalidations on both distributions. Set the GitHub production environment's `CLOUDFRONT_DISTRIBUTION_ID` to `E3GD8ZGWCJI0MH`. Publish the matching repository changes to `main` and let CI deploy.
+1. Verify `.com` homepage, deep links, assets, mining, backend API/WebSocket connectivity, desktop/mobile layout, share URLs, and build provenance. Then run `cutover --apply` to activate legacy-domain redirects and DNS aliases.
+1. Verify all six HTTPS hosts and A/AAAA DNS records, paths, repeated/escaped parameters, and absence of redirect loops. Limit routine deploy invalidations to `.com` after success.
+
+Local deployment uses shared defaults and rejects mismatched overrides. It requires a clean worktree (including untracked files), `HEAD` to equal GitHub's current `main` commit, and `dist/build-info.json` to match that commit and the canonical host. Upload completion is followed by invalidation completion and HTTPS/provenance checks:
+
+```sh
+bun run deploy:dryrun
+bun run deploy
+bun run deploy:check <published-main-sha>
 ```
 
-(Replace `us-east-1` with your region; `us-east-1` does not use `LocationConstraint`.)
+GitHub deployment IAM must allow `cloudfront:CreateInvalidation` and `cloudfront:GetInvalidation` for `E3GD8ZGWCJI0MH`; the latter is required by the completion waiter.
 
-### 2. Enable static website redirect
+## External services
 
-Configure the bucket to redirect all requests to the target host. No index document or file uploads are required.
+Update GitHub's repository homepage and the existing Google Analytics web stream's default URL to `https://win3bitcoin.com`; preserve the measurement ID and Sentry project. Verify both sites in Google Search Console, submit `https://win3bitcoin.com/sitemap.xml`, and use Change of Address for the old domain when available. Keep legacy-domain redirects for at least one year. Browser storage on `.com` starts fresh; no settings-transfer feature is provided.
 
-**Via AWS CLI:**
+## Rollback
 
-```bash
-aws s3api put-bucket-website --bucket win3bitcoin.com --website-configuration '{
-  "RedirectAllRequestsTo": {
-    "HostName": "win3bitco.in",
-    "Protocol": "https"
-  }
-}'
+Retain both distributions, the old certificate, functions, and S3 resources. Use the saved CloudFront/DNS/IAM/GitHub snapshots as rollback inputs; fetch current ETags before applying a saved CloudFront configuration. First restore **both main domains to serving the app** so a cached redirect cannot create a loop. Verify both origins before optionally restoring the old redirect direction. Restore the GitHub distribution variable and invalidation permissions together with matching repository configuration and build metadata, then publish and verify the rollback deployment. Do not re-enable the retired S3 scripts.
+
+## Certificate checks
+
+The existing `scripts/certificates.py` remains supported. Check both attached certificates and renewal eligibility after maintenance:
+
+```sh
+python3 scripts/certificates.py --distribution-id E3GD8ZGWCJI0MH
+python3 scripts/certificates.py --distribution-id EVH2SH6YOOO76
 ```
 
-**Via AWS Console:**
+ACM renews attached DNS-validated certificates automatically while validation CNAMEs remain publicly accessible. CloudFront adopts the renewal without application deployment. See the [AWS renewal requirements](https://docs.aws.amazon.com/acm/latest/userguide/dns-renewal-validation.html).
 
-1. Open S3 → bucket **win3bitcoin.com** → **Properties**.
-2. Under **Static website hosting**, click **Edit**.
-3. Choose **Redirect all requests to an object**.
-4. **Host name**: `win3bitco.in`
-5. **Protocol**: `https`
-6. Save.
+## External dashboard follow-up
 
-### 3. DNS
-
-Point **win3bitcoin.com** (and optionally **www.win3bitcoin.com**) to the S3 website endpoint so traffic reaches the redirect.
-
-**S3 website endpoint (HTTP only):**
-
-- Format: `win3bitcoin.com.s3-website-<region>.amazonaws.com`
-- Example (us-east-1): `win3bitcoin.com.s3-website-us-east-1.amazonaws.com`
-
-**Route 53:**
-
-- Create an **A** record (alias) or **CNAME** for `win3bitcoin.com` pointing to the S3 website endpoint above.
-- For `www.win3bitcoin.com`, either create another alias/CNAME to the same endpoint or a CNAME to `win3bitcoin.com` if your DNS provider supports it.
-
-**Note:** S3 website endpoints serve **HTTP only**. So `http://win3bitcoin.com` will redirect to `https://win3bitco.in`. Users who type `https://win3bitcoin.com` will need HTTPS on that hostname, which requires CloudFront (see below).
-
-### 4. HTTPS on win3bitcoin.com (optional)
-
-To have `https://win3bitcoin.com` redirect to `https://win3bitco.in` (recommended for SEO and trust):
-
-1. **Request an ACM certificate** (in **us-east-1** for CloudFront) for `win3bitcoin.com` (and `www.win3bitcoin.com` if desired). Validate via DNS.
-2. **Create a CloudFront distribution:**
-   - **Origin domain**: S3 website endpoint for `win3bitcoin.com`, e.g. `win3bitcoin.com.s3-website-us-east-1.amazonaws.com` (do **not** choose the REST-style S3 bucket endpoint).
-   - **Alternate domain names (CNAMEs)**: `win3bitcoin.com` (and optionally `www.win3bitcoin.com`).
-   - **Custom SSL certificate**: Select the ACM certificate from step 1.
-   - **Default root object**: Leave blank (redirect is handled by S3).
-3. **DNS**: Point `win3bitcoin.com` (and `www.win3bitcoin.com` if used) to the CloudFront distribution (CNAME or Route 53 alias to the `*.cloudfront.net` domain).
-
-After DNS propagates, both `http://win3bitcoin.com` and `https://win3bitcoin.com` will redirect to `https://win3bitco.in`.
-
-### Redirect script bundle
-
-The redirect automation is grouped under `./scripts/redirect/`:
-
-- `bucket.sh` – S3 redirect bucket setup
-- `cloudfront.sh` – ACM + CloudFront setup
-- `dns.sh` – Route 53 alias records to CloudFront
-
-The easiest entrypoint is the orchestrator:
-
-```bash
-./scripts/setup-redirect.sh help
-```
-
-#### Automated CloudFront + HTTPS setup
-
-You can automate steps 1–3 with the script below. It requests the ACM certificate, (optionally) adds validation CNAMEs in Route 53, creates the CloudFront distribution, and (optionally) creates A (alias) records to CloudFront.
-
-**Prerequisites:** S3 redirect bucket already set up (`./scripts/redirect/bucket.sh` or `./scripts/setup-redirect.sh bucket`). AWS CLI configured with permissions for ACM, CloudFront, and (if using Route 53) Route 53.
-
-**Optional environment variables:**
-
-- **`R53_HOSTED_ZONE_ID`** – Route 53 hosted zone ID for `win3bitcoin.com`. If set, the script adds ACM validation CNAMEs and A records to CloudFront automatically. If unset, it prints the CNAMEs and CloudFront domain for you to add in your DNS provider.
-- **`INCLUDE_WWW`** – Included by default. Set to `0` to skip `www.win3bitcoin.com` in the certificate and CloudFront aliases.
-
-**Run:**
-
-```bash
-# Run the bundled bucket + CloudFront + DNS flow
-./scripts/setup-redirect.sh all
-
-# With Route 53 (full automation: cert validation + DNS to CloudFront)
-export R53_HOSTED_ZONE_ID=Z1234567890ABC
-./scripts/setup-redirect.sh cloudfront
-
-# Optional: disable www.win3bitcoin.com
-export R53_HOSTED_ZONE_ID=Z1234567890ABC
-export INCLUDE_WWW=0
-./scripts/setup-redirect.sh cloudfront
-
-# Without Route 53 (script creates cert + CloudFront; you add CNAMEs manually)
-./scripts/setup-redirect.sh cloudfront
-```
-
-If ACM validation is still pending and no CloudFront distribution is available yet, the orchestrator skips the DNS step and tells you to rerun `./scripts/setup-redirect.sh dns` after validation is complete.
-
-The script is idempotent: it reuses an existing issued ACM certificate for the domain (if present), reuses an existing CloudFront distribution that already has the alias, and uses Route 53 UPSERT for validation CNAMEs and A records. Safe to run multiple times.
-
-#### Route 53 DNS only (final step)
-
-If the CloudFront distribution already exists and you only want to automate the last DNS step in Route 53, use:
-
-```bash
-./scripts/setup-redirect.sh dns
-```
-
-Behavior:
-
-- Auto-detects the public Route 53 hosted zone for `win3bitcoin.com` when possible
-- Auto-detects the CloudFront distribution that already serves `win3bitcoin.com` when possible
-- UPSERTs Route 53 alias **A** records to the CloudFront distribution
-
-Optional environment variables:
-
-- **`R53_HOSTED_ZONE_ID`** – Explicit hosted zone ID if auto-detection is not desired
-- **`DIST_ID`** – Explicit CloudFront distribution ID if alias-based discovery is not available
-- **`DIST_DOMAIN`** – Explicit CloudFront domain name if you want to skip CloudFront lookups entirely
-- **`INCLUDE_WWW`** – Included by default. Set to `0` to skip `www.win3bitcoin.com` when aliases cannot be discovered automatically
-- **`DRY_RUN`** – Set to `1` to print the intended Route 53 change batch without applying it
-
-Examples:
-
-```bash
-# Preview the Route 53 changes without applying them
-DRY_RUN=1 ./scripts/setup-redirect.sh dns
-
-# Apply the final Route 53 alias records
-./scripts/setup-redirect.sh dns
-
-# Apply using an explicit hosted zone ID and known distribution ID
-R53_HOSTED_ZONE_ID=Z1234567890ABC DIST_ID=E1234567890ABC ./scripts/setup-redirect.sh dns
-```
-
-## Reproducible setup scripts
-
-**1. S3 redirect bucket only (HTTP redirect):**
-
-```bash
-./scripts/setup-redirect.sh bucket
-```
-
-Ensure the AWS CLI is installed and configured (credentials or profile) with permission to create buckets and put bucket website configuration.
-
-**2. CloudFront + HTTPS (optional, after step 1):**
-
-See [Automated CloudFront + HTTPS setup](#automated-cloudfront--https-setup) above for `./scripts/setup-redirect.sh cloudfront` usage.
-
-**3. Route 53 DNS only (optional, after CloudFront exists):**
-
-Use `./scripts/setup-redirect.sh dns` to automate just the final Route 53 alias step.
+The migration retains Analytics measurement ID `G-88HYSQZDT7` and the existing Sentry project. Updating the Analytics web stream URL to `https://win3bitcoin.com` is a documented gap: the existing property was not available through the signed-in accounts, and its owner account is currently unknown. Do not create a replacement property or change the measurement ID to work around this.
