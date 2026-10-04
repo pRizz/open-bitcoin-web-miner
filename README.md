@@ -122,6 +122,36 @@ The `win3bitcoin.com` redirect infrastructure is separate from the main app depl
 
 To have **win3bitcoin.com** redirect to the app, see [S3 redirect setup](docs/s3-redirect-setup.md) (one-time bucket + DNS; use `./scripts/setup-redirect.sh` as the orchestrator or call the step scripts directly under `./scripts/redirect/`).
 
+### Production TLS certificates
+
+CloudFront certificates live in ACM **us-east-1**, independently of the S3 deploy region. The app (`EVH2SH6YOOO76`) and `.com` redirect (`E3GD8ZGWCJI0MH`) use separate DNS-validated certificates. Keep every ACM validation CNAME permanently in its public Route 53 zone: removing even one record can prevent renewal of the entire certificate, including its other domains.
+
+AWS [automatically renews DNS-validated certificates](https://docs.aws.amazon.com/acm/latest/userguide/dns-renewal-validation.html) while they are attached to CloudFront and all validation records remain publicly accessible. CloudFront uses the renewed certificate automatically; no application deployment, scheduled certificate requests, or cache invalidation is needed.
+
+With AWS CLI v2, Python 3.9+, and `dig` installed, check certificate status, renewal eligibility, all public validation CNAMEs, and live TLS verification:
+
+```sh
+python3 scripts/certificates.py --distribution-id EVH2SH6YOOO76
+python3 scripts/certificates.py --distribution-id E3GD8ZGWCJI0MH
+```
+
+The default is read-only and exits nonzero when unhealthy or within 30 days of expiry. To restore missing CNAMEs and replace an expired certificate:
+
+```sh
+python3 scripts/certificates.py --distribution-id EVH2SH6YOOO76 --apply
+python3 scripts/certificates.py --distribution-id E3GD8ZGWCJI0MH --apply
+```
+
+Repair reuses issued or pending certificates matching the distribution aliases, waits for issuance, and updates only the viewer certificate using CloudFront's ETag concurrency check. It saves configuration snapshots, rollback input, logs, and a result summary under the ignored `.codex/certificates/` directory. After an interrupted run, rerun the same command. Repair waits for public DNS propagation; DNS caching may briefly delay a successful read-only check after restoring records.
+
+Use `AWS_PROFILE` for a different CLI identity. Checks require `cloudfront:GetDistributionConfig` and `acm:DescribeCertificate`. Repairs additionally require `cloudfront:GetDistribution`, `cloudfront:UpdateDistribution`, `acm:ListCertificates`, `acm:RequestCertificate`, `route53:ListHostedZones`, and `route53:ChangeResourceRecordSets` for the affected public zones. The application deploy role does not need these maintenance permissions.
+
+Regression checks for the maintenance tool:
+
+```sh
+python3 -m unittest discover -s scripts -p 'test_certificates.py' -v
+```
+
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
