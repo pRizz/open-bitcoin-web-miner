@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { productionSite } from '../../src/config/production';
-import { appConfig, assertExpectedDistributions, DistributionConfig, distributionMatches, parseArguments, redirectConfig, usableCertificate, validationRecords } from './model';
+import { appConfig, assertExpectedDistributions, DistributionConfig, distributionMatches, parseArguments, redirectConfig, redirectMatches, usableCertificate, validationRecords } from './model';
 import { updateDistribution } from './configuration';
 import { aws } from './aws';
 
@@ -20,6 +20,28 @@ function config(aliases: string[]): DistributionConfig {
 }
 
 describe('domain rollout safeguards', () => {
+  it('accepts CloudFront reordering query keys without losing repeated escaped values', () => {
+    // Arrange
+    const expected = 'https://win3bitcoin.com/home-bitcoin-mining?probe=one&probe=two&escaped=a%2Fb';
+    const actual = 'https://win3bitcoin.com/home-bitcoin-mining?escaped=a%2Fb&probe=one&probe=two';
+
+    // Act
+    const matches = redirectMatches(actual, expected);
+
+    // Assert
+    expect(matches).toBe(true);
+  });
+
+  it('rejects changes to the order of repeated query values', () => {
+    // Arrange
+    const expected = 'https://win3bitcoin.com/?probe=one&probe=two';
+
+    // Act
+    const matches = redirectMatches('https://win3bitcoin.com/?probe=two&probe=one', expected);
+
+    // Assert
+    expect(matches).toBe(false);
+  });
   it('treats AWS deprecated certificate aliases as unchanged on a rerun', () => {
     // Arrange
     const current = config([...productionSite.redirectAliases]);

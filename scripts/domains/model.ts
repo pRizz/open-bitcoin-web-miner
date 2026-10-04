@@ -39,11 +39,24 @@ export type Certificate = {
 export function distributionMatches(current: DistributionConfig, desired: DistributionConfig): boolean {
   const normalize = (value: DistributionConfig) => {
     const config = structuredClone(value);
+    config.Aliases.Items?.sort();
     delete config.ViewerCertificate.Certificate;
     delete config.ViewerCertificate.CertificateSource;
     return config;
   };
   return isDeepStrictEqual(normalize(current), normalize(desired));
+}
+
+/** CloudFront may reorder query keys; repeated values must retain their original order. */
+export function redirectMatches(location: string | null, expected: string): boolean {
+  if (!location) return false;
+  const actual = new URL(location);
+  const target = new URL(expected);
+  if (actual.origin !== target.origin || actual.pathname !== target.pathname || actual.hash !== target.hash) return false;
+  const actualKeys = [...new Set(actual.searchParams.keys())].sort();
+  const expectedKeys = [...new Set(target.searchParams.keys())].sort();
+  return isDeepStrictEqual(actualKeys, expectedKeys)
+    && expectedKeys.every(key => isDeepStrictEqual(actual.searchParams.getAll(key), target.searchParams.getAll(key)));
 }
 
 export function parseArguments(argv: string[]): { phase: Phase; apply: boolean } {

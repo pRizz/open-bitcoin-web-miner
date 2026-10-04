@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 import { productionSite } from '../src/config/production';
 import { getEdgeSource } from './edge-routing';
 import { aws, cli, initializeRun, log, runDirectory, snapshot, waitFor } from './domains/aws';
-import { appConfig, assertExpectedDistributions, DistributionResponse, parseArguments, redirectConfig, validationRecords } from './domains/model';
+import { appConfig, assertExpectedDistributions, DistributionResponse, parseArguments, redirectConfig, redirectMatches, validationRecords } from './domains/model';
 import { describeCertificate, ensureRedirectCertificate, ensureValidation } from './domains/certificates';
 import { ensureFunction, ensureWebsiteDns, functionNames, updateDistribution } from './domains/configuration';
 import { deployPolicy, deployRole, ensureDeployPermissions, RoleResponse } from './domains/permissions';
@@ -44,7 +44,7 @@ async function checkWebsite(): Promise<boolean> {
       const expected = `${productionSite.origin}/home-bitcoin-mining?probe=one&probe=two&escaped=a%2Fb`;
       const good = host === productionSite.host
         ? response.status === 200
-        : response.status === 301 && response.headers.get('location') === expected;
+        : response.status === 301 && redirectMatches(response.headers.get('location'), expected);
       healthy &&= good;
       await log(`${host}: ${response.status}; canonical routing ${good ? 'PASS' : 'FAIL'}`);
     } catch (error) {

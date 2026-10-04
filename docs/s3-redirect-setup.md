@@ -74,3 +74,12 @@ ACM renews attached DNS-validated certificates automatically while validation CN
 ## External dashboard follow-up
 
 The migration retains Analytics measurement ID `G-88HYSQZDT7` and the existing Sentry project. Updating the Analytics web stream URL to `https://win3bitcoin.com` is a documented gap: the existing property was not available through the signed-in accounts, and its owner account is currently unknown. Do not create a replacement property or change the measurement ID to work around this.
+
+## Migration verification — October 4, 2026
+
+- The canonical app and five redirect hosts pass strict HTTPS checks. Paths, URL-escaped values, and repeated query values survive redirects; CloudFront may reorder distinct query keys.
+- Both ACM certificates are issued and eligible for renewal. All validation CNAMEs remain in Route 53.
+- The production deploy role now permits CreateInvalidation and GetInvalidation only for the app distribution. Repeating cutover reuses the issued certificate and leaves an already-correct redirect distribution unchanged.
+- Search Console ownership is verified for both domains, and Google accepted the change of address from win3bitco.in to win3bitcoin.com. Keep the ownership TXT records alongside the ACM validation CNAMEs.
+- A/AAAA records and CloudFront IPv6 support are enabled for every hostname. Native IPv6 HTTP probes could not be completed from this workstation because its network reports No route to host; this is a verification gap, not evidence of a CloudFront configuration failure. IPv4 HTTPS checks pass for every hostname.
+- Keep the legacy domains and redirects through at least October 4, 2027. The former S3 redirect bucket and configuration snapshots remain available for rollback.
